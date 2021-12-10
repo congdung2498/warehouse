@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt05.vt050017.dao.VT050017DAO">
+
+	<select id="findData" resultType="com.viettel.vtnet360.vt05.vt050017.entity.VT050017DataResponse"
+							parameterType="com.viettel.vtnet360.vt05.vt050017.entity.VT050017RequestParam">
+		SELECT    isa.ISSUES_STATIONERY_APPROVED_ID as requestID,
+                (SELECT FULL_NAME FROM QLDV_EMPLOYEE WHERE USER_NAME = isa.HCDV_USERNAME) as hcdvFullName,
+                isa.CREATE_DATE as dateRequest,
+                isa.HCDV_MESSAGE as message,
+                qe.FULL_NAME as vptctFullName,
+                isa.VPTCT_EXECUTE_DATE as dateExecute,
+                SUM(isi.TOTAL_REQUEST) as quantity,
+                SUM(isi.TOTAL_REQUEST * isi.UNIT_PRICE) as totalMoney,
+                SUM(isi.TOTAL_REQUEST * isi.UNIT_PRICE) as totalFullfill,
+                isa.STATUS as status
+        FROM 
+	            ISSUES_STATIONERY_APPROVED isa 
+	            LEFT JOIN QLDV_EMPLOYEE qe ON qe.USER_NAME = isa.VPTCT_USERNAME 
+	            LEFT JOIN ISSUES_STATIONERY_ITEMS isi ON isi.ISSUES_STATIONERY_APPROVED_ID = isa.ISSUES_STATIONERY_APPROVED_ID 
+	            LEFT JOIN STORAGE_HCDV_REQUEST shr ON shr.ISSUES_STATIONERY_APPROVED_ID = isi.ISSUES_STATIONERY_APPROVED_ID   
+		<if test="roleAdmin == false">
+			WHERE isa.HCDV_USERNAME IN (	
+									SELECT 	EMPLOYEE_USERNAME
+									FROM 	STATIONERY_STAFF
+									WHERE 	ISSUE_LOCATION = (SELECT ISSUE_LOCATION FROM STATIONERY_STAFF WHERE EMPLOYEE_USERNAME = #{hcdvUserName} AND DELETE_FLAG = 0 AND JOB_CODE = '01')
+											AND UNIT_ID = (SELECT UNIT_ID FROM STATIONERY_STAFF WHERE EMPLOYEE_USERNAME = #{hcdvUserName} AND DELETE_FLAG = 0 AND JOB_CODE = '01')
+								 )
+		</if>
+		<if test="roleAdmin == false and dateRequest != null">
+			AND MONTH(isa.CREATE_DATE) = MONTH(#{dateRequest})
+			AND YEAR(isa.CREATE_DATE) = YEAR(#{dateRequest})
+		</if>
+		<if test="roleAdmin == true and dateRequest != null">
+			WHERE MONTH(isa.CREATE_DATE) = MONTH(#{dateRequest})
+			AND YEAR(isa.CREATE_DATE) = YEAR(#{dateRequest})
+		</if>
+		<if test="(roleAdmin == false or dateRequest != null) and status >= 0">
+			AND isa.STATUS = #{status}
+		</if>
+		<if test="roleAdmin == true and dateRequest == null and status >= 0">
+			WHERE isa.STATUS = #{status}
+		</if>
+		GROUP BY isa.ISSUES_STATIONERY_APPROVED_ID
+		ORDER BY dateRequest DESC
+		<if test="pageNumber >= 0 and pageSize > 0">
+			LIMIT #{pageNumber}, #{pageSize}
+		</if>
+	</select>
+	
+</mapper>

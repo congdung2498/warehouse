@@ -1,0 +1,263 @@
+<div class="container">
+    <div class="container-fluid text-center mt-3">
+        <h1>DANH MỤC CẤU HÌNH TÊN VIẾT TẮT</h1>
+    </div>
+    <form id="formSearch" [formGroup]="formSearch">
+        <div class="row mb-3">
+            <div class="col-xl-12 mb-3">
+                <p-fieldset legend="Thông tin tìm kiếm">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="row">
+                                        <div class="col-sm-3" >Tên viết tắt:
+                                        </div>
+                                        <div class="col-sm-9 ui-fluid" style="position: relative;">
+                                            <p-autoComplete #shortNameFld [suggestions]="placeShortNameList" formControlName="unitId"
+                                                            (completeMethod)="getShortName($event)" field="shortName" [style]="{'width':'60%'}"
+                                            ></p-autoComplete>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-12">
+                                    <div class="row">
+                                        <div class="col-sm-3" style="text-align: left; padding-top: 16px;">Tên đơn vị:
+                                        </div>
+                                        <div class="col-sm-9 ui-fluid">
+                                        <p-scrollPanel [style]="{width: '100%', height: '150px', marginLeft: '-25px'}">
+                                        <p-tree id="shortTree" [value]="sectors" selectionMode="checkbox"
+                                        [(selection)]="selectedSector" (onNodeExpand)="nodeExpand($event)"
+                                        [loading]="loadingTree" class="no-border"></p-tree>
+
+
+                                        </p-scrollPanel>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+
+                            <div class="row">
+                                <div class="col-sm-12">
+                                <div class="row mb-4">
+                                <div class="col-sm-3" style="text-align: left; padding-top: 5px;">Bếp:
+                                </div>
+                                <div class="col-sm-9 " style="position: relative;">
+                                <p-dropdown #kitchenFld [options]="kitchenNameList" [style]="{'width':'100%'}" optionLabel="kitchenName"
+                                formControlName="kitchenId" filter="true"
+                                placeholder="--Lựa chọn bếp--" emptyFilterMessage="Không có dữ liệu" >
+                                </p-dropdown>
+
+                                </div>
+                                </div>
+                                </div>
+                                <div class="col-sm-12">
+                                    <div class="row mb-4">
+                                        <div class="col-sm-3" style="text-align: left; padding-top: 5px;">Ghi chú:</div>
+                                        <div class="col-sm-9 ui-fluid" [style]="{'width':'1000%'}" >
+                                            <textarea style="width: 100%;" formControlName="note" ></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </p-fieldset>
+            </div>
+            <div class="col-xl-12">
+                <div class="text-center">
+                    <button type="button" pButton icon="fa fa-search" iconPos="left" label="Tìm kiếm"
+                            (click)="searchData()" style="text-align: center;"></button>
+                    <button type="button" pButton icon="fa fa-plus" iconPos="left" label="Thêm" (click)="add()"
+                            style="text-align: center;"></button>
+                </div>
+            </div>
+        </div>
+    </form>
+    <!-- create table -->
+    <div class="row">
+        <div class="col-xl-12">
+            <!-- if has data -->
+            <p-table #dt [rows]="10" [value]="resultList" [totalRecords]="total_record"
+                     (onLazyLoad)="onLazyLoad($event)" [lazy]="true" [paginator]="true">
+                <ng-template pTemplate="header">
+                    <tr style="font-weight: bold;">
+                        <th rowspan="2" class="text-center" style="width: 3rem; font-weight: bold;">STT</th>
+                        <th rowspan="2" class="text-center" style="width: 3rem; font-weight: bold;">Thao tác</th>
+                        <th rowspan="5" class="text-center" style="width: 8rem; font-weight: bold;">Tên đơn vị</th>
+                        <th rowspan="5" class="text-center" style="width: 5rem; font-weight: bold;">Bếp</th>
+                        <th rowspan="2" class="text-center" style="width: 5rem; font-weight: bold;">Tên viết tắt</th>
+                        <th rowspan="2" class="text-center" style="width: 8rem; font-weight: bold;">Ghi chú</th>
+                    </tr>
+                </ng-template>
+
+                <ng-template let-ri="rowIndex" pTemplate="body" let-item>
+                    <tr>
+                        <td style="width: 3rem; padding: 2px 1.5px !important;">{{ri+1}}</td>
+                        <td style="width: 3rem;">
+                            <div class="row ">
+                                <div class="col-sm-5 ">
+                                    <p-button *ngIf="item.isShowEdit" icon="pi pi-pencil" [disabled]="isEdit"
+                                              (onClick)="doEdit(item)" pTooltip="Chỉnh sửa"></p-button>
+                                </div>
+
+                                <div class="col-sm-7 ">
+                                    <p-button *ngIf="item.isShowEdit" icon="pi pi-trash" [disabled]="isEdit"
+                                              (onClick)="doDelete(item)" pTooltip="Xóa"></p-button>
+                                </div>
+
+                                <div class="col-sm-5 ">
+                                    <p-button *ngIf="item.isShowAdmin" icon="pi pi-pencil" [disabled]="isEdit"
+                                              (onClick)="doEdit(item)" pTooltip="Chỉnh sửa"></p-button>
+                                </div>
+
+                                <div class="col-sm-7 ">
+                                    <p-button *ngIf="item.isShowAdmin" icon="pi pi-trash" [disabled]="isEdit"
+                                              (onClick)="doDelete(item)" pTooltip="Xóa"></p-button>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="wrapText" pTextEllipsis [pTooltip]="item.unitName"
+                            style="width: 8rem; text-align: left !important;">
+                            {{item.unitName}}
+                        </td>
+                        <td style="width: 6rem" class="wrapText" pTextEllipsis [pTooltip]="item.kitchenName">
+                            {{item.kitchenName }}
+                        </td>
+                        <td class="wrapText" pTextEllipsis [pTooltip]="item.shortName"
+                            style="width: 5rem; text-align: left !important;">
+                            {{item.shortName}}
+                        </td>
+
+                        <td class="wrapText" pTextEllipsis [pTooltip]="item.note"
+                            style="width: 7rem; text-align: left !important;">
+                            {{item.note}}
+                        </td>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="paginatorright">
+                      <span style="position: absolute; right: 30px; bottom: 6px;">
+                            {{startRow + 1}} - {{startRow + rowSize}} / {{total_record}}
+
+                      </span>
+                </ng-template>
+
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td [attr.colspan]="6" style="text-align: center;">
+                            Không có dữ liệu
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+    </div>
+</div>
+
+
+<p-dialog [modal]="true" [width]="1000" [(visible)]="isDialogDetails">
+
+    <div class="container">
+        <div class="row mb-3">
+
+            <!-- ThangBT -->
+            <div class="col-xl-12 mb-3">
+                <p-fieldset legend="Sửa cấu hình tên viết tắt">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="row" style="margin-left: 5px; margin-right:10px;">
+                                <!-- status field -->
+                                <div class="col-sm-12">
+                                    <div class="row mb-4">
+                                        <div class="col-sm-4" style="text-align: left; padding-right: 0px;">Bếp:
+                                            <span style="color: red;">*</span>:
+                                        </div>
+                                        <div class="col-sm-8 ui-fluid" style="position: relative;">
+                                            <p-dropdown [style]="{'width':'100%'}" [options]="kitchenNameListUpdate" optionLabel="kitchenName"
+                                                            [(ngModel)]="selectedKitchen" filter="true" [disabled]="false" emptyFilterMessage="Không có dữ liệu" >
+                                            </p-dropdown>
+
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- date field -->
+                                <div class="col-sm-12">
+
+                                </div>
+                                <!-- employee field -->
+                                <div class="col-sm-12">
+                                    <div class="row mb-4">
+                                        <div class="col-sm-4" style="text-align: left; padding-right: 0px;">Tên viết tắt:
+                                            <span style="color: red;">*</span>:
+                                        </div>
+                                        <div class="col-sm-8 ui-fluid" style="position: relative;">
+                                            <p-dropdown [style]="{'width':'100%'}" *ngIf="isShowDropdown" [options]="unitShorteningList"
+                                                        optionLabel="shortName" [(ngModel)]="shortName" filter="true" emptyFilterMessage="Không có dữ liệu" >
+                                            </p-dropdown>
+
+                                            <input style="width: 100%;" *ngIf="isShowTextBox" type="text" class="form-control"
+                                                   maxlength="200" [(ngModel)]="shortNameText"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-12">
+                                    <div class="row mb-4">
+                                        <div class="col-sm-4" style="text-align: left; padding-right: 0px">Thêm tên viết tắt:
+                                        </div>
+                                        <div class="col-sm-8 ui-fluid" style="  position: relative;">
+                                            <p-checkbox binary="true" [(ngModel)]="isCheck"
+                                                        (onChange)="changeTypeUpdate($event)"></p-checkbox>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="col-sm-12">
+                                <div class="row">
+                                    <div class="col-sm-4" style="text-align: left; padding-left: 19px;">Ghi chú:</div>
+                                <div class="col-sm-8 ui-fluid" style="position: relative;">
+                                    <textarea [(ngModel)]="note" style="width: 100%;" [ngModelOptions]="{standalone: true}"></textarea>
+                                </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6" style="">
+                            <div class="row">
+                                <div class="col-sm-3" style="text-align: left; padding-top: 5px;">Tên đơn vị:
+                                </div>
+                                <div class="col-sm-9 ui-fluid">
+                                    <p-scrollPanel [style]="{width: '100%', height: '150px'}">
+                                        <p-tree id="shortTreeDlg" [value]="sectorUpdates" selectionMode="checkbox"
+                                                [(selection)]="selectedSectorUpdate" (onNodeExpand)="nodeExpand($event)"
+                                                [loading]="loadingTree" class="no-border"></p-tree>
+                                    </p-scrollPanel>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </p-fieldset>
+            </div>
+            <!-- create table -->
+            <div class="col-xl-12">
+                <div class="text-center">
+
+                    <button type="button" pButton icon="fa fa-plus" iconPos="left" label="Cập nhật" (click)="update()"
+                            style="text-align: center;"></button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</p-dialog>
+
+
+
+
+
+

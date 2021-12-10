@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt03.vt030005.dao.VT030005DAO">
+	<!-- Tim kiem vi tri khoi hanh va dia diem den cho yeu cau dat xe -->
+	<select id="findPlaceStart" resultType="com.viettel.vtnet360.vt03.vt030000.entity.VT030000EntityPlace" parameterType="com.viettel.vtnet360.vt03.vt030000.entity.VT030000EntityPlace">
+		SELECT 
+			a.PLACE_ID as placeId, 
+			a.PLACE_CODE as placeCode, 
+			a.PLACE_NAME as placeName, 
+			a.AREA as area, 
+			a.DESCRIPTION as description, 
+			a.STATUS status
+		FROM QLDV_PLACE AS a
+		WHERE STATUS = 1
+		<if test="placeName != null">
+			 AND
+				<bind name="pattern" value="'%' + placeName + '%'" /> 
+				a.PLACE_NAME LIKE #{pattern}
+		</if>	
+	</select>
+	
+	<!-- Them moi yeu cau dat xe -->
+	<insert id="insertRequest" parameterType="com.viettel.vtnet360.vt03.vt030000.entity.VT030000ResponseBookCarRequest">
+	<selectKey keyProperty="bookCarId" resultType="String" order="BEFORE">
+            SELECT CONCAT( 'VTN_SR_',NEXT VALUE FOR VTN_S) as bookCarId
+	</selectKey>
+	INSERT INTO 
+		CAR_BOOKING
+							(
+							CAR_BOOKING_ID, 
+							EMPLOYEE_USER_NAME, 
+							REASON, 
+							`START`, 
+							`END`, 
+							`TYPE`, 
+							SEAT, 
+							ROUTE_TYPE, 
+							START_PLACE, 
+							TAGET_PLACE, 
+							ROUTE, 
+							TOTAL_PASSAGE, 
+							LIST_PASSAGE, 
+							<if test="approverDir != null">
+								APPOVER_QLTT, 
+								FLAG_QLTT,
+							</if>
+							<if test="approverLead != null">
+								<if test="approverDir != null">
+									APPOVER_LDDV, 
+								</if>
+								<if test="approverDir == null">
+									APPOVER_LDDV, 
+									FLAG_LDDV,
+								</if>					
+							</if>
+							APPOVER_CVP, 
+							<if test="approverLead == null and approverDir == null">
+								FLAG_CVP, 
+							</if>
+							CAR_ID,
+							RATTING,
+							STATUS, 
+							CREATE_USER, 
+							CREATE_DATE, 
+							UPDATE_USER, 
+							UPDATE_DATE,
+							DRIVER_SQUAD_ID
+							)
+				VALUES(
+							#{bookCarId}, 
+							#{userName}, 
+							#{reason}, 
+							#{dateStart}, 
+							#{dateEnd}, 
+							#{type}, 
+							#{seat}, 
+							#{route}, 
+							#{startPlace}, 
+							#{targetPlace}, 
+							#{routeWay}, 
+							#{totalPartner}, 
+							#{listPartner}, 
+							<if test="approverDir != null">
+								#{approverDir}, 
+								0,
+							</if>
+							<if test="approverLead != null">
+								<if test="approverDir != null">
+									#{approverLead},
+								</if>
+								<if test="approverDir == null">
+									#{approverLead},
+									0,
+								</if>	
+							</if>
+							#{approverPre}, 
+							<if test="approverLead == null and approverDir == null">
+							0,
+							</if>					
+							'',
+							0,
+							0, 
+							#{userName}, 
+							now(), 
+							NULL, 
+							NULL,
+							#{driverSquadId});
+	</insert>
+	
+	<!-- Them moi yeu cau dat xe moi -->
+	<insert id="insertRequestResult" parameterType="com.viettel.vtnet360.vt03.vt030000.entity.VT030000EntityBookCarResult">
+	<selectKey keyProperty="bookCarId" resultType="String" order="BEFORE">
+            SELECT CONCAT( 'VTN_SR_',NEXT VALUE FOR VTN_S) as bookCarId
+	</selectKey>
+	INSERT INTO 
+		CAR_BOOKING
+							(
+							CAR_BOOKING_ID, 
+							EMPLOYEE_USER_NAME, 
+							REASON, 
+							`START`, 
+							`END`, 
+							`TYPE`, 
+							SEAT, 
+							ROUTE_TYPE, 
+							START_PLACE, 
+							TAGET_PLACE, 
+							ROUTE, 
+							TOTAL_PASSAGE, 
+							LIST_PASSAGE, 
+							<if test="approverDir != null">
+								APPOVER_QLTT, 
+								FLAG_QLTT,
+							</if>
+							<if test="approverLead != null">
+								<if test="approverDir != null">
+									APPOVER_LDDV, 
+								</if>
+								<if test="approverPre == null">
+									APPOVER_LDDV, 
+									FLAG_LDDV,
+								</if>					
+							</if>
+							APPOVER_CVP, 
+							<if test="approverLead == null and approverDir == null">
+								FLAG_CVP, 
+							</if>
+							CAR_ID,
+							RATTING,
+							STATUS, 
+							CREATE_USER, 
+							CREATE_DATE, 
+							UPDATE_USER, 
+							UPDATE_DATE,
+							DRIVER_SQUAD_ID
+							)
+				VALUES(
+							#{bookCarId}, 
+							#{userName}, 
+							#{reason}, 
+							#{dateStart}, 
+							#{dateEnd}, 
+							#{type}, 
+							#{seat}, 
+							#{route}, 
+							#{startPlace}, 
+							#{targetPlace}, 
+							#{routeWay}, 
+							#{totalPartner}, 
+							#{listPartner}, 
+							<if test="approverDir != null">
+								#{approverDir}, 
+								0,
+							</if>
+							<if test="approverLead != null">
+								<if test="approverDir != null">
+									#{approverLead},
+								</if>
+								<if test="approverDir == null">
+									#{approverLead},
+									0,
+								</if>	
+							</if>
+							#{approverPre}, 
+							<if test="approverLead == null and approverDir == null">
+							0,
+							</if>					
+							'',
+							0,
+							0, 
+							#{userName}, 
+							now(), 
+							NULL, 
+							NULL,
+							#{squadId});
+	</insert>
+	
+	
+	<select id="limitRequestBookCar" resultType="int" parameterType="com.viettel.vtnet360.vt03.vt030000.entity.VT030000ResponseBookCarRequest">
+		SELECT COUNT(*) as count
+			FROM CAR_BOOKING as a
+			WHERE a.EMPLOYEE_USER_NAME = #{userName}
+	        AND ((( #{dateStart} BETWEEN a.`START` AND a.`END`) OR ( #{dateEnd}  BETWEEN a.`START` AND a.`END`)) OR 
+                (( a.`START` BETWEEN #{dateStart} AND #{dateEnd}) OR ( a.`END` BETWEEN #{dateStart} AND #{dateEnd})))
+	         AND a.STATUS != 3 
+			AND a.STATUS != 7 
+			AND a.STATUS != 2 
+			AND a.STATUS != 8
+			AND a.STATUS != 9
+	</select>
+	
+	<!-- check duplicate yeu cau dat xe moi -->
+	<select id="limitRequestBookCarResult" resultType="int" parameterType="com.viettel.vtnet360.vt03.vt030000.entity.VT030000EntityBookCarResult">
+		SELECT COUNT(*)
+		FROM  CAR_BOOKING as a 
+			SELECT a.`START`, a.`END`, a.CAR_BOOKING_ID
+			FROM CAR_BOOKING as a
+			WHERE a.EMPLOYEE_USER_NAME = #{userName}
+			AND ((( #{dateStart} BETWEEN a.`START` AND a.`END`) OR ( #{dateEnd}  BETWEEN a.`START` AND a.`END`)) OR 
+                (( a.`START` BETWEEN #{dateStart} AND #{dateEnd}) OR ( a.`END` BETWEEN #{dateStart} AND #{dateEnd})))
+			AND a.STATUS != 3 
+			AND a.STATUS != 7 
+			AND a.STATUS != 2 
+			AND a.STATUS != 8
+		) as count
+	</select>
+	
+	<!-- tim kiem quan li truc tiep -->
+	
+	
+	
+	
+	
+</mapper>

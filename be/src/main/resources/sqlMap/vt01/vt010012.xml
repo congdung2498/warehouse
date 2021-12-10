@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.viettel.vtnet360.vt01.vt010012.dao.VT010012DAO">
+
+	<!-- get list of employees -->
+	<select id="findListEmployee" parameterType="com.viettel.vtnet360.vt01.vt010012.entity.VT010012ListEmployee"
+		resultType="com.viettel.vtnet360.vt01.vt010012.entity.VT010012ListEmployee">
+		SELECT
+			e.FULL_NAME AS result,
+			e.USER_NAME AS userName
+		FROM
+			QLDV_EMPLOYEE e LEFT JOIN QLDV_UNIT ON e.UNIT_ID = QLDV_UNIT.UNIT_ID
+		WHERE
+			QLDV_UNIT.`PATH` LIKE CONCAT('%','234841','%')
+		<if test = "result != null &amp;&amp; result.length &gt; 0">
+		<bind name="pattern" value="'%' + result + '%'"/>
+				AND e.FULL_NAME LIKE #{pattern}
+				AND e.STATUS = 1
+			UNION SELECT
+				e.CODE AS result,
+				e.USER_NAME AS userName
+			FROM
+				QLDV_EMPLOYEE e LEFT JOIN QLDV_UNIT ON e.UNIT_ID = QLDV_UNIT.UNIT_ID
+			WHERE
+				QLDV_UNIT.`PATH` LIKE CONCAT('%','234841','%')
+				AND e.CODE LIKE #{pattern}
+				AND e.STATUS = 1
+			UNION SELECT
+				e.PHONE_NUMBER AS result,
+				e.USER_NAME AS userName
+			FROM
+				QLDV_EMPLOYEE e LEFT JOIN QLDV_UNIT ON e.UNIT_ID = QLDV_UNIT.UNIT_ID
+			WHERE
+				QLDV_UNIT.`PATH` LIKE CONCAT('%','234841','%')
+				AND e.PHONE_NUMBER LIKE #{pattern}
+				AND e.STATUS = 1
+			UNION SELECT
+				e.EMAIL AS result,
+				e.USER_NAME AS userName
+			FROM
+				QLDV_EMPLOYEE e LEFT JOIN QLDV_UNIT ON e.UNIT_ID = QLDV_UNIT.UNIT_ID
+			WHERE
+				QLDV_UNIT.`PATH` LIKE CONCAT('%','234841','%')
+				AND e.EMAIL LIKE #{pattern}
+				AND e.STATUS = 1
+			UNION SELECT
+				e.USER_NAME AS result,
+				e.USER_NAME AS userName
+			FROM
+				QLDV_EMPLOYEE e LEFT JOIN QLDV_UNIT ON e.UNIT_ID = QLDV_UNIT.UNIT_ID
+			WHERE
+				QLDV_UNIT.`PATH` LIKE CONCAT('%','234841','%')
+				AND e.USER_NAME LIKE #{pattern}
+				AND e.STATUS = 1
+		</if>
+		ORDER BY result ASC 
+		LIMIT 50
+	</select>
+
+	<!-- get list of card -->
+	<select id="findListCard" parameterType="com.viettel.vtnet360.vt01.vt010012.entity.VT010012ListCondition"
+		resultType="com.viettel.vtnet360.vt01.vt010012.entity.VT010012ListCondition">
+		SELECT
+			e.CARD_ID AS cardId
+		FROM
+			QLDV_EMPLOYEE e
+		<where>
+			e.STATUS = 1
+			<if test="cardId != null and cardId.length &gt; 0">
+			<bind name="pattern" value="'%' + cardId + '%'"/>
+				AND e.CARD_ID LIKE #{pattern}
+			</if>
+		</where>
+		LIMIT 50
+	</select>
+
+	<!-- get all add card -->
+	<select id="findListAddCard" parameterType="com.viettel.vtnet360.vt01.vt010012.entity.VT010012ListCondition"
+		resultType="com.viettel.vtnet360.vt01.vt010012.entity.VT010012ListAddCard">
+		SELECT
+			u.UNIT_NAME AS unitName,
+			CASE 
+				WHEN u.UNIT_ID = 234841 THEN IFNULL(u.UNIT_NAME, '')
+				WHEN b.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''))
+				WHEN c.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''), IFNULL(CONCAT(' / ', c.UNIT_NAME), ''))
+				ELSE CONCAT(IFNULL(b.UNIT_NAME, ''), IFNULL(CONCAT(' / ', c.UNIT_NAME), ''), IFNULL(CONCAT(' / ', d.UNIT_NAME), ''))
+			END AS detailUnit,
+			e.FULL_NAME AS empName,
+			e.CODE AS empCode,
+			e.CARD_ID AS cardId
+		FROM
+			QLDV_EMPLOYEE e
+		LEFT JOIN QLDV_UNIT u ON
+			e.UNIT_ID = u.UNIT_ID
+		LEFT JOIN QLDV_UNIT b ON
+			u.PARENT_UNIT_ID = b.UNIT_ID
+		LEFT JOIN QLDV_UNIT c ON
+			b.PARENT_UNIT_ID = c.UNIT_ID
+		LEFT JOIN QLDV_UNIT d ON
+			c.PARENT_UNIT_ID = d.UNIT_ID
+		<where>
+			u.`PATH` LIKE CONCAT('%','234841','%')
+			AND e.STATUS = 1
+			<!-- <if test="listUnit != null and listUnit.length &gt; 0">
+				<foreach item="item1" collection="listUnit" open = "AND (" separator=" OR " close = ")">
+					u.UNIT_ID = #{item1}
+				</foreach>
+			</if> -->
+			<if test="listUnit != null and listUnit.length &gt; 0">
+				AND e.UNIT_ID IN
+				<foreach item="item1" collection="listUnit" open="(" separator=" UNION " close = ")">
+					SELECT
+						UNIT_ID
+					FROM
+						QLDV_UNIT
+					WHERE
+						QLDV_UNIT.`PATH` LIKE CONCAT('%', #{item1}, '%')
+				</foreach>
+			</if>
+			<if test="personInfo != null and personInfo.length &gt; 0">
+			<bind name="pattern1" value="'%' + personInfo + '%'"/>
+				AND ( e.CODE LIKE #{pattern1}
+				OR e.FULL_NAME LIKE #{pattern1}
+				OR e.EMAIL LIKE #{pattern1}
+				OR e.PHONE_NUMBER LIKE #{pattern1}
+				OR e.USER_NAME LIKE #{pattern1} )
+			</if>
+			<if test="cardId != null and cardId.length &gt; 0">
+			<bind name="pattern2" value="'%' + cardId + '%'"/>
+				AND e.CARD_ID LIKE #{pattern2}
+			</if>
+		</where>
+		ORDER BY
+			u.UNIT_NAME,
+			e.FULL_NAME
+		<if test="startRow != -1 &amp;&amp; rowSize != -1">
+			LIMIT #{startRow}, #{rowSize}
+		</if>
+	</select>
+
+	<!-- count total record -->
+	<select id="countTotalRecord" parameterType="com.viettel.vtnet360.vt01.vt010012.entity.VT010012ListCondition"
+		resultType="java.lang.Integer">
+		SELECT
+			COUNT(*)
+		FROM
+			QLDV_EMPLOYEE e
+			LEFT JOIN QLDV_UNIT u ON
+			e.UNIT_ID = u.UNIT_ID
+		<where>
+			u.`PATH` LIKE CONCAT('%','234841','%')
+			AND e.STATUS = 1
+			<!-- <if test="listUnit != null and listUnit.length &gt; 0">
+				<foreach item="item1" collection="listUnit" open = "AND (" separator=" OR " close = ")">
+					u.UNIT_ID = #{item1}
+				</foreach>
+			</if> -->
+			<if test="listUnit != null and listUnit.length &gt; 0">
+				AND e.UNIT_ID IN
+				<foreach item="item1" collection="listUnit" open="(" separator=" UNION " close = ")">
+					SELECT
+						UNIT_ID
+					FROM
+						QLDV_UNIT
+					WHERE
+						QLDV_UNIT.`PATH` LIKE CONCAT('%', #{item1}, '%')
+				</foreach>
+			</if>
+			<if test="personInfo != null and personInfo.length &gt; 0">
+			<bind name="pattern1" value="'%' + personInfo + '%'"/>
+				AND ( e.CODE LIKE #{pattern1}
+				OR e.FULL_NAME LIKE #{pattern1}
+				OR e.EMAIL LIKE #{pattern1}
+				OR e.PHONE_NUMBER LIKE #{pattern1}
+				OR e.USER_NAME LIKE #{pattern1} )
+			</if>
+			<if test="cardId != null and cardId.length &gt; 0">
+			<bind name="pattern2" value="'%' + cardId + '%'"/>
+				AND e.CARD_ID LIKE #{pattern2}
+			</if>
+		</where>
+	</select>
+
+	<!-- start processing update card -->
+	<!-- check couple employee and cardId is existed or not  -->
+	<select id="checkExistCardAndEmp" parameterType="com.viettel.vtnet360.vt01.vt010012.entity.VT010012ListAddCard"
+		resultType="java.lang.Integer">
+		SELECT
+			COUNT(*)
+		FROM
+			QLDV_EMPLOYEE e
+		<where>
+			AND e.STATUS = 1
+			<if test="empCode != null and empCode.length &gt; 0">
+				AND e.CODE != #{empCode}
+			</if>
+			<if test="cardId != null and cardId.length &gt; 0">
+				AND e.CARD_ID = #{cardId}
+			</if>
+		</where>
+	</select>
+
+	<!-- update card id -->
+	<update id="updateCardEmp" parameterType="com.viettel.vtnet360.vt01.vt010012.entity.VT010012ListAddCard">
+		UPDATE
+			QLDV_EMPLOYEE SET
+				CARD_ID = #{cardId},
+				UPDATE_USER = #{loginUserName},
+				UPDATE_DATE = SYSDATE()
+			WHERE
+				STATUS = 1
+				AND CODE = #{empCode}
+	</update>
+	<!-- end processing update card -->
+
+</mapper>

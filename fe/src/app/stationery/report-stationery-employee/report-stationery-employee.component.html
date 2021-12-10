@@ -1,0 +1,562 @@
+    <div class="container" style="max-width: 1400px">
+        <div class="row ">
+            <div class="col-sm-12 ">
+                <form ngNoForm onsubmit="return false;">
+                    <p-fieldset legend="Thông tin tìm kiếm">
+
+                        <div class="row">
+                            <div class="col-sm-7">
+                                <div class="form-group row">
+                                    <div class="col-sm-1"></div>
+                                    <label class="col-sm-3 col-form-label">Vị trí:</label>
+                                    <div class="col-sm-7 ui-fluid">
+                                        <p-autoComplete [ngModelOptions]="{standalone: true}" [(ngModel)]="place"
+                                                        [disabled]="isManager" [suggestions]="listFilterPlace"
+                                                        (completeMethod)="filterPlace($event)" [size]="30"
+                                                        [minLength]="1" placeholder="--Chọn vị trí--"
+                                                        [dropdown]="true"
+                                                        field="placeName" [minLength]="1" [dropdown]="true"
+                                                        class="fix-drop-down" (onBlur)="focusOutPlace()"
+                                                        emptyMessage="Vị trí không tồn tại, xin kiểm tra lại">
+                                        </p-autoComplete>
+                                    </div>
+                                    <div class="col-sm-1"></div>
+                                </div>
+
+                                <div class="form-group row">
+                                    <div class="col-sm-1"></div>
+                                    <label class="col-sm-3 col-form-label">Thời gian:</label>
+                                    <div class="col-sm-7">
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <div class="row">
+                                                    <div style="position: relative;" class="col-sm-12 ui-fluid">
+                                                        <p-calendar dateFormat="dd/mm/yy" placeholder="DD/MM/YYYY"
+                                                                    [(ngModel)]="fromDate" [showIcon]="true"
+                                                                    [readonlyInput]="true"
+                                                                    showButtonBar="true" [locale]="vn"
+                                                                    [monthNavigator]="true" [yearNavigator]="true"
+                                                                    yearRange="2000:2030"
+                                                                    (ngModelChange)="selectFromDate()"></p-calendar>
+                                                        <span *ngIf="fromDate != null"
+                                                              class="customIcon pi pi-times"
+                                                              (click)="clearFromDate($event)"></span>
+                                                        <span class="fa fa-minus"
+                                                              style="position: absolute; top: 12px; right: -10px; color: #848484"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <div class="row">
+                                                    <div style="position: relative; margin-left: 2px;"
+                                                         class="col-sm-12 ui-fluid">
+                                                        <p-calendar dateFormat="dd/mm/yy" placeholder="DD/MM/YYYY"
+                                                                    [(ngModel)]="toDate" [showIcon]="true"
+                                                                    [readonlyInput]="true"
+                                                                    showButtonBar="true" [locale]="vn"
+                                                                    [monthNavigator]="true" [yearNavigator]="true"
+                                                                    yearRange="2000:2030"
+                                                                    (ngModelChange)="selectToDate()"></p-calendar>
+                                                        <span *ngIf="toDate != null" class="customIcon pi pi-times"
+                                                              (click)="clearToDate($event)"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group row">
+                                    <div class="col-sm-1"></div>
+                                    <label class="col-sm-3 col-form-label">Trạng thái</label>
+                                    <div class="col-sm-7 ui-fluid">
+                                        <p-multiSelect #myDrop [options]="status" [(ngModel)]="ListSelectedStatus"
+                                                       [filter]="false" defaultLabel="-- Chọn trạng thái --"
+                                                       [displaySelectedLabel]="true"
+                                                       [maxSelectedLabels]="2" (onChange)="onChange()"
+                                                       (onPanelShow)="onShow()"     [filter]="true"
+                                                       (onPanelHide)="onHide()">
+                                        </p-multiSelect>
+                                        <div class="customDiv" [@animation]="isDisplay"
+                                             (click)="selectedAll($event)">{{textShow}}
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-1"></div>
+                                </div>
+
+                                <div class="form-group row">
+                                    <div class="col-sm-1"></div>
+                                    <label class="col-sm-3 col-form-label">Người yêu cầu:</label>
+                                    <div class="col-sm-7 ui-fluid">
+                                        <p-autoComplete [(ngModel)]="employee" [suggestions]="listFilterEmployee" [disabled]="isDisableEmployeeFld"
+                                                        (completeMethod)="filterEmployee($event)" [size]="30"
+                                                        [minLength]="1" placeholder="--Chọn nhân viên--"
+                                                        (onSelect)="employeeSelect($event)" [dropdown]="true"
+                                                        field="fullName" [minLength]="1" [dropdown]="true"
+                                                        class="fix-drop-down" (onBlur)="focusOutEmployee()"
+                                                        emptyMessage="Nhân viên tiếp nhận không tồn tại, xin kiểm tra lại">
+                                        </p-autoComplete>
+                                    </div>
+                                    <div class="col-sm-1"></div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-5">
+                                <!-- ĐƠN VỊ TREE -->
+                                <div class="form-group row" style="margin-top: -40px;">
+                                    <div class="col-sm-12">
+                                        <p-fieldset legend="Đơn vị" [style]="{'height': '243px'}">
+                                            <p-scrollPanel [style]="{height: '195px'}">
+                                                <p-tree id="shortTree" *ngIf="sectors != null && sectors[0] != null" [value]="sectors" selectionMode="checkbox"
+                                                        [(selection)]="selectedSector" (onNodeExpand)="nodeExpand($event)"
+                                                        [loading]="loadingTree" class="no-border"></p-tree>
+                                                <div *ngIf="sectors == null || sectors[0] == null">
+                                                    Đồng chí chưa được cấu hình đơn vị tiếp nhận nào
+                                                </div>
+                                            </p-scrollPanel>
+                                        </p-fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </p-fieldset>
+                    <div class="row row-button">
+                        <div class="col-sm-2"></div>
+                        <div class="col-sm-8">
+                            <p-button label="Tìm kiếm" icon="pi pi-search" (click)="handleSearchEmployee()"></p-button>
+                            <p-button class="ui-button-danger" icon="fa fa-file-excel-o" (click)="exportExcel()"
+                                      label="Xuất file" [disabled]="isDisabledButton"></p-button>
+                            <button tabindex="0" type="button" pButton icon="fa fa-download" iconPos="left" label="Import file" (click)="openImportExcel()"></button>
+                            <p-button class="ui-button-danger" icon="fa fa-plus" (click)="addRequestStationery()"
+                                      label="Thêm"></p-button>
+                            <p-button *ngIf="isAdmin || isHCDV" class="ui-button-danger" icon="fa fa-send" (click)="execute()"
+                                      label="Trình ký"></p-button>
+                        </div>
+                        <div class="col-sm-2"></div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-xl-12">
+                <p-table #myEmployee [lazy]="true"
+                         [value]="listStationeryReportEmployee"
+                         [totalRecords]="total_record_employee" [paginator]="true" [rows]="15" (onPage)="onPaginate($event)">
+                    <ng-template pTemplate="header">
+                        <tr >
+                            <th style="width: 5%">STT</th>
+                            <th *ngIf="isAdmin || isHCDV" style="width: 4%; text-align: center">
+                                <p-checkbox (onChange)="checkAllItems($event)" binary="true" [(ngModel)]="isCheckedAll"></p-checkbox>
+                            </th>
+                            <th style="width: 9%; text-align: center;">Thao tác</th>
+                            <th style="width: auto; text-align: center;">Tên vị Trí</th>
+                            <th style="width: 8%; text-align: center;">Tên đơn Vị</th>
+                            <th style="width: 8%; text-align: center;">Tên VPP</th>
+                            <th style="width: 130px; text-align: center;">Mã YC của nhân viên</th>
+                            <th style="width: auto; text-align: center;">Ngày đăng ký</th>
+                            <th style="width:auto; text-align: center;">Tên nhân viên</th>
+                            <th style="width: auto; text-align: center;">Trạng thái VPP</th>
+                            <th style="width: auto; text-align: center;">Trạng thái đơn trình kí</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template let-ri="rowIndex" pTemplate="body" let-rowData>
+                        <tr>
+                            <td>{{ri+1}}</td>
+                            <td *ngIf="isAdmin || isHCDV">
+                                <p-checkbox  *ngIf="rowData.isApprove" value="{{rowData.issuesStationeryItemId}}" [(ngModel)]="selectedItemIds"
+                                             (onChange)="onCheckItem($event)"></p-checkbox>
+                            </td>
+                            <td>
+                                <p-button  *ngIf="rowData.isEdit" icon="pi pi-pencil" (onClick)="doEdit(rowData)" pTooltip="Chỉnh sửa" ></p-button>
+                                <p-button *ngIf="rowData.isCancel" icon="fa fa-ban" (onClick)="doCancel(rowData)" pTooltip="Hủy"></p-button>
+                            </td>
+                            <td style="text-align: left !important" pTextEllipsis [pTooltip]="rowData.startPlace" >
+                                {{rowData["startPlace"]}}
+                            </td>
+                            <td style="text-align: left !important" class="wrapText"  [pTooltip]="rowData.unitName">
+                                {{rowData["unitName"]}}
+                            </td>
+                            <td style="text-align: left" pTextEllipsis [pTooltip]="rowData.stationeryName">
+                                {{rowData["stationeryName"]}}
+                            </td>
+                            <td  class="wrapText" pTextEllipsis [pTooltip]="rowData.issuesStationeryId">
+                                <a class="date-link" (click)="selectRow(rowData);">{{rowData["issuesStationeryId"]}}</a>
+                            </td>
+                            <td pTextEllipsis [pTooltip]="rowData.requestDate | date: 'dd/MM/yyyy HH:mm' ">
+                                {{rowData["requestDate"] | date: 'dd/MM/yyyy HH:mm' }}
+                            </td>
+                            <td style="text-align: left !important" pTextEllipsis [pTooltip]="rowData.fullName">
+                                {{rowData["fullName"]}}
+                            </td>
+                            <td pTextEllipsis [pTooltip]="convertStatusUnit[rowData.status]">
+                                {{convertStatusUnit[rowData["status"]]}}
+                            </td>
+                            <td pTextEllipsis [pTooltip]="convertStatus[rowData.statusUnit]">
+                                {{convertStatus[rowData["statusUnit"]]}}
+                            </td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="paginatorright">
+                        <span style="position: absolute; right: 30px; bottom: 6px;">{{startRow}} - {{rowSize}} / {{total_record_employee}}</span>
+                    </ng-template>
+                    <ng-template *ngIf="isAdmin || isHCDV" pTemplate="emptymessage">
+                        <tr>
+                            <td [attr.colspan]="11" style="text-align: center;">
+                                Không có dữ liệu
+                            </td>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template *ngIf="!isAdmin && !isHCDV" pTemplate="emptymessage">
+                        <tr>
+                            <td [attr.colspan]="9" style="text-align: center;">
+                                Không có dữ liệu
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+
+            </div>
+        </div>
+    </div>
+
+    <!--dialog add -->
+    <p-dialog header="Thêm yêu cầu VPP" id="adddialog" [(visible)]="dialogAddStationery" [modal]="true"  x
+              [responsive]="true" (onHide)="onClosedialog()"
+              [width]="1000"  [closable]="true">
+        <!-- POP-UPPPPP -->
+        <div class="container" style="max-height: 500px">
+            <div class="row" style="margin-top: 20px;">
+                <div class="col-sm-6">
+                    <div class="form-group row">
+                        <label class="col-sm-4">Đơn vị: </label>
+                        <div class="col-sm-8 ui-fluid">
+                            <span><b>{{empUnit}}</b></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-4">Họ và tên :</label>
+                        <div class="col-sm-8 ui-fluid">
+                            <span><b>{{empName}}</b></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="form-group row">
+                        <label class="col-sm-4">Số điện thoại:</label>
+                        <div class="col-sm-8 ui-fluid">
+                           <span><b>{{empPhone}}</b></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-4">Email: </label>
+                        <div class="col-sm-8 ui-fluid">
+                            <span><b>{{empEmail}}</b></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="form-group row">
+                        <label class="col-sm-4">Hạn mức còn lại: </label>
+                        <div *ngIf="limitQuota" class="col-sm-8 ui-fluid" >
+                            <span><b>{{limitQuota | number:0}}</b></span>
+                        </div>
+                        <div *ngIf="limitQuotaStr" class="col-sm-8 ui-fluid" >
+                            <span><b>{{limitQuotaStr}}</b></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-4 pt-2">Vị trí  <span style="color: red;">*</span>: </label>
+                        <div class="col-sm-8 ui-fluid">
+                            <p-autoComplete #placeAddFld [(ngModel)]="placeStationery"
+                                            [disabled]="isManager" [suggestions]="listFilterPlaceAdd"
+                                            (completeMethod)="filterPlaceEdit($event)" [size]="50" [minLength]="1"
+                                            placeholder="--Chọn vị trí--"
+                                            field="placeName" [minLength]="1" [dropdown]="true"
+                                            emptyMessage="Vị trí không tồn tại, xin kiểm tra lại">
+                            </p-autoComplete>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="form-group row">
+                        <label class="col-sm-4">Trạng thái :</label>
+                        <div class="col-sm-8 ui-fluid">
+                            <label style="color: red">{{statusConstant}}</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-12 mb-2">
+                    <span><b>Văn phòng phẩm yêu cầu :</b></span>
+                </div>
+
+                <div class="col-sm-12 mt-2" style ="padding-top: 20px">
+                    <p-scrollPanel [style]="{width: '100%', height: '200px', paddingTop: '20px'}">
+                        <div *ngFor="let infor of lstChefInfor; let i=index;trackBy:indexTracker"
+                             class="row mb-2">
+                            <div class="col-sm-6" style ="padding-top: 20px" >
+                                <div class="form-group row">
+                                    <div class="col-sm-4" style="text-align: center;">
+                                        <button pButton type="button" class="ui-button-danger" icon="pi pi-minus" title="Xóa văn phòng phẩm"
+                                                (click)="removeChef(i)"
+                                                [disabled]="lstChefInfor != null && lstChefInfor.length === 1"></button>
+                                    </div>
+                                    <div class="col-sm-8 ui-fluid">
+                                        <p-dropdown [style]="{'width':'100%'}" [options]="stationeryNameList"
+                                                    optionLabel="stationeryName" placeholder="Chọn văn phòng phẩm"
+                                                    [(ngModel)]="lstChefInfor[i]" filter="true"
+                                                    (onChange)="selectedAddStationery(i,$event)"
+                                                    emptyFilterMessage="Không có dữ liệu">
+                                        </p-dropdown>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-2" style ="padding-top: 20px">
+                                <input type="number" pInputText style="padding-left: 7px;" [(ngModel)]="lstChefInfor[i].quantity"
+                                       min="1" max="9999999" onKeyUp="if(this.value > 9999999){this.value='9999999';}else if(this.value < 1){this.value='1';}"/>
+                            </div>
+                            <div class="col-sm-4 pt-2"><span *ngIf="lstChefInfor[i].unitPrice != null">{{lstChefInfor[i].unitPrice | number:0}}/{{lstChefInfor[i].calUnit}}</span>
+
+                            </div>
+
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6"
+                                 style="padding-left: 25px !important;text-align: center;">
+                                <button pButton type="button" icon="pi pi-plus" title="Thêm văn phòng phẩm"
+                                        (click)="addChef()"
+                                        style="margin-right: .5em"></button>
+                            </div>
+                        </div>
+
+                    </p-scrollPanel>
+                </div>
+                <div class="col-sm-12 mt-2">
+                    <div class="form-group row">
+                        <label class="col-sm-2 pt-2">Ghi chú :</label>
+                        <div class="col-sm-10 ui-fluid">
+                               <textarea pInputTextarea [ngModelOptions]="{standalone: true}" maxlength="255" rows="5"
+                                         [style]="{'width': '100%'}" [(ngModel)]="note"
+                                         (change)="onChangeCreateTrimming()" (keypress)="onKeypressCreateTrimming($event)"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p-footer>
+            <div class="row row-button">
+                <div class="col-sm-4"></div>
+                <div class="col-sm-4">
+                    <p-button class="ui-button-danger" label="Thêm mới" (click)="addRequest()" [disabled]="isDisableAddBtn"></p-button>
+                    <p-button class="ui-button-danger" label="Hủy bỏ"
+                              (click)="this.dialogAddStationery = false"></p-button>
+                </div>
+                <div class="col-sm-4"></div>
+            </div>
+        </p-footer>
+    </p-dialog>
+
+    <!--dialog edit-->
+    <p-dialog header="Chi tiết yêu cầu VPP" [(visible)]="dialogEditRequestEmployee" [modal]="true"
+              (onHide)="onClosedialog()" [responsive]="true"
+              [width]="1000" [closable]="true" [height]="600">
+        <div class="container">
+            <div class="row mt-2">
+                <div class="col-sm-12" style="padding-top: 10px;">
+                    <div class=" row">
+                        <div class="col-sm-6">
+                            <div class="form-group row">
+                                <label class="col-sm-4">Đơn vị: </label>
+                                <div class="col-sm-8 ui-fluid">
+                                    <label>{{unitEmployee}}</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group row">
+                                <label class="col-sm-4"> Họ và tên:</label>
+                                <div class="col-sm-8 ui-fluid">
+                                    <label>{{nameEmployee}}</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-12" style="padding-top: 10px;">
+                    <div class=" row">
+                        <div class="col-sm-6">
+                            <div class="form-group row">
+                                <label class="col-sm-4">Số điện thoại:</label>
+                                <div class="col-sm-8 ui-fluid">
+                                    <label>{{phoneEmployee}}</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group row">
+                                <label class="col-sm-4">Email:</label>
+                                <div class="col-sm-8 ui-fluid">
+                                    <label>{{emailEmployee}}</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-12" style="padding-top: 10px;">
+                    <div class=" row">
+                        <div class="col-sm-6">
+                            <div class="form-group row">
+                                <label class="col-sm-4">Hạn mức còn lại:</label>
+                                <div class="col-sm-8 ui-fluid">
+                                    <label>{{quotaEmployee | number:0}}</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group row">
+                                <label class="col-sm-4">Trạng thái:</label>
+                                <div class="col-sm-8 ui-fluid">
+                                    <label style="color: red;">{{convertStatusUnit[statusEmployee]}}</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6" style="padding-top: 10px;">
+                    <div class="form-group row">
+                        <label class="col-sm-4 pt-2">Vị trí <span style="color: red;">*</span> : </label>
+                        <div class="col-sm-8 ui-fluid pt-2">
+                            <p-autoComplete #placeAddFld [ngModelOptions]="{standalone: true}" [(ngModel)]="placeStationery"
+                                            [disabled]="!isShowAddingVPP" [suggestions]="listFilterPlace"
+                                            (completeMethod)="filterPlaceEdit($event)" [size]="30" [minLength]="1"
+                                            placeholder="--Chọn vị trí--"
+                                            field="placeName" [minLength]="1" [dropdown]="true" class="fix-drop-down"
+                                            (onBlur)="focusOutPlace()"
+                                            emptyMessage="Vị trí không tồn tại, xin kiểm tra lại">
+                            </p-autoComplete>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="col-sm-12" style="padding-top: 10px;">
+                    <div class=" row">
+                        <div class="col-sm-6" style="padding-bottom: 10px;"><b> Văn phòng phầm yêu cầu </b></div>
+                    </div>
+                </div>
+                <div class="col-sm-12 mt-2">
+                    <p-scrollPanel [style]="{width: '100%', height: '200px', paddingTop: '20px'}">
+                        <div *ngFor="let infor of lstChefInfor; let i=index;trackBy:indexTracker" class="row mb-2">
+                            <div class="col-sm-6">
+                                <div class="row">
+                                    <div class="col-sm-4" style="text-align: center;">
+                                        <button *ngIf="!isCancel" class="ui-button-danger" pButton type="button" icon="pi pi-minus"
+                                                title="Xóa văn phòng phẩm"
+                                                (click)="removeChef(i)"
+                                                [disabled]="lstChefInfor[i].isDisable || isDisableRemoveBtn"></button>
+                                    </div>
+                                    <div class="col-sm-8 ui-fluid">
+                                        <p-dropdown [style]="{'width':'100%'}" [options]="stationeryNameList"
+                                                    optionLabel="stationeryName" placeholder="Chọn văn phòng phẩm"
+                                                    [(ngModel)]="lstChefInfor[i]" filter="true" [disabled]="lstChefInfor[i].isDisable || lstChefInfor[i].isApproved || !isShowAddingVPP"
+                                                    (onChange)="selectedAddStationery(i,$event)" dataKey="stationeryId"
+                                                    emptyFilterMessage="Không có dữ liệu">
+                                        </p-dropdown>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-2 ui-fluid">
+                                <input type="number" pInputText style="padding-left: 7px;" [(ngModel)]="lstChefInfor[i].quantity" [disabled]="lstChefInfor[i].isDisable || lstChefInfor[i].isApproved || !isShowAddingVPP"
+                                       min="1" max="9999999" onKeyUp="if(this.value > 9999999){this.value='9999999';}else if(this.value < 1){this.value='1';}"/>
+                            </div>
+                            <div class="col-sm-4 pt-2"><span *ngIf="lstChefInfor[i].unitPrice != null">{{lstChefInfor[i].unitPrice | number:0 }}/{{lstChefInfor[i].calUnit}}</span>
+                            </div>
+
+                        </div>
+                        <div class="row" *ngIf="isShowAddingVPP">
+                            <div class="col-sm-6"
+                                 style="padding-left: 25px !important;text-align: center;">
+                                <button pButton type="button" icon="pi pi-plus" title="Thêm văn phòng phẩm"
+                                        (click)="addChef()" style="margin-right: .5em"></button>
+                            </div>
+                        </div>
+                    </p-scrollPanel>
+                </div>
+                <div class="col-sm-12">
+                    <div class="row col-sm-12">
+                        <label class="col-sm-12 ">Ghi chú
+                        </label>
+                        <div class="col-sm-12 ui-fluid">
+                          <textarea type="text" [style]="{'width': '100%'}" pInputTextarea [disabled]="isCancel" maxlength="255"
+                                    [(ngModel)]="massage" [ngModelOptions]="{standalone: true}"
+                                    (change)="onChangeEditTrimming()" (keypress)="onKeypressEditTrimming($event)"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-12 pt-4 " style="padding-left:0px;padding-right: 0px;">
+                <div class="col-sm-12 ">
+                    <div class="row text-center">
+                        <div class="col-sm-12 text-center" style="padding-left:0px;">
+                            <button *ngIf="!isCancel" pButton label="Lưu" [disabled]="isDisableAddBtn"
+                                    (click)=" editEmployee()"></button>
+                            <button *ngIf="isCancel && !isView" pButton label="Hủy yêu cầu" [disabled]="isDisableAddBtn"
+                                    (click)="onShowCancelConfigmDlg()"></button>
+                            <button *ngIf="isCancel && isView" pButton label="Đóng"
+                                    (click)=" onClosedialog()"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </p-dialog>
+
+    <p-dialog header="TRÌNH KÝ ĐƠN VỊ" [modal]="true" [width]="1200" [(visible)]="isDialogBrowseRequest" (onHide)="onHideExcute()">
+        <app-browse-request #browseRequestComponent (result)="onCloseResultBrowseRequest($event)"></app-browse-request>
+    </p-dialog>
+
+    <p-dialog  header="Import file" [(visible)]="showImportForm" [modal]="true" [style]="{width: '350px', minWidth: '200px'}"
+               [responsive]="true" [width]="1000" [dismissableMask]="true" [draggable]="false"  appendTo="body" (onHide)="onHideImportDialog()">
+        <p-fileUpload  #fileUpload (uploadHandler)="uploadExcel($event)"(onClear)="onCancelExcel()" (onRemove)="clearExcel()"
+                       chooseLabel="Chọn file" uploadLabel="Đồng ý" cancelLabel="Hủy bỏ"  customUpload="true"
+                       accept=".xls,.xlsx,application/msexcel" maxFileSize="1000000"
+                       invalidFileTypeMessageSummary="{0}: không đúng định dạng file" [showUploadButton]="!isDisableAddBtn">
+        </p-fileUpload>
+
+        <button tabindex="0" style="margin-top: 15px; margin-bottom: 15px;" type="button" pButton icon="fa fa-download" iconPos="left" label="Tải file mẫu"
+                (click)="exportTemplateExcel()"></button>
+
+        <div ui-fluid>
+            <span style="color: red;" class="ui-inputgroup-addon" *ngIf="notiImportFile !== null">{{notiImportFile}}</span>
+        </div>
+        <div ui-fluid >
+            <button *ngIf="isDisableDownBtn" tabindex="0" style="margin-top: 15px; margin-bottom: 15px;" type="button" pButton icon="fa fa-download" iconPos="left" label="Tải file kết quả"
+                    (click)="exportImportResult()"></button>
+        </div>
+    </p-dialog>
+
+    <p-dialog header="Xác nhận hủy yêu cầu" [(visible)]="isShowCancelConfirmDlg" [modal]="true"
+              [responsive]="true" [closable]="true" >
+        <div class="container">
+            <div class="col-sm-12 pt-1 ">
+                <div class="col-sm-12 ">
+                    Đồng chí có muốn hủy yêu cầu văn phòng phẩm không?
+                </div>
+                <div class="col-sm-12 pt-1 ">
+                    <div class="row text-center">
+                        <div class="col-sm-12 text-center" style="padding-left:0px;">
+                            <button pButton label="Đồng ý" [disabled]="isDisableAddBtn" (click)="cancelEmployee()"></button>
+                            <button pButton label="Đóng" (click)="onHideCancelConfirmDlg()"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </p-dialog>

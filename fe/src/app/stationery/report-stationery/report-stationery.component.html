@@ -1,0 +1,994 @@
+
+<div class="container" *ngIf="!isNV" style="max-width: 1400px;">
+    <div class="container-fluid text-center mt-5">
+        <h1 class="text-center">THỐNG KÊ YÊU CẦU VĂN PHÒNG PHẨM</h1>
+    </div>
+    <p-tabView>
+        <p-tabPanel header='Yêu cầu VPP đơn vị' >
+
+            <div class="row ">
+                <div class="col-sm-12 " style="margin: auto;">
+                    <form ngNoForm onsubmit="return false;">
+                        <p-fieldset legend="Thông tin tìm kiếm">
+
+                            <div class="row">
+
+                                <div class="col-sm-7">
+                                    <div class="form-group row">
+                                        <div class="col-sm-1"></div>
+                                        <label class="col-sm-3 col-form-label">Vị trí:</label>
+                                        <div class="col-sm-7 ui-fluid">
+                                            <p-autoComplete [ngModelOptions]="{standalone: true}" [(ngModel)]="place"
+                                                            [disabled]="isManager" [suggestions]="listFilterPlace"
+                                                            (completeMethod)="filterPlace($event)" [size]="30"
+                                                            [minLength]="1" placeholder="--Chọn vị trí--"
+                                                            [dropdown]="true"
+                                                            field="placeName" [minLength]="1" [dropdown]="true"
+                                                            class="fix-drop-down" (onBlur)="focusOutPlace()"
+                                                            emptyMessage="Vị trí không tồn tại, xin kiểm tra lại">
+                                            </p-autoComplete>
+                                        </div>
+                                        <div class="col-sm-1"></div>
+                                    </div>
+
+
+                                    <div class="form-group row">
+                                        <div class="col-sm-1"></div>
+                                        <label class="col-sm-3 col-form-label">Thời gian:</label>
+                                        <div class="col-sm-7">
+                                            <div class="row">
+                                                <div class="col-sm-6">
+                                                    <div class="row">
+                                                        <div style="position: relative;" class="col-sm-12 ui-fluid">
+                                                            <p-calendar dateFormat="dd/mm/yy" placeholder="DD/MM/YYYY"
+                                                                        [(ngModel)]="fromDate" [showIcon]="true"
+                                                                        [readonlyInput]="true"
+                                                                        showButtonBar="true" [locale]="vn"
+                                                                        [monthNavigator]="true" [yearNavigator]="true"
+                                                                        yearRange="2000:2030"
+                                                                        (ngModelChange)="selectFromDate()"></p-calendar>
+                                                            <span *ngIf="fromDate != null"
+                                                                  class="customIcon pi pi-times"
+                                                                  (click)="clearFromDate($event)"></span>
+                                                            <span class="fa fa-minus"
+                                                                  style="position: absolute; top: 12px; right: -10px; color: #848484"></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <div class="row">
+                                                        <div style="position: relative; margin-left: 2px;"
+                                                             class="col-sm-12 ui-fluid">
+                                                            <p-calendar dateFormat="dd/mm/yy" placeholder="DD/MM/YYYY"
+                                                                        [(ngModel)]="toDate" [showIcon]="true"
+                                                                        [readonlyInput]="true"
+                                                                        showButtonBar="true" [locale]="vn"
+                                                                        [monthNavigator]="true" [yearNavigator]="true"
+                                                                        yearRange="2000:2030"
+                                                                        (ngModelChange)="selectToDate()"></p-calendar>
+                                                            <span *ngIf="toDate != null" class="customIcon pi pi-times"
+                                                                  (click)="clearToDate($event)"></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="form-group row">
+                                        <div class="col-sm-1"></div>
+                                        <label class="col-sm-3 col-form-label">Trạng thái</label>
+                                        <div class="col-sm-7 ui-fluid">
+                                            <p-multiSelect #myDrop [options]="status" [(ngModel)]="ListSelectedStatus"
+                                                           [filter]="false" defaultLabel="-- Chọn trạng thái --"
+                                                           [displaySelectedLabel]="true"
+                                                           [maxSelectedLabels]="status.length" (onChange)="onChange()"
+                                                           (onPanelShow)="onShow()"
+                                                           (onPanelHide)="onHide()">
+                                                <!--<ng-template let-item pTemplate="item">-->
+                                                <!--<span>{{item.label}}</span>-->
+                                                <!--</ng-template>-->
+                                            </p-multiSelect>
+                                            <div class="customDiv" [@animation]="isDisplay"
+                                                 (click)="selectedAll($event)">{{textShow}}
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-1"></div>
+                                    </div>
+
+                                    <div class="form-group row">
+                                        <div class="col-sm-1"></div>
+                                        <label class="col-sm-3 col-form-label">Người thực hiện:</label>
+                                        <div *ngIf="isHCDV"  class="col-sm-7 ui-fluid">
+                                            {{hcdvFullName}}
+                                        </div>
+
+                                        <div *ngIf="isAdmin"  class="col-sm-7 ui-fluid">
+                                            <p-autoComplete [(ngModel)]="employee" [suggestions]="listFilterEmployeeAdmin" (completeMethod)="filterEmployeeAdmin($event)" [size]="30"
+                                                            [minLength]="1" placeholder="--Chọn nhân viên--" (onSelect)="employeeSelect($event)" [dropdown]="true"
+                                                            field="fullName" [minLength]="1" [dropdown]="true" class="fix-drop-down"
+                                                            emptyMessage="Người yêu cầu không tồn tại, xin kiểm tra lại" [disabled]="isDisabledHcdvFld">
+                                            </p-autoComplete>
+                                        </div>
+
+
+
+                                        <div *ngIf="isHCVP_VPP"  class="col-sm-7 ui-fluid">
+                                            <p-autoComplete [(ngModel)]="employee" [suggestions]="listFilterEmployee" (completeMethod)="filterEmployee($event)" [size]="30"
+                                                            [minLength]="1" placeholder="--Chọn nhân viên--" (onSelect)="employeeSelect($event)" [dropdown]="true"
+                                                            field="fullName" [minLength]="1" [dropdown]="true" class="fix-drop-down"
+                                                            emptyMessage="Người yêu cầu không tồn tại, xin kiểm tra lại" [disabled]="isDisabledHcdvFld">
+                                            </p-autoComplete>
+                                        </div>
+
+                                        <div *ngIf="isQL"  class="col-sm-7 ui-fluid">
+                                            <p-autoComplete [(ngModel)]="employee" [suggestions]="listFilterEmployeeAdmin" (completeMethod)="filterEmployeeAdmin($event)" [size]="30"
+                                                            [minLength]="1" placeholder="--Chọn nhân viên--" (onSelect)="employeeSelect($event)" [dropdown]="true"
+                                                            field="fullName" [minLength]="1" [dropdown]="true" class="fix-drop-down"
+                                                            emptyMessage="Người yêu cầu không tồn tại, xin kiểm tra lại" [disabled]="isDisabledHcdvFld">
+                                            </p-autoComplete>
+                                        </div>
+
+
+                                        <div class="col-sm-1"></div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-5">
+                                    <!--&lt;!&ndash; ĐƠN VỊ TREE &ndash;&gt;-->
+                                    <div class="form-group row" style="margin-top: -40px;" >
+                                        <div class="col-sm-11">
+                                            <p-fieldset legend="Đơn vị" [style]="{'height': '243px'}">
+
+                                                <p-scrollPanel [style]="{width: '100%', height: '150px'}">
+                                                    <p-tree id="shortTree"  [value]="sectors"
+                                                            [propagateSelectionUp]="false" [propagateSelectionDown]="false"
+                                                            selectionMode="checkbox"
+                                                            [(selection)]="selectedSector" (onNodeExpand)="nodeExpand($event)"
+                                                            [loading]="loadingTree" class="no-border"></p-tree>
+                                                </p-scrollPanel>
+
+                                            </p-fieldset>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </p-fieldset>
+                        <div class="row row-button">
+                            <div class="col-sm-2"></div>
+                            <div class="col-sm-8">
+                                <p-button label="Tìm kiếm" icon="pi pi-search" (click)="handleSearch()"></p-button>
+                                <p-button  class="ui-button-danger" icon="fa fa-refresh"
+                                           label="Làm mới" (click)="resetButton()" style="text-align: center;"></p-button>
+                                <p-button class="ui-button-danger" icon="fa fa-file-excel-o" (click)="exportExcel()"
+                                          label="Xuất file"></p-button>
+                                <p-button class="ui-button-danger" icon="fa fa-file-excel-o" (click)="exportExcelVPP()"
+                                          label="Xuất file VPP"></p-button>
+                                <p-button *ngIf="isAdmin || isQL"
+                                          class="ui-button-danger"  (click)="acceptAllRequest()" label="Duyệt Yêu Cầu"></p-button>
+                            </div>
+                            <div class="col-sm-2"></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-12">
+
+                    <p-table #myTable  [value]="listStationeryReport"
+                             [totalRecords]="total_record" [lazy]="true" [paginator]="true" [rows]="15"
+                             (onPage)="onPaginate($event)">
+
+                        <ng-template pTemplate="header" >
+                            <tr>
+                                <th  style="text-align: center; font-weight: bold;width: 5%"> STT</th>
+                                <th *ngIf="isAdmin || isQL" style="text-align: center; font-weight: bold;width: 5%">
+                                    <p-checkbox (onChange)="checkAllItems($event)" binary="true" [(ngModel)]="isCheckedAll"></p-checkbox>
+                                </th>
+                                <th style="text-align: center; font-weight: bold;width: 10%">Thao tác</th>
+                                <th style="text-align: center; font-weight: bold;width: 12%">Mã yêu cầu</th>
+                                <th style="text-align: center; font-weight: bold;width: 10%">Vị trí</th>
+                                <th style="text-align: center; font-weight: bold;width: 10%">Đơn vị</th>
+                                <th style="text-align: center; font-weight: bold;width: 16%">Người thực hiện</th>
+                                <th style="text-align: center; font-weight: bold;width: 10%">Số điện thoại</th>
+                                <th style="text-align: center; font-weight: bold;width: 5%">S/L yêu cầu</th>
+                                <th style="text-align: center; font-weight: bold;width: 5%">S/L đáp ứng</th>
+                                <th style="text-align: center; font-weight: bold;width: 10%">Trạng thái</th>
+                                <th style="text-align: center; font-weight: bold;width: 10%">Nội dung</th>
+                                <th style="width: 5%">Chi tiết VPP</th>
+                            </tr>
+                        </ng-template>
+                        <ng-template let-ri="rowIndex" pTemplate="body" let-rowData let-columns="columns">
+                            <tr>
+                                <td >{{ri+1}}</td>
+                                <td *ngIf="isAdmin || isQL" >
+                                    <p-checkbox  *ngIf="rowData.isApprove" value="{{rowData.rpStationeryId}}" [(ngModel)]="selectedItemIds"
+                                                 (onChange)="onCheckItem($event)"></p-checkbox>
+                                </td>
+                                <td >
+                                    <p-button
+                                            *ngIf="rowData.isApprove" icon="fa fa-ban"
+                                            (onClick)="onShowRefuseRequest(rowData)" pTooltip="Từ chối yêu cầu"></p-button>
+                                    <p-button
+                                            *ngIf="(isAdmin || isHCVP_VPP) && (rowData.status == 1 || rowData.status == 3 || rowData.status == 4)"
+                                            icon="fa fa-edit" (onClick)="acceptRequest(rowData)" pTooltip="Xử lý yêu cầu"></p-button>
+                                    <p-button
+                                            *ngIf="(isAdmin || isHCDV) && (rowData.status == 6)"
+                                            icon="fa fa-check" (onClick)="confirmRequest(rowData)" pTooltip="Xác nhận cấp phát"></p-button>
+                                    <p-button
+                                            *ngIf="(isAdmin || isHCDV) && (rowData.status == 5 ||rowData.status == 7 || rowData.status == 8 ) && (rowData.ratingToVptct == 0 && rowData.feedbackToVptct == null ) "
+                                            icon="fa fa-thumbs-o-up" (onClick)="doVoteVPTCT(rowData)" pTooltip="Nhân viên HCĐV vote "></p-button>
+                                    <p-button
+                                            *ngIf="(isAdmin || isHCVP_VPP) && (rowData.status == 5 ||rowData.status == 6 ||rowData.status == 7 || rowData.status == 8) && (rowData.ratingToUser == 0 && rowData.feedbackToHcdv  == null) "
+                                            icon="fa fa-thumbs-up" (onClick)="doVoteHCDV(rowData)" pTooltip=" Nhân viên VP TCT vote "></p-button>
+                                </td>
+                                <td ><a style="color: #007ad9; cursor: pointer;" (click)="selectRow(rowData);" pTooltip="Mã yêu cầu" >{{rowData.rpStationeryId}}</a></td>
+                                <td class="" pTextEllipsis style="text-align: left"  [pTooltip]="rowData.placeName" >{{rowData.placeName}}</td>
+                                <td class="wrapText" style="text-align: left"   [pTooltip]="rowData.threeLevelUnit" >{{rowData.threeLevelUnit}}</td>
+                                <td class="wrapText text-left"  style="text-align: left"  [pTooltip]="rowData.acceptFullName" >{{rowData.acceptFullName}}</td>
+                                <td class="wrapText"  [pTooltip]="rowData.employeePhone" >{{rowData.employeePhone}}</td>
+                                <td  class="wrapText text-right"  [pTooltip]="rowData.totalRequest" >{{rowData.totalRequest}}</td>
+                                <td class="wrapText text-right"  [pTooltip]="rowData.totalFulFill" >{{rowData.totalFulFill}}</td>
+                                <td class="" pTextEllipsis  [pTooltip]="convertStatus[rowData.status]" >{{convertStatus[rowData.status]}}</td>
+                                <td  class="wrapText text-left"   [pTooltip]="rowData.message" >{{rowData.message}}</td>
+                                <td >
+                                    <div class="row text-center">
+                                        <div class="col-sm-4 text-center">
+                                            <p-button class="iconBtn" icon="fa fa-file-text-o" pTooltip="Chi tiết VPP" (onClick)="showDialog(rowData)"></p-button>
+                                        </div>
+                                    </div>
+
+                                </td>
+                              </tr>
+                        </ng-template>
+                        <ng-template pTemplate="paginatorright">
+                            <span style="position: absolute; right: 30px; bottom: 6px;">{{startRow}} - {{rowSize}} / {{total_record}}</span>
+                        </ng-template>
+                        <ng-template pTemplate="footer">
+                            <tr>
+                                <td colspan="6" style="font-weight: bold;"></td>
+                                <td style="font-weight: bold;"></td>
+                                <td colspan="7"></td>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="emptymessage" let-columns>
+                            <tr>
+                                <td [attr.colspan]="13" style="text-align: center;">
+                                    Không có bản ghi nào tương ứng
+                                </td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+
+                </div>
+            </div>
+        </p-tabPanel>
+
+        <p-tabPanel header='Yêu cầu VPP Nhân Viên' >
+            <app-report-stationery-employee></app-report-stationery-employee>
+        </p-tabPanel>
+    </p-tabView>
+
+    <p-dialog header="Danh sách văn phòng phẩm đã bàn giao" id="dialog" [(visible)]="display" [modal]="true"
+              [responsive]="true"
+              [width]="750" [height]="1000" [minWidth]="200" [closable]="true" [minY]="70" [baseZIndex]="10000">
+
+
+        <!--&lt;!&ndash; POP-UPPPPP &ndash;&gt;-->
+        <div class="container">
+            <div class="row"></div>
+            <div class="row" style="margin-top: 20px;">
+                <div class="col-sm-6">
+                    <div class="form-group row">
+                        <label class="col-sm-12">Mã yêu cầu: {{reportStationery.rpStationeryId}}</label>
+
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-12">Trạng thái: {{status[reportStationery.status+1].label}}</label>
+
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="form-group row">
+                        <label class="col-sm-12">Người yêu cầu: {{reportStationery.fullName}}</label>
+
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-12">Người xử lí cuối: {{reportStationery.lastUser}}</label>
+
+                    </div>
+                </div>
+
+
+                <div class="col-sm-12">
+                    <p-table [columns]="colsBeta" [value]="listStationeryFullfill" [totalRecords]="" [paginator]="true"
+                             [rows]="10" [resizableColumns]="true"
+                             #dt>
+                        <ng-template pTemplate="colgroup" let-columns>
+                            <colgroup>
+                                <col *ngFor="let col of columns" [style.width]="col.width">
+                            </colgroup>
+                        </ng-template>
+                        <ng-template pTemplate="header" let-columns>
+                            <tr>
+                                <th *ngFor="let col of columns" pResizableColumn
+
+                                    style="text-align: center; font-weight: bold;">
+                                    {{col.header}}
+                                </th>
+                            </tr>
+                        </ng-template>
+                        <ng-template let-ri="rowIndex" pTemplate="body" let-rowData let-columns="columns">
+                            <tr>
+                                <td>{{ri+1}}</td>
+                                <td style="width: 9rem; text-align: left !important;">{{rowData["stationeryName"]}}</td>
+                                <td style="width: 9rem; text-align: right !important;">{{rowData["totalRequest"]}}</td>
+                                <td style="width: 9rem; text-align: right !important;">{{rowData["totalFullfill"]}}</td>
+                                <td style="width: 9rem; text-align: left !important;">{{rowData["calUnit"]}}</td>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="emptymessage" let-columns>
+                            <tr>
+                                <td [attr.colspan]="13" style="text-align: center;">
+                                    Không có dữ liệu
+                                </td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </div>
+            </div>
+
+
+            <div class="row row-button">
+                <div class="col-sm-4"></div>
+                <div class="col-sm-4">
+                    <p-button class="ui-button-danger" icon="pi pi-times" label="Đóng" (click)="close()"></p-button>
+                </div>
+                <div class="col-sm-4"></div>
+            </div>
+
+        </div>
+        <p-footer>
+
+        </p-footer>
+    </p-dialog>
+
+    <p-dialog header="Thêm yêu cầu VPP" id="adddialog" [(visible)]="dialogAddStationery" [modal]="true"
+              [responsive]="true"
+              [width]="750" [height]="1200" [minWidth]="200" [closable]="true" [minY]="70" [baseZIndex]="10000">
+
+
+        <!--&lt;!&ndash; POP-UPPPPP &ndash;&gt;-->
+        <div class="container">
+            <div class="row"></div>
+            <div class="row" style="margin-top: 20px;">
+                <div class="col-sm-6">
+                    <div class="form-group row">
+                        <label class="col-sm-4 pt-2">Đơn vị: </label>
+                        <div class="col-sm-8 ui-fluid">
+                            <input type="text" [style]="{'width': '100%'}"
+                                   value="Đăng ký mới" style="font-weight: bold;" disabled="true" [(ngModel)]="empUnit"
+                                   pInputText/>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-4 pt-2">Họ và tên :</label>
+                        <div class="col-sm-8 ui-fluid">
+                            <input type="text" [style]="{'width': '100%'}"
+                                   value="Đăng ký mới" style="font-weight: bold;" disabled="true" [(ngModel)]="empName"
+                                   pInputText/>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="form-group row">
+                        <label class="col-sm-4 pt-2">Số điện thoại:</label>
+                        <div class="col-sm-8 ui-fluid">
+                            <input type="text" [style]="{'width': '100%'}"
+                                   value="Đăng ký mới" style="font-weight: bold;" disabled="true" [(ngModel)]="empPhone"
+                                   pInputText/>
+                        </div>
+
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-4 pt-2">Email: </label>
+                        <div class="col-sm-8 ui-fluid">
+                            <input type="text" [style]="{'width': '100%'}"
+                                   value="Đăng ký mới" style="font-weight: bold;" disabled="true" [(ngModel)]="empEmail"
+                                   pInputText/>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="form-group row">
+                        <label class="col-sm-4">Hạn mức còn lại: </label>
+                        <div class="col-sm-8 ui-fluid">
+                            <input type="text" [style]="{'width': '100%'}"
+                                   value="Đăng ký mới" style="font-weight: bold;" disabled="true" [(ngModel)]="quota"
+                                   pInputText/>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-4 pt-2">Vị trí: </label>
+                        <div class="col-sm-8 ui-fluid">
+                            <p-autoComplete [ngModelOptions]="{standalone: true}" [(ngModel)]="placeStationery"
+                                            [disabled]="isManager" [suggestions]="listFilterPlace"
+                                            (completeMethod)="filterPlace($event)" [size]="30" [minLength]="1"
+                                            placeholder="--Chọn vị trí--" [dropdown]="true"
+                                            field="placeName" [minLength]="1" [dropdown]="true" class="fix-drop-down"
+                                            (onBlur)="focusOutPlace()"
+                                            emptyMessage="Vị trí không tồn tại, xin kiểm tra lại">
+                            </p-autoComplete>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="form-group row">
+                        <label class="col-sm-4 pt-2">Trạng thái :</label>
+                        <div class="col-sm-8 ui-fluid">
+                            <input type="text" [style]="{'width': '100%'}"
+                                   value="Đăng ký mới" style="color: red;" disabled="true" [(ngModel)]="statusConstant"
+                                   pInputText/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-12 mb-2">
+                    <span><b>Văn phòng phẩm yêu cầu :</b></span>
+                </div>
+
+                <div class="col-sm-12 mt-2">
+                    <div *ngFor="let infor of lstChefInfor; let i=index;trackBy:indexTracker"
+                         class="row mb-2">
+                        <div class="col-sm-6">
+                            <div class="form-group row">
+                                <div class="col-sm-4" style="text-align: center;">
+                                    <button pButton type="button" icon="pi pi-minus" title="Xóa một textbox"
+                                            (click)="removeChef(i)"
+                                            [disabled]="lstChefInfor != null && lstChefInfor.length === 1"></button>
+                                </div>
+                                <div class="col-sm-8 ui-fluid">
+                                    <p-dropdown [style]="{'width':'100%'}" [options]="stationeryNameList"
+                                                optionLabel="stationeryName" placeholder="Chọn văn phòng phẩm"
+                                                [(ngModel)]="lstChefInfor[i]" filter="true" [disabled]="false"
+                                                (onChange) = "selectedStationery()"
+                                                emptyFilterMessage="Không có dữ liệu">
+                                    </p-dropdown>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-2 ui-fluid">
+                            <input type="number" pInputText
+                                   style="padding-left: 7px;" [(ngModel)]="lstChefInfor[i].quantity"/>
+                        </div>
+                        <div class="col-sm-2 pt-2"><span *ngIf="lstChefInfor[i].unitPrice != null">{{lstChefInfor[i].unitPrice }}/{{lstChefInfor[i].calUnit}}</span>
+                        </div>
+
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6"
+                             style="padding-left: 25px !important;text-align: center;">
+                            <button pButton type="button" icon="pi pi-plus" title="Thêm văn phòng phẩm"
+                                    (click)="addChef()"
+                                    style="margin-right: .5em"></button>
+                        </div>
+                    </div>
+
+
+                </div>
+                <div class="col-sm-12 mt-2">
+                    <div class="col-sm-12">
+                        <div class="form-group row">
+                            <label class="col-sm-2 pt-2">Ghi chú :</label>
+                            <div class="col-sm-10 ui-fluid">
+                               <textarea pInputTextarea [ngModelOptions]="{standalone: true}" maxlength="255"
+                                         [style]="{'width': '100%'}"
+                                         [(ngModel)]="note"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p-footer>
+            <div class="row row-button">
+                <div class="col-sm-4"></div>
+                <div class="col-sm-4">
+                    <p-button class="ui-button-danger" label="Thêm mới"
+                              (click)="addRequest()"></p-button>
+                </div>
+                <div class="col-sm-4"></div>
+            </div>
+        </p-footer>
+    </p-dialog>
+    <!--&lt;!&ndash;popup đánh giá nhân viên HCDV&ndash;&gt;-->
+    <p-dialog header="Đánh giá nhân viên HCĐV" id="voteHCDVdialog" [(visible)]="dialogVoteHCDVStationery" [modal]="true"
+              (onHide)="onCloseVoteHCDVdialog()"
+              [responsive]="true"
+              [width]="900" [height]="1200" [minWidth]="200" [closable]="true" [minY]="70" [baseZIndex]="10000">
+        <app-vote-hcdv #voteHcdvComponent (result)="onCloseResultHcdv($event)" ></app-vote-hcdv>
+    </p-dialog>
+
+    <p-dialog header="Đánh giá nhân viên VP TCT" id="voteVPTCTdialog" [(visible)]="dialogVoteVPTCTStationery" [modal]="true"
+              [responsive]="true" (onHide)="onCloseVoteVPTCTdialog()"
+              [width]="900" [height]="1200" [minWidth]="200" [closable]="true" [minY]="70" [baseZIndex]="10000">
+        <app-vote-vptct #voteVptctComponent (result)="onCloseResultVptct($event)" ></app-vote-vptct>
+    </p-dialog>
+
+    <!--popup duyet yeu cau-->
+    <p-dialog header="Chi tiết duyệt yêu cầu VPP" id="DYC" [(visible)]="dialogConfirmRequest" [modal]="true"
+              [responsive]="true"
+              [width]="1200" [minWidth]="200" [closable]="true" [minY]="70" [baseZIndex]="10000">
+        <div class="container">
+            <div class="row" style="margin: 0 auto;width: 80%">
+
+                <div class="col-sm-1"></div>
+                <div class="col-sm-5">
+                    <div class="form-group row">
+                        <label class="col-sm-5">Nhân viên HC:</label> <b>  {{fullNameDetails}}</b>
+
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-5">Nội dung: </label> <b>{{messageDetails}}</b>
+
+                    </div>
+                </div>
+                <div class="col-sm-1"></div>
+                <div class="col-sm-5">
+                    <div class="form-group row">
+                        <label class="col-sm-5">Ngày gửi: </label> <b>{{requestDateDetails |date: 'dd/MM/yyyy' }}</b>
+
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-5">Tổng tiền: </label> <b>{{totalMoneyDetails | number:'1.2-2'}}</b>
+
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-sm-12">
+                    <div class="row">
+                        <div class="col-xl-12">
+                                <!-- if no data is reasonable -->
+                            <!-- if has data -->
+
+                                <p-table #myTableConfirm [value]="listSearchDetails" [value]="listStationeryFullfill" [totalRecords]="" [paginator]="true"
+                                         [rows]="10" [resizableColumns]="true" >
+                                    <ng-template pTemplate="header">
+                                        <tr>
+                                            <th style="width: 3rem; font-weight: bold; text-align: center;">STT</th>
+                                            <th style="width: 200px; font-weight: bold;text-align: center;">Vị trí</th>
+                                            <th style="width: 200px; font-weight: bold;text-align: center;">Đơn vị</th>
+                                            <th style="width: 200px; font-weight: bold;text-align: center;">Người yêu cầu</th>
+                                            <th style="width: 8rem; font-weight: bold;text-align: center;">Mã NV</th>
+                                            <th style="width: 8rem; font-weight: bold;text-align: center;">Ngày yêu cầu</th>
+                                            <th style="width: 8rem; font-weight: bold;text-align: center;">Tên VPP</th>
+                                            <th style="width: 4rem; font-weight: bold;text-align: center;">Số lượng</th>
+                                            <th style="width: 6rem; font-weight: bold;text-align: center;">Đơn giá</th>
+                                            <th style="width: 6rem; font-weight: bold;text-align: center;">Số tiền</th>
+                                        </tr>
+                                    </ng-template>
+                                    <ng-template let-ri="rowIndex" pTemplate="body" let-item>
+                                        <tr>
+                                            <td style="width: 3rem;">{{ri+1}}</td>
+                                            <td class="wrapText" pTextEllipsis [pTooltip]="item.placeName"
+                                                style="width: 200px; text-align: center !important;">
+                                                {{item.placeName}}
+                                            </td>
+                                            <td class=""     pTextEllipsis [pTooltip]="item.unitName"
+                                                style="width: 6rem;  text-align: center !important;">
+                                                {{item.unitName}}
+                                            </td>
+                                            <td class="wrapText" pTextEllipsis [pTooltip]="item.fullName" style="width: 6rem;  text-align: center !important;">
+                                                {{item.fullName}}
+                                            </td>
+                                            <td class="wrapText" pTextEllipsis [pTooltip]="item.userName"
+                                                style="width: 4rem;  text-align: center !important;">
+                                                {{item.userName}}
+                                            </td>
+                                            <td class=""  pTextEllipsis [pTooltip]="item.dateRequest"
+                                                style="width: 6rem;  text-align: center !important;">
+                                                {{item.dateRequest | date: 'dd/MM/yyyy '}}
+                                            </td>
+                                            <td class=""  pTextEllipsis [pTooltip]="item.stationeryName"
+                                                style="width: 5rem;  text-align: center !important;">
+                                                {{item.stationeryName}}
+                                            </td>
+                                            <td class="wrapText" pTextEllipsis [pTooltip]="item.quantity"
+                                                style="width: 6rem; text-align: center !important;">
+                                                {{item.quantity}}
+                                            </td>
+                                            <td class="wrapText" pTextEllipsis [pTooltip]="item.price"
+                                                style="width: 6rem; text-align: center !important;">
+                                                {{item.price | number:'1.2-2'}}
+                                            </td>
+                                            <td class="wrapText" pTextEllipsis [pTooltip]="item.totalMoney"
+                                                style="width: 6rem; text-align: center !important;">
+                                                {{item.totalMoney | number:'1.2-2'}}
+                                            </td>
+                                        </tr>
+                                    </ng-template>
+
+                                </p-table>
+                        </div>
+                    </div>
+                </div>
+                    <div class="col-sm-12 ui-fluid">
+                        <div class="row text-center">
+                            <div class="col-sm-4 " style="padding-right:0px;">
+                            </div>
+                            <div class="col-sm-2 text-center" style="padding-right:0px;">
+                                <p-button label="Từ chối" styleClass="ui-button-danger" (click)="refuseAccept()"></p-button>
+                            </div>
+                            <div class="col-sm-2 text-center" style="padding-left:0px;">
+                                <p-button label="Phê duyệt"  (click)="accept()"></p-button>
+                            </div>
+                            <div class="col-sm-4 " style="padding-right:0px;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+        </div>
+
+    </p-dialog>
+
+    <p-dialog header="Chi tiết duyệt yêu cầu VPP" id="DYC" [(visible)]="dialogConfirmRequestOneSelect" [modal]="true"
+              [responsive]="true"
+              [width]="1200" [minWidth]="200" [closable]="true" [minY]="70" [baseZIndex]="10000">
+        <div class="container">
+            <div class="row" style="margin: 0 auto;width: 80%">
+
+                <div class="col-sm-1"></div>
+                <div class="col-sm-5">
+                    <div class="form-group row">
+                        <label class="col-sm-5">Nhân viên HC:</label> <b>  {{fullNameDetails}}</b>
+
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-5">Nội dung: </label> <b>{{messageDetails}}</b>
+
+                    </div>
+                </div>
+                <div class="col-sm-1"></div>
+                <div class="col-sm-5">
+                    <div class="form-group row">
+                        <label class="col-sm-5">Ngày gửi: </label> <b>{{requestDateDetails |date: 'dd/MM/yyyy' }}</b>
+
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-5">Tổng tiền: </label> <b>{{totalMoneyDetails | number:'1.2-2'}}</b>
+
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-sm-12">
+                    <div class="row">
+                        <div class="col-xl-12">
+                            <p-table #myTableConfirm [value]="listSearchDetails" [value]="listStationeryFullfill" [totalRecords]="" [paginator]="true"
+                                     [rows]="10" [resizableColumns]="true" >
+                                <ng-template pTemplate="header">
+                                    <tr>
+                                        <th style="width: 3rem; font-weight: bold; text-align: center;">STT</th>
+                                        <th style="width: 200px; font-weight: bold;text-align: center;">Vị trí</th>
+                                        <th style="width: 200px; font-weight: bold;text-align: center;">Đơn vị</th>
+                                        <th style="width: 200px; font-weight: bold;text-align: center;">Người yêu cầu</th>
+                                        <th style="width: 8rem; font-weight: bold;text-align: center;">Mã NV</th>
+                                        <th style="width: 8rem; font-weight: bold;text-align: center;">Ngày yêu cầu</th>
+                                        <th style="width: 8rem; font-weight: bold;text-align: center;">Tên VPP</th>
+                                        <th style="width: 4rem; font-weight: bold;text-align: center;">Số lượng</th>
+                                        <th style="width: 6rem; font-weight: bold;text-align: center;">Đơn giá</th>
+                                        <th style="width: 6rem; font-weight: bold;text-align: center;">Số tiền</th>
+                                    </tr>
+                                </ng-template>
+                                <ng-template let-ri="rowIndex" pTemplate="body" let-item>
+                                    <tr>
+                                        <td style="width: 3rem;">{{ri+1}}</td>
+                                        <td class="" pTextEllipsis pTextEllipsis [pTooltip]="item.placeName"
+                                            style="width: 200px; text-align: center !important;">
+                                            {{item.placeName}}
+                                        </td>
+                                        <td class="" pTextEllipsis pTextEllipsis [pTooltip]="item.unitName"
+                                            style="width: 6rem;  text-align: center !important;">
+                                            {{item.unitName}}
+                                        </td>
+                                        <td class="" pTextEllipsis pTextEllipsis [pTooltip]="item.fullName" style="width: 6rem;  text-align: center !important;">
+                                            {{item.fullName}}
+                                        </td>
+                                        <td class="" pTextEllipsis pTextEllipsis [pTooltip]="item.userName"
+                                            style="width: 4rem;  text-align: center !important;">
+                                            {{item.userName}}
+                                        </td>
+                                        <td class="wrapText" pTextEllipsis [pTooltip]="item.dateRequest"
+                                            style="width: 6rem;  text-align: center !important;">
+                                            {{item.dateRequest | date: 'dd/MM/yyyy HH:mm'}}
+                                        </td>
+                                        <td class="" pTextEllipsis pTextEllipsis [pTooltip]="item.stationeryName"
+                                            style="width: 5rem;  text-align: center !important;">
+                                            {{item.stationeryName}}
+                                        </td>
+                                        <td class="" pTextEllipsis pTextEllipsis [pTooltip]="item.quantity"
+                                            style="width: 6rem; text-align: center !important;">
+                                            {{item.quantity}}
+                                        </td>
+                                        <td class="" pTextEllipsis pTextEllipsis [pTooltip]="item.price"
+                                            style="width: 6rem; text-align: center !important;">
+                                            {{item.price | number:'1.2-2'}}
+                                        </td>
+                                        <td class="" pTextEllipsis pTextEllipsis [pTooltip]="item.totalMoney"
+                                            style="width: 6rem; text-align: center !important;">
+                                            {{item.totalMoney | number:'1.2-2'}}
+                                        </td>
+                                    </tr>
+                                </ng-template>
+
+                            </p-table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-12 pt-4 " style="padding-left:0px;padding-right: 0px;">
+                    <div class="col-sm-12 ui-fluid">
+                        <div class="row text-center">
+                            <div class="col-sm-6 text-center" style="padding-right:0px;">
+                                <button pButton label="Từ chối" class="ui-button-danger" (click)="refuseAcceptRequest()"></button>
+                            </div>
+                            <div class="col-sm-6 text-center" style="padding-left:0px;">
+                                <button pButton label="Phê duyệt" (click)="acceptRequestOneSelect()"></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </p-dialog>
+
+    <!--&lt;!&ndash;popup xác nhận cấp phát&ndash;&gt;-->
+    <p-dialog header="Xác nhận VPP" id="XNCPVPP" [(visible)]="dialogAcceptRequest" [modal]="true"
+              (onHide)="onCloseVerifyRequest()"
+              [responsive]="true"
+              [width]="750" [height]="1200" [minWidth]="200" [closable]="true" [minY]="70" [baseZIndex]="10000">
+        <div class="container">
+            <div class="row"></div>
+            <div class="row" style="margin-top: 20px;">
+                <label class="col-sm-6">Người yêu cầu: {{selectedStationeryItem.fullName}}</label>
+                <label class="col-sm-6">Ngày yêu cầu: {{convertDate(selectedStationeryItem.requestDate)
+                    }}</label>
+
+
+            </div>
+            <div class="row" style="margin-top: 20px;">
+                <label class="col-sm-6">Số lượng yêu cầu : {{selectedStationeryItem.totalFulFill}}</label>
+                <label class="col-sm-6">Nội dung trình kí: {{selectedStationeryItem.message}}</label>
+            </div>
+            <div class="row" style="margin-top: 20px;">
+                <label class="col-sm-6">Số lượng đáp ứng: {{selectedStationeryItem.totalRequest}}</label>
+                <label class="col-sm-6">Trạng thái: <span style="color: red;"
+                                                          *ngIf="selectedStationeryItem.status != null"> {{status[selectedStationeryItem.status].label}} </span></label>
+
+            </div>
+            <div class="row" style="margin-top: 20px;">
+                <label class="col-sm-6">Tổng tiền yêu cầu: {{selectedStationeryItem.totalMoney}}</label>
+                <label class="col-sm-6">Lý do : {{selectedStationeryItem.note}}</label>
+
+
+            </div>
+            <div class="row" style="margin-top: 20px;">
+                <label class="col-sm-6">Tổng tiền đáp ứng: {{selectedStationeryItem.totalMoney}}</label>
+            </div>
+            <div class="row">
+                <div class="col-sm-12">
+                    <p-table [columns]="colsUnit" [value]="listStationeryFullUnit" [totalRecords]="" [paginator]="true"
+                             [rows]="10" [resizableColumns]="true"
+                             #dt>
+                        <ng-template pTemplate="colgroup" let-columns>
+                            <colgroup>
+                                <col *ngFor="let col of columns" [style.width]="col.width">
+                            </colgroup>
+                        </ng-template>
+                        <ng-template pTemplate="header" let-columns>
+                            <tr>
+                                <th *ngFor="let col of columns" pResizableColumn
+                                    style="text-align: center; font-weight: bold;">
+                                    {{col.header}}
+                                </th>
+                            </tr>
+                        </ng-template>
+                        <ng-template let-ri="rowIndex" pTemplate="body" let-rowData let-columns="columns">
+                            <tr>
+                                <td>{{ri+1}}</td>
+                                <td style="width: 9rem; text-align: left !important;">{{rowData["fullName"]}}</td>
+                                <td style="width: 12rem; text-align: right !important;">{{rowData["dateRequest"] | date:
+                                    'dd/MM/yyyy HH:mm'}}
+                                </td>
+                                <td style="width: 12rem; text-align: right !important;">{{rowData["stationeryName"]}}
+                                </td>
+                                <td style="width: 7rem; text-align: left !important;">{{rowData["quantity"]}}</td>
+                                <td style="width: 7rem; text-align: left !important;">{{rowData["price"]}}</td>
+                                <td style="width: 7rem; text-align: left !important;">{{rowData["totalMoney"]}}</td>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="emptymessage" let-columns>
+                            <tr>
+                                <td [attr.colspan]="13" style="text-align: center;">
+                                    Không có dữ liệu
+                                </td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </div>
+            </div>
+            <div class="col-sm-12 pt-4 " style="padding-left:0px;padding-right: 0px;">
+                <div class="col-sm-12 ui-fluid">
+                    <div class="row text-center">
+                        <div class="col-sm-6 text-center" style="padding-right:0px;">
+                            <button pButton label="Từ chối" class="ui-button-danger" (onClick)=" refuse()"></button>
+                        </div>
+                        <div class="col-sm-6 text-center" style="padding-left:0px;">
+                            <button pButton label="Xác nhận"
+                                    (onClick)=" approveHandle()"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </p-dialog>
+
+    <p-dialog header="Xử lý yêu cầu VPP" [(visible)]="dialogHandlingRequest" [modal]="true"
+              (onHide)="onCloseVoteHCDVdialog()"
+              [responsive]="true"
+              [width]="750" [height]="1200" [minWidth]="200" [closable]="true" [minY]="70" [baseZIndex]="10000">
+        <div class="container">
+            <p-fieldset legend="Thông tin Người yêu cầu">
+                <div class="row mt-2">
+                    <div class="col-sm-12">
+                        <div class=" row">
+                            <label class="col-sm-6">Người yêu cầu: {{selectedStationeryItem.fullName}}</label>
+                            <label class="col-sm-6">Số điện thoại: {{selectedStationeryItem.message}}</label>
+                        </div>
+                    </div>
+                    <div class="col-sm-12" ></div>
+                    <div class="col-sm-12">
+                        <div class=" row">
+                            <div class="col-sm-6" style="padding-right: 6px;"><b class="col-sm-5">Văn phòng phẩm Yêu Cầu:</b></div>
+                            <div class="col-sm-6"><label class="col-sm-3">Đơn vị: {{selectedStationeryItem.message}}</label> </div>
+                        </div>
+                    </div>
+
+                </div>
+            </p-fieldset>
+        </div>
+    </p-dialog>
+
+    <p-dialog header="Import file" id="dialog" [(visible)]="dialogImport" [modal]="true"
+              [responsive]="true"
+              [width]="700" [height]="300" [minWidth]="200" [closable]="true" [minY]="70" [baseZIndex]="10000">
+
+        <div class="container">
+            <div class="row"></div>
+            <div class="row" style="margin-top: 20px;">
+                <div class="col-sm-12">
+                    <div class="form-group row">
+                        <label class="col-sm-3">File</label>
+                        <input class="col-sm-6" style="padding-left: 5px"  [(ngModel)] = "limitDate" />
+                        <div class="col-3">
+                            <!--<p-fileUpload mode="basic" name="demo[]" url="./upload.php" accept="image/*" maxFileSize="1000000" (onUpload)="onBasicUpload($event)" auto="true"></p-fileUpload>-->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group row">
+                        <span   class="date-link">Tải về file mẫu</span>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="row row-button">
+                <div class="col-sm-4"></div>
+                <div class="col-sm-4">
+                    <p-button class="ui-button-danger" icon="pi pi-times" label="Hủy bỏ" (click)="close()"></p-button>
+                </div>
+                <div class="col-sm-4"> <p-button class="ui-button-danger" icon="pi pi-times" label="Đồng ý"></p-button></div>
+            </div>
+
+        </div>
+        <p-footer>
+
+        </p-footer>
+    </p-dialog>
+
+    <p-dialog header="Lý do từ chối" id="XNCPVPP" [(visible)]="dialogRefuseRequest" [modal]="true" (onHide)="onHideReject()"
+              [width]="750" [height]="750" [minWidth]="200" [closable]="true" [minY]="70" [baseZIndex]="10000">
+        <div class="col-sm-12 ui-fluid">
+                    <textarea type="text" class="ui-inputtext ui-widget ui-state-default ui-corner-all" maxlength="255"
+                              [(ngModel)]="reasonRefuseLDReject" [ngModelOptions]="{standalone: true}"></textarea>
+        </div>
+        <div class="col-sm-12 " style="padding-left:0px;padding-right: 0px;">
+            <div class="col-sm-12 ui-fluid">
+                <div class="row text-center">
+                    <div class="col-sm-4 text-center" style="padding-right:0px;"></div>
+                    <div class="col-sm-2 text-center" style="padding-right:0px;">
+                        <p-button label="Hủy bỏ"  styleClass="ui-button-danger" (click)="cancelRefuse()"></p-button>
+                    </div>
+                    <div class="col-sm-2 text-center" style="padding-left:0px;">
+                        <p-button label="Chọn"  (click)="approveHandleAccept()"></p-button>
+                    </div>
+                    <div class="col-sm-4 text-center" style="padding-right:0px;"></div>
+                </div>
+            </div>
+        </div>
+    </p-dialog>
+
+
+    <p-dialog header="Lý do từ chối" id="XNCPVPP" [(visible)]="dialogRefuseRequestOneSelect" [modal]="true" (onHide)="onHideReject()"
+              [width]="750" [height]="750" [minWidth]="200" [closable]="true" [minY]="70" [baseZIndex]="10000">
+        <div class="container-fluid text-center mt-3 mb-3">
+            <h1>LÝ DO TỪ CHỐI</h1>
+        </div>
+        <div class="col-sm-12 ui-fluid">
+                    <textarea type="text" class="ui-inputtext ui-widget ui-state-default ui-corner-all" maxlength="255"
+                              [(ngModel)]="reasonRefuseLDReject" [ngModelOptions]="{standalone: true}"></textarea>
+        </div>
+        <div class="col-sm-12 " style="padding-left:0px;padding-right: 0px;">
+            <div class="col-sm-12 ui-fluid">
+                <div class="row text-center">
+                    <div class="col-sm-6 text-center" style="padding-right:0px;">
+                        <button pButton label="Hủy bỏ" class="ui-button-danger" (click)=" cancelOneRefuse()"></button>
+                    </div>
+                    <div class="col-sm-6 text-center" style="padding-left:0px;">
+                        <button pButton label="Chọn" (click)="approveHandleAcceptOneSelect()"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </p-dialog>
+
+    <p-dialog header="Chi tiết đơn yêu cầu VPP" [modal]="true" [width]="900"  [closable]="true" (onHide)="onHideDetailsPopup()"
+              [responsive]="true"  [(visible)]="dialogDetailsUnit" >
+        <app-details-stationery-unit #detailsStationeryUnit (result)="onCloseResultDetailsUnit($event)" >
+        </app-details-stationery-unit>
+    </p-dialog>
+
+    <p-dialog header="Xác nhận cấp phát"  [modal]="true" [width]="900" [(visible)]="isDialogConfirmPending" (onHide)="onHideComfirmPendingPopup()" >
+        <app-confirm-pending  #confirmPendingComponent (result)="onCloseResultConfirmPending($event)"
+        ></app-confirm-pending>
+    </p-dialog>
+
+</div>
+
+<!--// xu li yeu cau-->
+<p-dialog header="Xử lí yêu cầu VPP" [modal]="true" [width]="900" [(visible)]="isDialogProcessRequest" (onHide)="onHideProcessPopup()" >
+    <app-process-request-stationery  #processRequestComponent (result)="onCloseResult($event)"  >
+    </app-process-request-stationery>
+</p-dialog>
+
+
+<div class="container" *ngIf="isNV" style="max-width: 1400px;">
+    <div class="container-fluid text-center mt-5">
+        <h1 class="text-center">THỐNG KÊ YÊU CẦU VĂN PHÒNG PHẨM</h1>
+    </div>
+    <app-report-stationery-employee></app-report-stationery-employee>
+</div>
+

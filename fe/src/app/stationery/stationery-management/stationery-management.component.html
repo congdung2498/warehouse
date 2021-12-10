@@ -1,0 +1,281 @@
+<div class="container">
+    <div class="container-fluid text-center mt-5">
+        <h1 class="text-center">DANH MỤC VĂN PHÒNG PHẨM</h1>
+    </div>
+    <div class="row ">
+        <div class="col-sm-12 " style="margin: auto;">
+            <form ngNoForm onsubmit="return false;">
+                <p-fieldset legend="Thông tin đăng ký">
+
+                    <div class="row">
+
+                        <div class="col-sm-6">
+
+                            <div class="form-group row">
+                                <!-- <div class="col-sm-1"></div> -->
+                                <label class="col-sm-5 ">Tên văn phòng phẩm
+                                    <span style="color: red;">*</span>:</label>
+                                <div class="col-sm-7">
+                                    <input #inputStationeryName id="input" [pKeyFilter]="onlyChar"
+                                           (ngModelChange)="onChangeStationeryName()" type="text" size="30"
+                                           name="position" pInputText maxlength="50" (blur)="removeBlank()"
+                                           [(ngModel)]="stationeryName" style="width: 100%;">
+                                </div>
+                                <div class="col-sm-1"></div>
+                            </div>
+
+
+                            <div *ngIf="isAdmin || is_HCVP_VPP" class="form-group row">
+                                <!-- <div class="col-sm-1"></div> -->
+                                <label class="col-sm-5 ">Đơn giá
+                                    <span style="color: red;">*</span>:</label>
+                                <div class="col-sm-7">
+                                    <div class="ui-inputgroup">
+                                        <input #inputPrice maxlength="10" id="input" size="30" name="position"
+                                               pInputText [(ngModel)]="unitPrice"
+                                               (ngModelChange)="changePrice(null)" style="width: 100%;">
+                                        <span class="ui-inputgroup-addon">VND</span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-1"></div>
+                            </div>
+
+                            <div class="form-group row">
+
+                                <label class="col-sm-5 ">Đơn vị tính
+                                    <span style="color: red;">*</span>:</label>
+                                <div class="col-sm-7 ui-fluid">
+                                    <p-autoComplete #inputUnitCalculate [(ngModel)]="calUnit"
+                                                    [suggestions]="listFilterCalUnit"
+                                                    (completeMethod)="filterCalUnit($event)" [size]="30"
+                                                    [minLength]="1" placeholder="--Chọn đơn vị--" [dropdown]="true"
+                                                    field="calUnit" [minLength]="1" [dropdown]="true"
+                                                    (onBlur)="isSelect()"
+                                                    class="fix-drop-down">
+                                    </p-autoComplete>
+
+                                </div>
+                                <div class="col-sm-1"></div>
+                            </div>
+                        </div>
+
+                        <div *ngIf="isAdmin || is_HCVP_VPP" class="col-sm-6">
+
+                            <div class="form-group row">
+                                <div class="col-sm-1"></div>
+                                <label class="col-sm-3 col-form-label">Ảnh mô tả</label>
+                                <div class="col-sm-7">
+                                    <img style="max-height: 150px; max-width: 150px; cursor: pointer"
+                                         *ngIf="imageData != null" src="{{imageData}}"
+                                         (click)="onShowImageDialog()">
+                                    <div class="select-image" *ngIf="imageData == null" (click)="onShowImageDialog()">
+                                        <span>Chọn ảnh</span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-1"></div>
+                            </div>
+                        </div>
+                    </div>
+                </p-fieldset>
+                <div class="row row-button">
+                    <div class="col-sm-2"></div>
+                    <div class="col-sm-8">
+                        <p-button label="Tìm kiếm" icon="pi pi-search" (click)="handleSearch()"></p-button>
+                        <p-button *ngIf="isAdmin || is_HCVP_VPP" icon="pi pi-save" label="Lưu"
+                                  (click)="handleAdd()"></p-button> <!--truogndv edit label : thêm -> lưu (bug 65) -->
+                        <!--<p-button *ngIf="!isEdit && (isAdmin || is_HCVP_VPP)" icon="pi pi-plus" label="Lưu" (click)="handleAdd()"></p-button>-->
+                        <button type="button" tabindex="0" pButton icon="fa fa-refresh" iconPos="left" label="Làm mới"
+                                (click)="resetButton()" style="text-align: center;"></button>
+                        <button *ngIf="isAdmin || is_HCVP_VPP" type="button" pButton icon="fa fa-file-excel-o"
+                                iconPos="left" label="Import file" (click)="openImportExcel()"></button>
+                        <button *ngIf="isAdmin || is_HCVP_VPP" type="button" pButton icon="fa fa-trash" iconPos="left"
+                                label="Xóa" (click)="onDeleteItem()" style="text-align: center;"></button>
+                    </div>
+                    <div class="col-sm-2"></div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-12">
+            <p-table #myTable (onLazyLoad)="onLazyLoad($event)" [value]="listStationery"
+                     [totalRecords]="total_record" [lazy]="true" [paginator]="true" [rows]="10"
+                     [(selection)]="selectedItem" dataKey="stationeryId">
+
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th width="10%" pResizableColumn style="text-align: center; font-weight: bold;">STT</th>
+                        <th *ngIf="isAdmin || is_HCVP_VPP" width="10%" pResizableColumn
+                            style="text-align: center; font-weight: bold;">
+                            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                        </th>
+                        <th *ngIf="isAdmin || is_HCVP_VPP" width="10%" style="text-align: center; font-weight: bold;">
+                            Thao tác
+                        </th>
+                        <th style="width: 5%">Ảnh</th>
+                        <th width="30%" style="text-align: center; font-weight: bold;">Tên Văn Phòng Phẩm</th>
+                        <th *ngIf="isAdmin||is_HCVP_VPP" width="30%" style="text-align: center; font-weight: bold;">Đơn Giá</th>
+                        <th width="20%" style="text-align: center; font-weight: bold;">Đơn Vị Tính</th>
+                    </tr>
+                </ng-template>
+                <ng-template let-ri="rowIndex" pTemplate="body" let-rowData>
+                    <tr>
+                        <td>{{ri+1}}</td>
+                        <td *ngIf="isAdmin || is_HCVP_VPP">
+                            <p-tableCheckbox [value]="rowData"></p-tableCheckbox>
+                        </td>
+                        <td *ngIf="isAdmin || is_HCVP_VPP">
+                            <div class="row ">
+                                <div class="col-sm-5 item">
+                                    <p-button icon="pi pi-pencil" [disabled]="isEdit"
+                                              (onClick)="doEdit(rowData)"></p-button>
+                                </div>
+
+                                <div class="col-sm-7 item">
+                                    <p-button icon="pi pi-trash" [disabled]="isEdit"
+                                              (onClick)="doDelete(rowData)"></p-button>
+                                </div>
+                            </div>
+
+                        </td>
+                        <td style="width: 2rem;">
+                            <p-button *ngIf="rowData.image === 1"
+                                  icon="fa fa-file-image-o" (click)="openDlgImage(0,rowData)" [disabled]="isEdit"></p-button>
+                        </td>
+                        <td style="text-align: left !important;">{{rowData["stationeryName"]}}</td>
+                        <td *ngIf="isAdmin||is_HCVP_VPP"style="text-align: right !important;">{{rowData.unitPrice | number:0}}</td>
+                        <td style="text-align: left !important;">{{rowData.calUnit}}</td>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td [attr.colspan]="isAdmin||is_HCVP_VPP ? 6:3" style="text-align: center;">
+                            Không có dữ liệu
+                        </td>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="paginatorright">
+          <span style="position: absolute; right: 30px; bottom: 6px;">{{total_record == 0 ? pageNumber : pageNumber + 1}} - {{pageNumber+pageSize>total_record ? total_record : pageNumber+pageSize}}
+            / {{total_record}}</span>
+                </ng-template>
+            </p-table>
+
+        </div>
+    </div>
+
+    <p-dialog header="Chức năng thay đổi định mức" id="dialog" [(visible)]="display" [modal]="true" [closable]="true"
+              [responsive]="true"
+              [width]="650" [minWidth]="200" [minY]="70" [maximizable]="false" [dismissableMask]="true"
+              [baseZIndex]="10000">
+
+
+        <!-- POP-UPPPPP -->
+        <div class="container">
+            <div class="container-fluid text-center mt-5">
+                <h3 class="text-center">THAY ĐỔI ĐỊNH MỨC</h3>
+            </div>
+            <div class="row ">
+                <div class="col-sm-12 " style="margin: auto;">
+                    <form ngNoForm onsubmit="return false;">
+
+                        <div class="row">
+                            <div class="form-group row">
+                                <div class="col-sm-1"></div>
+                                <label class="col-sm-4 ">Định mức
+                                    <span style="color: red;">*</span>:</label>
+                                <div class="col-sm-7">
+                                    <input #inputLimit maxlength="10" type="text" size="30" name="position" pInputText
+                                           style="width: 120%;"
+                                           [(ngModel)]="limit.limitValue" (ngModelChange)="changeLimit(null)">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row row-button">
+                            <div class="col-sm-4"></div>
+                            <div class="col-sm-4">
+                                <p-button class="ui-button-danger" icon="pi pi-plus" label="Lưu"
+                                          (click)="save()"></p-button>
+                                <p-button class="ui-button-danger" icon="pi pi-times" label="Đóng"
+                                          (click)="close()"></p-button>
+                            </div>
+                            <div class="col-sm-4"></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <p-footer>
+
+        </p-footer>
+    </p-dialog>
+
+
+    <!--dialog import file-->
+    <p-dialog header="Import file" [(visible)]="showImportForm" [modal]="true"
+              [style]="{width: '350px', minWidth: '200px'}"  (onHide)="clearImportExcel()"
+              [responsive]="true" [width]="1000" [dismissableMask]="true" [draggable]="false" appendTo="body">
+        <p-fileUpload #fileUpload (uploadHandler)="uploadExcel($event)" (onClear)="clearExcel()" [files]="uploadedFiles"
+                      (onRemove)="clearFileExcel()" chooseLabel="Chọn file" uploadLabel="Đồng ý" cancelLabel="Hủy bỏ"
+                      customUpload="true"
+                      accept=".xls,.xlsx,application/msexcel" maxFileSize="1000000">
+            <ng-template pTemplate="content">
+                <ul *ngIf="uploadedFiles.length">
+                    <li *ngFor="let file of uploadedFiles">{{file.name}} - {{file.size}} bytes</li>
+                </ul>
+            </ng-template>
+        </p-fileUpload>
+
+        <button tabindex="0" style="margin-top: 15px; margin-bottom: 15px;" type="button" pButton icon="fa fa-download"
+                iconPos="left" label="Tải file mẫu"
+                (click)="exportTemplateExcel()"></button>
+
+        <!--<div ui-fluid>-->
+        <!--<span style="color: red;" class="ui-inputgroup-addon" *ngIf="notiImportFile !== null">{{notiImportFile}}</span>-->
+        <!--</div>-->
+        <div ui-fluid>
+            <button *ngIf="isShowHideButtonResult" tabindex="0" style="margin-top: 15px; margin-bottom: 15px;"
+                    type="button" pButton icon="fa fa-download" iconPos="left" label="Tải file kết quả"
+                    (click)="exportImportResult()"></button>
+        </div>
+    </p-dialog>
+
+    <p-dialog header="Ảnh văn phòng phẩm" id="dlgChef" [(visible)]="isShowImageDialog"
+              [modal]="true"
+              (onHide)="onHideImageDialog()"
+              [closable]="true" [width]="400"
+              [dismissableMask]="true" [baseZIndex]="10000">
+
+        <p-fileUpload #fileUpload (onSelect)="onSelectImage($event)" chooseLabel="Chọn ảnh" [showUploadButton]="false"
+                      cancelLabel="Xóa ảnh"
+                      accept=".gif,.jpe,.png,.jpg" maxFileSize="1000000" (onClear)="onRemoveImage($event)">
+            <ng-template let-file pTemplate="file">
+                <div *ngIf="imageData" class="ui-fileupload-row ">
+                    <div>
+                        <img src="{{imageData}}" width="50"
+                             class="ng-star-inserted"></div>
+                    <div>{{imgName}}</div>
+                    <div>{{imgSize}} KB</div>
+                </div>
+            </ng-template>
+        </p-fileUpload>
+    </p-dialog>
+
+
+    <p-dialog header="Ảnh văn phòng phẩm" id="dlgChef" [(visible)]="showDlgImage"
+              [modal]="true"
+              [positionTop]="100"
+              (onHide)="closeDlgImage()"
+              [closable]="true" [responsive]="true" [width]="700" [minWidth]="200" [minY]="70" [maximizable]="false"
+              [dismissableMask]="true" [baseZIndex]="10000" >
+
+        <div style="margin: auto;text-align: center;margin-top: 10px;">
+            <img style="max-height: 600px; max-width: 600px;"  *ngIf="imageData != null" src="{{imageData}}">
+        </div>
+        <div *ngIf="!showDialogToInsert && imageData == null " style="text-align: center; min-height: 500px; min-width: 200px;">
+            <span>{{textImage}}</span>
+        </div>
+    </p-dialog>
+
+</div>

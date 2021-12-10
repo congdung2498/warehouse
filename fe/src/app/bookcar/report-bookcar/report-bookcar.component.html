@@ -1,0 +1,754 @@
+<div class="container" style="max-width: 1400px;">
+    <div class="container-fluid text-center mt-3 mb-3">
+        <h1>THỐNG KÊ ĐẶT XE</h1>
+    </div>
+    <div class="row mb-3">
+        <div class="col-xl-12 mb-3">
+            <p-fieldset legend="Thông tin tìm kiếm">
+                <div class="row mb-3" style="margin-left: 20px;">
+                    <!-- team car field -->
+                    <div class="col-sm-6">
+                        <div class="row">
+                            <div class="col-sm-3" style="text-align: left; padding-top: 5px;">Đội xe:</div>
+                            <div class="col-sm-9 ui-fluid" style="margin-left: -10px; position: relative;">
+                                <p-autoComplete tabindex="0" [(ngModel)]="teamCarInfor" [suggestions]="filterTeamCar"
+                                                (completeMethod)="loadTeamCar($event)" [disabled]="isDisableCarTeam"
+                                                [pKeyFilter]="onlyChar" field="squadName" dropdown="true"
+                                                (ngModelChange)="onChange()" placeholder="VD: D4"
+                                                [disabled]="disableTeamCar">
+                                    <ng-template let-item pTemplate="item">
+                                        <span>{{item.placeName != null ?item.squadName + " - " + item.placeName : item.squadName}}</span>
+                                    </ng-template>
+                                </p-autoComplete>
+                                <span *ngIf="teamCarInfor != null && !isDisableCarTeam"
+                                      class="customIcon2 pi pi-times" (click)="clearTeamCar($event)"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- driver field -->
+                    <div class="col-sm-6">
+                        <div class="row">
+                            <div class="col-sm-3" style="text-align: left; padding-top: 5px; max-width: 95px;">Lái xe:
+                            </div>
+                            <div class="col-sm-9 ui-fluid" style="margin-left: -6px; position: relative;">
+                                <p-autoComplete [(ngModel)]="driverInfor" [suggestions]="filterDriver"
+                                                (completeMethod)="loadDriver($event)" [disabled]="isDrive"
+                                                [pKeyFilter]="onlyChar" field="result" dropdown="true"
+                                                placeholder="Họ tên, email, số diện thoại">
+                                    <ng-template let-item pTemplate="item">
+                                        <span>{{item!= null ? item.result + " - " + item.userNameDriver : " " }}</span>
+                                    </ng-template>
+                                </p-autoComplete>
+                                <span *ngIf="driverInfor != null && !isDrive"
+                                      class="customIcon2 pi pi-times" (click)="clearDriver($event)"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- booker field -->
+                <!-- <div *ngIf="isNotEmployee; else isEmployee" class="row mb-3" style="margin-left: 20px;">-->
+                <div class="row mb-3" style="margin-left: 20px;">
+                    <div class="col-sm-6">
+                        <div class="row">
+                            <div class="col-sm-3" style="text-align: left; padding-top: 5px; padding-right: 0px !important;"> Người sử dụng: </div>
+                            <div class="col-sm-9 ui-fluid" style="margin-left: -10px;">
+                                <p-autoComplete [(ngModel)]="empInfor" [suggestions]="filterEmployee"
+                                                (completeMethod)="loadEmployee($event)" [disabled]="isEmployee"
+                                                [pKeyFilter]="onlyChar" field="result" dropdown="true"
+                                                placeholder="Họ tên, email, số diện thoại">
+                                    <ng-template let-item pTemplate="item">
+                                        <span>{{item.result + " - " + item.userNameBooker}}</span>
+                                    </ng-template>
+                                </p-autoComplete>
+                                <span *ngIf="empInfor != null && !isEmployee"
+                                      class="customIcon2 pi pi-times" (click)="clearBooker($event)"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- type car -->
+                    <div class="col-sm-6">
+                        <div class="row">
+                            <div class="col-sm-3" style="text-align: left; padding-top: 5px; max-width: 95px;">Loại xe: </div>
+                            <div class="col-sm-9 ui-fluid" style="margin-left: -6px;">
+                                <p-dropdown [options]="cars" [style]="{'width': '100%'}" [(ngModel)]="selectedCar"
+                                            placeholder="-- Chọn loại xe --" emptyFilterMessage="Không có dữ liệu"
+                                            filter="true" optionLabel="codeName" [showClear]="true"></p-dropdown>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- if user is not employee -->
+                <div class="row mb-3" style="margin-left: 20px;">
+                    <div class="col-sm-6">
+                        <div class="row">
+                            <div class="col-sm-3" style="text-align: left; padding-top: 5px;">Trạng thái:</div>
+                            <div class="col-sm-9 ui-fluid" style="margin-left: -10px;">
+                                <p-multiSelect defaultLabel="-- Chọn trạng thái --" [options]="carStatusList"
+                                               maxSelectedLabels="9" [(ngModel)]="selectedCarStatus"></p-multiSelect>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="row">
+                            <div class="col-sm-3"
+                                 style="text-align: left; padding-top: 5px; max-width: 95px; padding-right: 0px;">
+                                Thời gian đi:
+                            </div>
+                            <div class="col-sm-9" style="margin-left: -6px;">
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <div class="row" >
+                                            <div style="position: relative;" class="col-sm-12 ui-fluid">
+                                                <p-calendar dateFormat="dd/mm/yy" placeholder="DD/MM/YYYY"
+                                                            [(ngModel)]="fromDate" [showIcon]="true"
+                                                            [readonlyInput]="true" showButtonBar="true" [locale]="vn"
+                                                            [monthNavigator]="true"
+                                                            [yearNavigator]="true" yearRange="2000:2030"
+                                                            (ngModelChange)="selectFromDate()"></p-calendar>
+                                                <span *ngIf="fromDate != null" class="customIcon pi pi-times"
+                                                      (click)="clearFromDate($event)"></span>
+                                                <span class="fa fa-minus"
+                                                      style="position: absolute; top: 12px; right: -6px; color: #848484"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="row" >
+                                            <div style="position: relative; margin-left: 2px;"
+                                                 class="col-sm-12 ui-fluid">
+                                                <p-calendar dateFormat="dd/mm/yy" placeholder="DD/MM/YYYY"
+                                                            [(ngModel)]="toDate" [showIcon]="true"
+                                                            [readonlyInput]="true" showButtonBar="true" [locale]="vn"
+                                                            [monthNavigator]="true"
+                                                            [yearNavigator]="true" yearRange="2000:2030"
+                                                            (ngModelChange)="selectToDate()"></p-calendar>
+                                                <span *ngIf="toDate != null" class="customIcon pi pi-times"
+                                                      (click)="clearToDate($event)"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </p-fieldset>
+        </div>
+        <div class="col-xl-12">
+            <div class="text-center">
+                <button type="button" pButton icon="fa fa-search" iconPos="left" label="Tìm kiếm" (click)="searchData()" style="text-align: center;"></button>
+                <button type="button" pButton icon="fa fa-plus" iconPos="left" label="Thêm" label="Thêm mới" (click)="addNew()" style="text-align: center;"></button>
+                <button type="button" pButton icon="fa fa-refresh" iconPos="left" label="Làm mới" (click)="resetButton()" style="text-align: center;"></button>
+                <button type="button" pButton icon="fa fa-file-excel-o" iconPos="left" label="Xuất file" (click)="exportToExcel()" style="text-align: center;"></button>
+                <button *ngIf="isAdmin || isManager" type="button" pButton icon="fa fa-check" iconPos="left" label="Phê duyệt" (click)="approveList()" style="text-align: center;"></button>
+            </div>
+        </div>
+    </div>
+    <!-- create table -->
+    <div class="row">
+        <div class="col-xl-12">
+            <div *ngIf="isEmpty; else showData" class="errorMsg">
+                <!-- if no data is reasonable -->
+                <p-table>
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th style="width: 4rem; font-weight: bold;">STT</th>
+                            <th style="width: 4rem; font-weight: bold;" *ngIf="isAdmin || isManager">
+                                <input *ngIf="isShowApproveChk" type="checkbox"
+                                       [(ngModel)]="checkedAll" [ngModelOptions]="{standalone: true}"/>
+                            </th>
+                            <th style="width: 8rem; font-weight: bold;">Đơn vị</th>
+                            <th style="width: 12rem; font-weight: bold;">Thao tác</th>
+                            <th style="width: 8rem; font-weight: bold;">Người sử dụng</th>
+                            <th style="width: 6rem; font-weight: bold;">Đội xe</th>
+                            <th style="width: 8rem; font-weight: bold;">Lái xe</th>
+                            <th style="width: 8rem; font-weight: bold;">Loại xe</th>
+                            <th style="width: 8rem; font-weight: bold;">Biển kiểm soát</th>
+                            <th style="width: 8rem; font-weight: bold;">Thời gian đi</th>
+                            <th style="width: 8rem; font-weight: bold;">Thời gian về</th>
+                            <th style="width: 6rem; font-weight: bold;">Số người</th>
+                            <th style="width: 8rem; font-weight: bold;">Trạng thái</th>
+                            <th style="width: 6rem; font-weight: bold;">Đánh giá</th>
+                            <th style="width: 8rem; font-weight: bold;">Góp ý</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td [attr.colspan]="15">
+                                Không có dữ liệu
+                            </td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="footer"></ng-template>
+                </p-table>
+            </div>
+            <!-- if has data -->
+            <ng-template #showData>
+                <p-table #myTable [value]="listSearchTrip" [lazy]="true" (onPage)="paginate($event)" [paginator]="true"
+                         [rows]="10" dataKey="carBookingId" [(selection)]="selectedListTrip"
+                         [totalRecords]="totalRecord" [loading]="loading" [scrollable]="true">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th style="width: 3rem; font-weight: bold;">TT</th>
+                            <th style="width: 4rem; font-weight: bold;" *ngIf="isAdmin || isManager">
+                                <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                            </th>
+                            <th style="width: 200px; font-weight: bold;">Thao tác</th>
+                            <th style="width: 6rem; font-weight: bold;">Đơn vị</th>
+                            <th style="width: 6rem; font-weight: bold;">Người sử dụng</th>
+                            <th style="width: 8rem; font-weight: bold;">Đội xe</th>
+                            <th style="width: 10rem; font-weight: bold;">Lái xe</th>
+                            <th style="width: 5rem; font-weight: bold;">Loại xe</th>
+                            <th style="width: 6rem; font-weight: bold;">Biển kiểm soát</th>
+                            <th style="width: 8rem; font-weight: bold;">Thời gian đi</th>
+                            <th style="width: 8rem; font-weight: bold;">Thời gian về</th>
+                            <th style="width: 3rem; font-weight: bold; padding: 0px !important;">Số người</th>
+                            <th style="width: 11rem; font-weight: bold;">Trạng thái</th>
+                            <th style="width: 3rem; font-weight: bold; padding: 0px !important;">Đánh giá</th>
+                            <th style="width: 4rem; font-weight: bold;">Góp ý</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template let-ri="rowIndex" pTemplate="body" let-item>
+                        <tr>
+                            <td style="width: 3rem; padding: 8px 4px;">{{ri+1}}</td>
+                            <td class="vt-align-center" *ngIf="isAdmin || isManager" style="width: 4rem; padding: 8px 4px;">
+                                <p-tableCheckbox *ngIf="item.isApprove"
+                                                 [value]="item"></p-tableCheckbox>
+                            </td>
+                            <td class="wrapText" pTextEllipsis style="width: 200px; padding: 8px 4px; text-align: left !important;">
+                                <p-button *ngIf="item.isCancel" icon="fa fa-ban" (onClick)="doCancel(item)" [pTooltip]="cancel"></p-button>
+                                <p-button *ngIf="item.isAddMoreTime" [pTooltip]="approve"
+                                          icon="fa fa-clock-o" [disabled]="isEdit"
+                                          (onClick)="doRenewed(item)"></p-button>
+                                <p-button *ngIf="item.isCopy" icon="pi pi-copy" [disabled]="isEdit"
+                                          (onClick)="doCopy(item)" [pTooltip]="copy"></p-button>
+                                <p-button *ngIf="item.isReject" [pTooltip]="rejected"
+                                          icon="fa fa-minus-circle" [disabled]="isEdit"
+                                          (onClick)="doRefuse(item)"></p-button>
+                                <p-button *ngIf="item.isSetup" [pTooltip]="car"
+                                          icon="fa fa-car" [disabled]="isEdit" (onClick)="doOrder(item)"></p-button>
+                                <p-button *ngIf="item.isJourney" [pTooltip]="jouney"
+                                          icon="fa fa-exchange" [disabled]="isEdit"
+                                          (onClick)="doExchange(item)"></p-button>
+                                <p-button *ngIf="item.isUserVote" [pTooltip]="userVote"
+                                          icon="fa fa-thumbs-up" [disabled]="isEdit"
+                                          (onClick)="doComplete(item)"></p-button>
+                                <p-button *ngIf="item.isDriverVote" [pTooltip]="adminVote"
+                                          icon="fa fa-thumbs-o-up" [disabled]="isEdit"
+                                          (onClick)="doDriverVote(item)"></p-button>
+                            </td>
+                            <td class="wrapText" pTextEllipsis [pTooltip]="item.detailUnit"
+                                style="width: 6rem; padding: 8px 4px; text-align: left !important;">
+                                {{item.detailUnit}}
+                            </td>
+                            <td class="wrapText" pTextEllipsis [pTooltip]="item.empName"
+                                style="width: 6rem; padding: 8px 4px; text-align: left !important;">
+                                <span (click)="onShowDetail(item)" class="date-link">{{item.empInfo}}</span>
+                            </td>
+                            <td class="wrapText" pTextEllipsis [pTooltip]="item.squadName" style="width: 8rem; padding: 8px 4px; text-align: left !important;">
+                                {{item.squadName}}
+                            </td>
+                            <td class="wrapText" pTextEllipsis [pTooltip]="item.driverName"
+                                style="width: 10rem; padding: 8px 4px; text-align: left !important;">
+                                {{item.driverName}}
+                            </td>
+                            <td class="wrapText" pTextEllipsis [pTooltip]="item.carType"
+                                style="width: 5rem; padding: 8px 4px; text-align: left !important;">
+                                {{item.carName}}
+                            </td>
+                            <td class="wrapText" pTextEllipsis [pTooltip]="item.licensePlate"
+                                style="width: 6rem; padding: 8px 4px; text-align: left !important;">
+                                {{item.licensePlate}}
+                            </td>
+                            <td style="width: 8rem; padding: 8px 4px;">{{item.dateStart | date: 'dd/MM/yyyy HH:mm'}}
+                            </td>
+                            <td style="width: 8rem; padding: 8px 4px;">{{item.dateEnd | date: 'dd/MM/yyyy HH:mm'}}</td>
+                            <td style="width: 3rem; padding: 8px 4px; text-align: right !important;">
+                                {{item.numOfPassenger}}
+                            </td>
+                            <td class="wrapText" pTextEllipsis [pTooltip]="item.statusLabel"
+                                style="width: 11rem; padding: 8px 4px; text-align: left !important;">
+                                {{item.statusLabel}}
+                            </td>
+                            <td style="width: 3rem; padding: 8px 4px;">{{item.rating != 0 ? item.rating : ""}}</td>
+
+                            <td class="wrapText" pTextEllipsis [pTooltip]="item.feedback"
+                                style="width: 4rem; padding: 8px 4px; text-align: left !important;">
+                                {{item.feedback}}
+                            </td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="paginatorright">
+                    <span style="position: absolute; right: 30px; bottom: 6px;">{{startRow + 1}} - {{startRow + rowSize}} / {{totalRecord}}</span>
+                    </ng-template>
+                    <ng-template *ngIf="isNotEmployee && isLeaderCar; else isEmployee" pTemplate="footer">
+                        <tr>
+                            <td colspan="15" style="font-weight: bold; text-align: right !important;">
+                                Đánh giá trung bình
+                            </td>
+                            <td style="font-weight: bold;">
+                                {{(averageRating != null && averageRating.length > 0) ? averageRating : ""}}
+                            </td>
+                            <td style="font-weight: bold;"></td>
+                        </tr>
+                    </ng-template>
+                    <ng-template #isEmployee>
+                        <ng-template pTemplate="footer">
+                            <tr>
+                                <td colspan="15" style="font-weight: bold; text-align: right !important;">
+                                    Đánh giá trung bình
+                                </td>
+                                <td style="font-weight: bold; width: 3rem">
+                                    {{(averageRating != null && averageRating.length > 0) ? averageRating : ""}}
+                                </td>
+                                <td style="font-weight: bold; width: 4rem"></td>
+                            </tr>
+                        </ng-template>
+                    </ng-template>
+                </p-table>
+            </ng-template>
+        </div>
+    </div>
+</div>
+
+<!-------------------------------------- renew dialog --------------------------------------------->
+
+<p-dialog [modal]="true" [width]="900" [(visible)]="isDialogStillApprove">
+    <booking-car-renewed #renewedCpn [userInfo]="userInfo" (result)="onSaveResult($event)" [placeStartList]="placeNameList"
+                         [squadList]="squadList" [routeWayList]="routeWayList" [seatList]="seatList" [typeList]="typeList">
+    </booking-car-renewed>
+</p-dialog>
+
+<!------------------------------------dialog user vote ---------------------------------------------->
+
+<p-dialog [modal]="true" [width]="1000" [(visible)]="isDialogComplete" (onHide)="onHideDialogUserVote()">
+    <div class="container-fluid text-center mt-3 mb-3">
+        <h1>ĐÁNH GIÁ CHUYẾN XE</h1>
+    </div>
+    <!--<p-fieldset legend="Chi tiết đăng kí">-->
+    <div class="container">
+        <div class="row">
+            <div class="col-xl-12 mb-2">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="row mb-2">
+                            <div class="row col-sm-5" >
+                                <label class="col-sm-5">Người sử dụng:</label>
+                                <div class="col-sm-7"><label>{{empName}}</label></div>
+                            </div>
+                            <div class="row col-sm-7" >
+                                <label class="col-sm-4 ">Điểm khởi hành :</label>
+                                <div class="col-sm-8">{{startPlaceDriveVote}}</div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="row col-sm-5" >
+                                <label class="col-sm-5" >Số điện thoại:</label>
+                                <div class="col-sm-7" ><label>{{empPhone}}</label></div>
+                            </div>
+                            <div class="row col-sm-7" >
+                                <label class="col-sm-4" >Điểm đến:</label>
+                                <div class="col-sm-8">{{tagetPlace}}</div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="row col-sm-5">
+                                <label class="col-sm-5 ">Lái xe:</label>
+                                <div class="col-sm-7">{{driveNameComplete}}</div>
+                            </div>
+                            <div class="row col-sm-7">
+                                <label class="col-sm-4 ">Thời gian đăng kí:</label>
+                                <div class="col-sm-8"><label> {{dateStart}} - {{dateEnd}}</label></div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="row col-sm-5">
+                                <label class="col-sm-5 ">Đội xe:</label>
+                                <div class="col-sm-7"><label> {{squadNameComplete}}</label></div>
+                            </div>
+                            <div class="row col-sm-7">
+                                <label class="col-sm-4 ">Thời gian thực tế:</label>
+                                <div class="col-sm-8"><label> {{startReadyTime}} - {{endReadyTime}}</label></div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="row col-sm-12">
+                                <label class="col-sm-2" >Đơn vị:</label>
+                                <div class="col-sm-10"><label>{{detailUnit}}</label></div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-2">
+                            <div class="col-sm-12">
+                                <div style="text-align: center">
+                                    <p-rating [(ngModel)]="ratting" [iconOnStyle]="{'color': 'orange', 'font-size': '40px'}"
+                                              [iconOffStyle]="{'font-size': '40px'}" [cancel]="false"></p-rating>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="row col-sm-12" style="margin-right:10px;">
+                                <label class="col-sm-3 ">Góp ý:</label>
+                                <div class="col-sm-12 ui-fluid">
+                                    <textarea pInputTextarea [ngModelOptions]="{standalone: true}"
+                                              [style]="{'width': '100%'}"
+                                              [(ngModel)]="feedback"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4 ui-fluid divImg">
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-12">
+        <div class="row col-sm-12" style="margin-right:10px;">
+            <div class="col-sm-12 ui-fluid">
+                <div class="row text-center">
+                    <div class="col-sm-12 text-center" style="padding: 0;
+                margin: 0 auto; ">
+                        <p-button label="Đánh giá" class="ui-button-danger" (click)="rattingFromUser()"></p-button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--</p-fieldset>-->
+</p-dialog>
+
+<!------------------------------ refuse ------------------------->
+
+<p-dialog [modal]="true" [width]="900" [(visible)]="isDialogRefuse" (onHide)="onHideCarRefuse()">
+    <booking-car-refuse #refuseCpn [userInfo]="userInfo" (result)="onSaveResult($event)" [placeStartList]="placeNameList"
+                        [squadList]="squadList" [routeWayList]="routeWayList" [seatList]="seatList" [typeList]="typeList"
+                        (refuse)="openRefuseReason($event)"></booking-car-refuse>
+</p-dialog>
+
+<!------------------------------ is orderBy ------------------------->
+
+<p-dialog [modal]="true" [width]="900" [(visible)]="isDialogOrderBy" (onHide)="onHideOderPopup()">
+    <booking-car-ordering #orderingCpn [userInfo]="userInfo" (result)="onSaveResult($event)" [placeStartList]="placeNameList"
+                          [squadList]="squadList" [routeWayList]="routeWayList" [seatList]="seatList" [typeList]="typeList"
+                          (refuse)="openRefuseOrderReason($event)"></booking-car-ordering>
+</p-dialog>
+
+<!-- car journey -->
+
+<p-dialog [modal]="true" [width]="900" [(visible)]="isDialogJourney" (onHide)="onHideDialogJourney">
+    <div class="container-fluid text-center mt-3 mb-3">
+        <h1>THÔNG TIN CHUYẾN XE</h1>
+    </div>
+    <!--<p-fieldset legend="Chi tiết hành trình xe">-->
+    <div class="container">
+        <div class="row">
+            <div class="col-xl-12 mb-2">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="row mb-2">
+                            <div class="row col-sm-6" style="margin-right:10px;">
+                                <div class="col-sm-6" style="text-align: left; padding-top: 5px;">Lái xe :</div>
+                                <div class="col-sm-6 ui-fluid">
+                                    <label>{{emDriveName}}</label>
+                                </div>
+                            </div>
+                            <div class="row col-sm-6" style="margin-right:10px;">
+                                <div class="col-sm-6" style="text-align: left; padding-top: 5px;">Trạng thái :</div>
+                                <div class="col-sm-6 ui-fluid">
+                                    <label>{{statusLabel}}</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="row col-sm-6" style="margin-right:10px;">
+                                <div class="col-sm-6" style="text-align: left;"><label>Loại xe :</label></div>
+                                <div class="col-sm-6 ui-fluid">
+                                    <label>{{empCartype}}</label>
+                                </div>
+                            </div>
+
+                            <div class="row col-sm-6" style="margin-right:10px;">
+                                <div class="col-sm-6" style="text-align: left;"><label>Thời gian bắt đầu :
+                                </label>
+                                </div>
+                                <div class="col-sm-6 ui-fluid">
+                                    {{empDateStart}}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="row col-sm-6" style="margin-right:10px;">
+                                <label class="col-sm-6 ">Số chỗ :</label>
+                                <div class="col-sm-6 ui-fluid">
+                                    <label>{{empSeat}}</label>
+                                </div>
+                            </div>
+
+                            <div class="row col-sm-6" style="margin-right:10px;">
+                                <div class="col-sm-6 "><label>Thời gian kết thúc :</label></div>
+                                <div class="col-sm-6 ui-fluid">
+                                    <label>{{empDateEnd}}</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="row col-sm-6" style="margin-right:10px;">
+                                <label class="col-sm-6 ">Biển kiểm soát :</label>
+                                <div class="col-sm-6 ui-fluid">
+                                    <label>{{empListenPlate}}</label>
+                                </div>
+                            </div>
+                            <div class="row col-sm-6" style="margin-right:10px;">
+                                <label class="col-sm-6 ">Loại hành trình :</label>
+                                <div class="col-sm-6 ui-fluid">
+                                    <label>{{emRouteType}}</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="row col-sm-6" style="margin-right:10px;">
+                                <label class="col-sm-6 ">Đội xe :</label>
+                                <div class="col-sm-6 ui-fluid">
+                                    <label>{{empSquadName}}</label>
+                                </div>
+                            </div>
+                            <div class="row col-sm-6" style="margin-right:10px;">
+                                <label class="col-sm-6 ">Địa điểm khời hành :</label>
+                                <div class="col-sm-6 ui-fluid">
+                                    <label>{{empStartPlace}}</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="row col-sm-6" style="margin-right:10px;">
+                                <label class="col-sm-6 ">Người sử dụng :</label>
+                                <div class="col-sm-6 ui-fluid">
+                                    <label>{{empUse}}</label>
+                                </div>
+                            </div>
+                            <div class="row col-sm-6" style="margin-right:10px;">
+                                <label class="col-sm-6 ">Địa điểm đến :</label>
+                                <div class="col-sm-6 ui-fluid">
+                                    <label>{{empTagetPlace}}</label>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="row col-sm-6" style="margin-right:10px;">
+                                <label class="col-sm-6 ">Số điện thoại :</label>
+                                <div class="col-sm-6 ui-fluid">
+                                    <label>{{empPhone}}</label>
+                                </div>
+                            </div>
+                            <div class="row col-sm-6" style="margin-right:10px;">
+                                <label class="col-sm-6" style="text-align: left;">Hành trình : </label>
+                                <div class="col-sm-6 ui-fluid">
+                                    <label>{{emRouteWay}}</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="row col-sm-6" style="margin-right:10px;">
+                                <label class="col-sm-6" style="text-align: left;">Đơn vị : </label>
+                                <div class="col-sm-6 ui-fluid">
+                                    <label>{{empUnit}}</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="row col-sm-6" style="margin-right:10px;">
+                                <label class="col-sm-6" style="text-align: left;">Số người đi :
+                                </label>
+                                <div class="col-sm-6 ui-fluid">
+                                    <label>{{empLisPassenger}}</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-12">
+        <div class="col-sm-12">
+            <div style="text-align: center">
+              <button  pButton type="button" [disabled]="isEnd" label="Bắt đầu đi" (click)="startJourney()"></button>
+              <button  pButton type="button" [disabled]="isStart" label="Về vị trí" (click)=" endJourney()"></button>
+            </div>
+        </div>
+    </div>
+</p-dialog>
+
+<!--=============refuse - accept==============-->
+
+<p-dialog [modal]="true" [width]="900" [(visible)]="isShowDescription" (onHide)="onHideRefuseDialog()">
+    <div class="container-fluid text-center mt-3 mb-3">
+        <h1>LÝ DO TỪ CHỐI</h1>
+    </div>
+    <div class="col-sm-12 ui-fluid">
+                    <textarea type="text" class="ui-inputtext ui-widget ui-state-default ui-corner-all"
+                              [(ngModel)]="reasonRefuse" [ngModelOptions]="{standalone: true}"></textarea>
+    </div>
+    <div class="row">
+      <div class="col-sm-12">
+        <div style="text-align: center">
+          <button pButton type="button" class="ui-button-danger" label="Hủy bỏ" (click)=" cancelRefuse()"></button>
+          <button pButton type="button" label="Chọn" class="ui-button-info" (click)="chooseRefuse()"></button>
+        </div>
+      </div>
+    </div>
+</p-dialog>
+
+
+<!--=======================================Refuse-Order====================================-->
+<p-dialog [modal]="true" [width]="900" [(visible)]="isShowDescriptionRefuse" (onHide)="onHideRefuseDialog()">
+    <div class="container-fluid text-center mt-3 mb-3">
+        <h1 *ngIf="orderingCpn.copyInfo && orderingCpn.copyInfo.statusTrips == 1">LÝ DO TỪ CHỐI XẾP XE</h1>
+        <h1 *ngIf="orderingCpn.copyInfo && orderingCpn.copyInfo.statusTrips == 4">LÝ DO HỦY XẾP XE</h1>
+    </div>
+    <div class="col-sm-12 ui-fluid">
+                    <textarea type="text" class="ui-inputtext ui-widget ui-state-default ui-corner-all"
+                              [(ngModel)]="reasonAssigner" [ngModelOptions]="{standalone: true}"></textarea>
+    </div>
+    <div class="row">
+      <div class="col-sm-12">
+        <div style="text-align: center">
+          <button pButton type="button" class="ui-button-danger" label="Hủy bỏ" (click)=" cancelRefuse()"></button>
+          <button *ngIf="orderingCpn.copyInfo && orderingCpn.copyInfo.statusTrips == 1"
+                          pButton type="button" label="Từ chối xêp xe" class="ui-button-info" (click)=" chooseRefuseOrder()"></button>
+          <button *ngIf="orderingCpn.copyInfo && orderingCpn.copyInfo.statusTrips == 4"
+                          pButton type="button" label="Hủy xếp xe" class="ui-button-info" (click)=" cancelOrdering()"></button>
+        </div>
+      </div>
+    </div>
+</p-dialog>
+
+<!--==========================================Driver Vote User============================================================-->
+
+<p-dialog [modal]="true" [width]="900" [(visible)]="isDialogDriverVote" (onHide)="onHideDialogDriverVote()">
+    <div class="container-fluid text-center mt-3 mb-3">
+        <h1>ĐÁNH GIÁ NGƯỜI YÊU CẦU</h1>
+    </div>
+    <!--<p-fieldset legend="Chi tiết đăng kí">-->
+    <div class="container">
+        <div class="row">
+            <div class="col-xl-12 mb-2">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="row mb-2">
+                            <div class="row col-sm-5">
+                                <label class="col-sm-5">Lái xe</label>
+                                <div class="col-sm-7">{{driveVoteUser}}</div>
+                            </div>
+
+                            <div class="row col-sm-7" >
+                                <label class="col-sm-4 ">Điểm khởi hành:</label>
+                                <div class="col-sm-8">{{startPlaceDriveVote}}</div>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="row col-sm-5">
+                                <label class="col-sm-5 ">Đội xe:</label>
+                                <div class="col-sm-7">{{squadNameVoteUser}}</div>
+                            </div>
+                            <div class="row col-sm-7">
+                                <label class="col-sm-4">Điểm đến:</label>
+                                <div class="col-sm-8"> {{tagetPlace}}</div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="row col-sm-5" >
+                                <div class="col-sm-5">Người sử dụng:</div>
+                                <div class="col-sm-7">{{empName}}</div>
+                            </div>
+                            <div class="row col-sm-7">
+                                <label class="col-sm-4">Thời gian đăng kí:</label>
+                                <div class="col-sm-8">{{dateStart}} - {{dateEnd}}</div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="row col-sm-5">
+                                <div class="col-sm-5" >Số điện thoại:</div>
+                                <div class="col-sm-7">{{empPhone}}</div>
+                            </div>
+                            <div class="row col-sm-7">
+                                <label class="col-sm-4 ">Thời gian thực tế:</label>
+                                <div class="col-sm-8">{{timeStart}} - {{timeEnd}}</div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="row col-sm-12">
+                                <div class="col-sm-2">Đơn vị:</div>
+                                <div class="col-sm-10">{{detailUnit}}</div>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-sm-12">
+                                <div style="text-align: center">
+                                    <p-rating [iconOnStyle]="{'color': 'orange', 'font-size': '40px'}" [(ngModel)]="rattingUser"
+                                              [iconOffStyle]="{'font-size': '40px'}" [cancel]="false"></p-rating>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="row col-sm-12" >
+                                <label class="col-sm-3 ">Góp ý:</label>
+                                <div class="col-sm-12 ui-fluid">
+                                    <textarea pInputTextarea [ngModelOptions]="{standalone: true}"
+                                              [style]="{'width': '100%'}"
+                                              [(ngModel)]="feedbackUser"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-12">
+        <div class="row col-sm-12" style="margin-right:10px;">
+            <div class="col-sm-12 ui-fluid">
+                <div class="row text-center">
+                    <div class="col-sm-12 text-center" style="padding: 0;
+                margin: 0 auto; ">
+                        <p-button label="Đánh giá" class="ui-button-danger" (click)="rattingFromDrive()"></p-button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--</p-fieldset>-->
+</p-dialog>
+
+<!----------- new Dialog          ------------->
+
+<p-dialog [modal]="true" [width]="1000" [(visible)]="isDialogNew" (onHide)="onCloseDialog()">
+    <booking-car-creating #creatingCpn [userInfo]="userInfo"
+                          [squadList]="squadList" [routeWayList]="routeWayList" [seatList]="seatList" [typeList]="typeList"
+                          (result)="onSaveResult($event)"></booking-car-creating>
+</p-dialog>
+
+<p-dialog [modal]="true" [width]="1000" [(visible)]="isDialogDetails" (onHide)="onCloseDetailsDialog()">
+    <app-details-car-booking #detailComponent [userInfo]="userInfo" [(bookCar)]="bookCarDetail"
+                             [squadList]="squadList" [routeWayList]="routeWayList" [seatList]="seatList" [typeList]="typeList"
+                             (result)="onCloseResult($event)" ></app-details-car-booking>
+</p-dialog>

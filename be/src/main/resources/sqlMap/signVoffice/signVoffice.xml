@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper
+	namespace="com.viettel.vtnet360.signVoffice.request.dao.SignVofficeDao">
+
+
+    <select id="findIssueServiceBySignVofficeId" parameterType="java.lang.Long"  
+                resultType="com.viettel.vtnet360.signVoffice.entity.SignVofficeEntity">
+        SELECT 
+            DISTINCT CONCAT(sv.CONTENT, '.pdf') as content,
+            sv.SIGN_VOFFICE_ID as signVofficeId,
+            sv.TYPE as type,
+            sv.STATUS as status
+		FROM ISSUES_SERVICE isi JOIN SIGN_VOFFICE sv ON isi.DETAIL_SIGN_VOFFICE_ID  = sv.SIGN_VOFFICE_ID
+		WHERE isi.SYNTHETIC_SIGN_VOFFICE_ID = #{signVofficeId} AND isi.DETAIL_SIGN_VOFFICE_ID IS NOT NULL
+    </select>
+
+    <select id="findIssueServiceByIds" parameterType="com.viettel.vtnet360.vt04.vt040010.entity.VT040010StationeryExcel" 
+                    resultType="com.viettel.vtnet360.vt04.vt040010.entity.VT040010StationeryExcel">
+	    SELECT isi.ISSUES_SERVICE_ID AS issueServiceId
+		FROM ISSUES_SERVICE isi LEFT JOIN SIGN_VOFFICE sv ON isi.DETAIL_SIGN_VOFFICE_ID = sv.SIGN_VOFFICE_ID
+		WHERE sv.SIGN_VOFFICE_ID IS NOT NULL AND 
+		      isi.ISSUES_SERVICE_ID IN 
+		      <foreach item="item" index="index" collection="services" open="(" separator="," close=")">
+                  #{item.issueServiceId}
+              </foreach>
+    </select>
+    
+	<select id="findListSignVoffice"
+		parameterType="com.viettel.vtnet360.signVoffice.entity.SignVofficeSearch"
+		resultType="com.viettel.vtnet360.signVoffice.entity.SignVofficeEntity">
+		SELECT * FROM (
+		SELECT
+			a.SIGN_VOFFICE_ID AS signVofficeId,
+			a.DOCUMENT_CODE AS documentCode,
+			a.CONTENT AS content,
+			a.REQUEST_USER_NAME AS requestUserName,
+			b.FULL_NAME AS fullName,
+			a.LAST_SIGN_EMAIL AS lastSignEmail,
+			g.FULL_NAME AS lastSignFullName,
+			a.SIGN_TIME AS signTime,
+			a.STATUS AS status,
+			a.CREATE_TIME AS createTime,
+			a.APPROVE_TIME AS approveTime,
+			a.TYPE AS type,
+			a.SIGN_COMMENT AS signComment,
+			a.TRANS_CODE AS transCode
+		FROM SIGN_VOFFICE a LEFT JOIN QLDV_EMPLOYEE b ON a.REQUEST_USER_NAME = b.USER_NAME
+		LEFT JOIN QLDV_EMPLOYEE g ON a.LAST_SIGN_EMAIL = g.EMAIL
+		LEFT JOIN QLDV_UNIT h ON g.UNIT_ID = h.UNIT_ID
+		<if test="isManager==1">
+		LEFT JOIN ISSUES_SERVICE  c ON a.SIGN_VOFFICE_ID = c.DETAIL_SIGN_VOFFICE_ID
+		LEFT JOIN QLDV_EMPLOYEE d ON c.ISSUES_USERNAME = d.USER_NAME
+		LEFT JOIN ISSUES_SERVICE  e ON a.SIGN_VOFFICE_ID = e.SYNTHETIC_SIGN_VOFFICE_ID
+		LEFT JOIN QLDV_EMPLOYEE f ON e.ISSUES_USERNAME = f.USER_NAME
+		
+		</if>
+		
+		<where>
+		1=1
+			<if test="fromDate != null ">
+				AND a.SIGN_TIME >= #{fromDate}
+			</if>
+			<if test="toDate != null ">
+				AND #{toDate} >= a.SIGN_TIME
+			</if>
+			<if test="documentCode != null and documentCode.length &gt; 0">
+				<bind name="pattern" value="'%' + documentCode + '%'" />
+				AND a.DOCUMENT_CODE LIKE #{pattern}
+			</if>
+				<if test="type != null and type != 0">
+				AND a.TYPE = #{type}
+			</if>
+			<if test="status != null and status != 0">
+				AND a.STATUS = #{status}
+			</if>
+			<if test="signUserName != null and signUserName.length &gt; 0">
+			AND h.`PATH` LIKE CONCAT('%','234841','%') AND g.STATUS = 1  
+				AND(
+					( g.CODE LIKE CONCAT("%",#{signUserName},"%") )
+					OR (g.FULL_NAME LIKE CONCAT("%",#{signUserName},"%") )
+					OR (g.EMAIL LIKE CONCAT("%",#{signUserName},"%") )
+					OR (g.PHONE_NUMBER LIKE CONCAT("%",#{signUserName},"%") )
+					)
+					AND (
+						g.ROLE LIKE CONCAT('PMQT_QL')
+						OR g.ROLE LIKE CONCAT('PMQT_QL',",%" )
+						OR g.ROLE LIKE CONCAT( "%,",'PMQT_QL',",%" )
+						OR g.ROLE LIKE CONCAT( "%,",'PMQT_QL')
+					)
+			</if>
+			
+			<if test="isManager==1">
+			AND (d.UNIT_ID  IN ( SELECT UNIT_ID
+					FROM QLDV_UNIT 
+					WHERE QLDV_UNIT.`PATH` LIKE CONCAT('%', '', '%'))
+					OR f.UNIT_ID  IN ( SELECT UNIT_ID
+					FROM QLDV_UNIT 
+					WHERE QLDV_UNIT.`PATH` LIKE CONCAT('%', '', '%')))
+			</if>
+			
+		</where> 
+		<if test="isManager==1">
+			GROUP BY c.ISSUES_SERVICE_ID,e.ISSUES_SERVICE_ID
+		</if>
+			)l GROUP BY l.signVofficeId
+					
+			ORDER BY l.signVofficeId DESC
+			<if test="startRow != -1 &amp;&amp; rowSize != -1">
+				LIMIT #{startRow}, #{rowSize}
+			</if>
+	
+	</select>	
+	
+	<select id="totalSignVoffice"
+		parameterType="com.viettel.vtnet360.signVoffice.entity.SignVofficeSearch"
+		resultType="int">
+		SELECT
+			COUNT(*)
+			FROM(
+		SELECT *
+		FROM
+		(SELECT	a.SIGN_VOFFICE_ID
+		FROM SIGN_VOFFICE a
+		LEFT JOIN QLDV_EMPLOYEE g ON a.LAST_SIGN_EMAIL = g.EMAIL
+		LEFT JOIN QLDV_UNIT h ON g.UNIT_ID = h.UNIT_ID
+		<if test="isManager==1">
+		LEFT JOIN ISSUES_SERVICE  c ON a.SIGN_VOFFICE_ID = c.DETAIL_SIGN_VOFFICE_ID
+		LEFT JOIN QLDV_EMPLOYEE d ON c.ISSUES_USERNAME = d.USER_NAME
+		LEFT JOIN ISSUES_SERVICE  e ON a.SIGN_VOFFICE_ID = e.SYNTHETIC_SIGN_VOFFICE_ID
+		LEFT JOIN QLDV_EMPLOYEE f ON e.ISSUES_USERNAME = f.USER_NAME
+		</if>
+		<where>
+		1=1
+			<if test="fromDate != null ">
+				AND a.SIGN_TIME >= #{fromDate}
+			</if>
+			<if test="toDate != null ">
+				AND #{toDate} >= a.SIGN_TIME
+			</if>
+			<if test="documentCode != null and documentCode.length &gt; 0">
+				<bind name="pattern" value="'%' + documentCode + '%'" />
+				AND a.DOCUMENT_CODE LIKE #{pattern}
+			</if>
+			<if test="type != null and type != 0">
+				AND a.TYPE = #{type}
+			</if>
+			<if test="status != null and status != 0">
+				AND a.STATUS = #{status}
+			</if>
+			<if test="signUserName != null and signUserName.length &gt; 0">
+			AND h.`PATH` LIKE CONCAT('%','234841','%') AND g.STATUS = 1  
+				AND(
+					( g.CODE LIKE CONCAT("%",#{signUserName},"%") )
+					OR (g.FULL_NAME LIKE CONCAT("%",#{signUserName},"%") )
+					OR (g.EMAIL LIKE CONCAT("%",#{signUserName},"%") )
+					OR (g.PHONE_NUMBER LIKE CONCAT("%",#{signUserName},"%") )
+					)
+					AND (
+						g.ROLE LIKE CONCAT('PMQT_QL')
+						OR g.ROLE LIKE CONCAT('PMQT_QL',",%" )
+						OR g.ROLE LIKE CONCAT( "%,",'PMQT_QL',",%" )
+						OR g.ROLE LIKE CONCAT( "%,",'PMQT_QL')
+					)
+			</if>
+			<if test="isManager==1">
+			AND (d.UNIT_ID  IN ( SELECT UNIT_ID
+					FROM QLDV_UNIT 
+					WHERE QLDV_UNIT.`PATH` LIKE CONCAT('%', '', '%'))
+					OR f.UNIT_ID  IN ( SELECT UNIT_ID
+					FROM QLDV_UNIT 
+					WHERE QLDV_UNIT.`PATH` LIKE CONCAT('%', '', '%')))
+			</if>
+		</where> 
+		<if test="isManager==1">
+			GROUP BY c.ISSUES_SERVICE_ID,e.ISSUES_SERVICE_ID
+		</if>)AS l GROUP BY l.SIGN_VOFFICE_ID)t
+	</select>	
+	
+	<insert id="insertSignVoffice" parameterType="com.viettel.vtnet360.signVoffice.entity.SignVofficeEntity">
+		INSERT INTO SIGN_VOFFICE (	
+					CONTENT,
+					REQUEST_USER_NAME, 
+					STATUS, 
+					CREATE_TIME,
+					TYPE,
+					UPDATE_TIME )
+		VALUES (
+					#{content}, 
+					#{requestUserName}, 
+					1, 
+					NOW(),
+					#{type},
+					NOW() )
+		<selectKey resultType="long" order="AFTER" keyProperty="signVofficeId">
+        	SELECT LAST_INSERT_ID() as signVofficeId
+    	</selectKey>
+	</insert>
+	
+	<update id="updateIssuedServiceReport" parameterType="com.viettel.vtnet360.signVoffice.entity.SignVofficeEntity">
+		
+			UPDATE ISSUES_SERVICE
+			SET
+			<if test="type == 1">
+				DETAIL_SIGN_VOFFICE_ID = #{signVofficeId}
+			</if>
+			<if test="type == 2">
+				SYNTHETIC_SIGN_VOFFICE_ID = #{signVofficeId}
+			</if>
+			WHERE
+			ISSUES_SERVICE_ID IN
+	 			<foreach item="item" index="index" collection="issuedServiceId" open="(" separator="," close=")">
+			 		#{item}
+				</foreach>
+	</update>
+
+	
+	 <select id="findIssueServiceBySyntheticSignVoffice"
+		parameterType="com.viettel.vtnet360.signVoffice.entity.ReportSynthetic"
+		resultType="com.viettel.vtnet360.signVoffice.entity.ReportSynthetic">
+		SELECT f.UNIT_NAME  AS unitName, GROUP_CONCAT(f.STATIONERY_ID ) AS stationeryId ,GROUP_CONCAT(f.QUANTITY ORDER BY f.STATIONERY_ID) AS quantity 
+			FROM (SELECT e.UNIT_NAME AS UNIT_NAME, sum(c.QUANTITY  ) AS QUANTITY, GROUP_CONCAT(distinct c.STATIONERY_ID  ) AS STATIONERY_ID
+					FROM ISSUES_SERVICE a LEFT JOIN QLDV_EMPLOYEE  b ON a.ISSUES_USERNAME = b.USER_NAME 
+						LEFT JOIN ISSUES_SERVICE_SPENT c ON a.ISSUES_SERVICE_ID = c.ISSUES_SERVICE_ID
+						LEFT JOIN STATIONERY d ON c.STATIONERY_ID = d.STATIONERY_ID
+						LEFT JOIN QLDV_UNIT e ON e.UNIT_ID = b.UNIT_ID
+						WHERE a.SYNTHETIC_SIGN_VOFFICE_ID = #{syntheticSignVofficeId}
+								GROUP BY b.UNIT_ID ,c.STATIONERY_ID
+				)f GROUP BY f.UNIT_NAME
+	</select> 
+	
+	 <select id="findStationeryById"
+		parameterType="com.viettel.vtnet360.signVoffice.entity.Stationery"
+		resultType="com.viettel.vtnet360.signVoffice.entity.Stationery">
+		SELECT a.STATIONERY_ID AS stationeryId
+			,a.STATIONERY_NAME AS stationeryName
+			,a.CALCULATION_UNIT AS calculationUnit
+			,b.CODE_NAME AS codeName
+		FROM STATIONERY a LEFT JOIN M_SYSTEM_CODE b ON a.CALCULATION_UNIT = b.CODE_VALUE
+
+		<where>
+		b.MASTER_CLASS = 'S009'  AND b.STATUS =1
+		AND	a.STATIONERY_ID IN
+		<foreach item="item" index="index" collection="listStatineryId" open="(" separator="," close=")">
+			 		#{item}
+				</foreach>
+		</where> 
+	</select> 
+	
+	<update id="updateSignVoffice"
+		parameterType="com.viettel.vtnet360.signVoffice.entity.SignVofficeEntity">
+		UPDATE
+		SIGN_VOFFICE AS s SET 
+		s.SIGN_VOFFICE_ID = s.SIGN_VOFFICE_ID
+		<if test ="content != null" >
+			,s.CONTENT = #{content}	
+		</if>
+		<if test = "status > 0 ">
+			,s.STATUS = #{status}
+		</if>
+		<if test = "status == 2 ">
+			,s.SIGN_TIME = NOW()
+		</if>
+		<if test = "controlId != null ">
+			,s.TRANS_CODE = #{controlId}
+		</if>
+		<if test = "userNameVoffice != null ">
+			,s.USERNAMEVOFFICE = #{userNameVoffice}
+		</if>
+		<if test = "passwordVoffice != null ">
+			,s.PASSWORDVOFFICE = #{passwordVoffice}
+		</if>
+		WHERE s.SIGN_VOFFICE_ID = #{signVofficeId}
+	</update>
+	
+	<select id="findIssueServiceByDetailSignVoffice"
+		parameterType="com.viettel.vtnet360.vt04.vt040010.entity.VT040010Condition"
+		resultType="com.viettel.vtnet360.vt04.vt040010.entity.VT040010StationeryExcel">
+		<if test="listUnitId != null">
+			<foreach item="item" collection="listUnitId" separator=" UNION ">
+				SELECT
+				#{item} AS unitId,
+				( SELECT
+				QLDV_UNIT.UNIT_NAME
+				FROM
+				QLDV_UNIT
+				WHERE
+				QLDV_UNIT.UNIT_ID = #{item}
+				) AS unitName,
+				( 
+					SELECT 
+						CASE 
+							WHEN u1.UNIT_ID = 234841 THEN IFNULL(u1.UNIT_NAME, '')
+							WHEN b.UNIT_ID = 234841 THEN CONCAT(IFNULL(u1.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''))
+							ELSE CONCAT(IFNULL(u1.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''), IFNULL(CONCAT(' / ', c.UNIT_NAME), ''))
+						END
+					FROM
+					QLDV_UNIT u1
+					LEFT JOIN QLDV_UNIT b ON
+					u1.PARENT_UNIT_ID = b.UNIT_ID
+					LEFT JOIN QLDV_UNIT c ON
+					b.PARENT_UNIT_ID = c.UNIT_ID
+					WHERE
+					u1.UNIT_ID = #{item} 
+				) AS detailUnit,
+				iss.ISSUES_SERVICE_ID AS issueServiceId,
+				s.SERVICE_NAME AS serviceName,
+				sta.STATIONERY_ID AS stationeryId,
+				sta.STATIONERY_NAME AS stationeryName,
+				msc.CODE_NAME AS stationeryUnitCal,
+				issp.QUANTITY AS stationeryQuan,
+				iss.TIME_START_PLAN AS timeStartPlan,
+				GROUP_CONCAT(reciver.FULL_NAME) AS reciverName,
+				eRequest.FULL_NAME AS empName,
+				iss.STATUS as status,
+				iss.NOTE AS note
+				FROM
+				ISSUES_SERVICE iss
+				LEFT JOIN SERVICES s ON iss.SERVICE_ID = s.SERVICE_ID
+				LEFT JOIN ISSUES_SERVICE_SPENT issp ON iss.ISSUES_SERVICE_ID = issp.ISSUES_SERVICE_ID
+				LEFT JOIN STATIONERY sta ON issp.STATIONERY_ID = sta.STATIONERY_ID
+				LEFT JOIN QLDV_EMPLOYEE eRequest ON iss.ISSUES_USERNAME = eRequest.USER_NAME
+				LEFT JOIN SERVICE_RECEIVEER Ser_reciver ON s.SERVICE_ID = Ser_reciver.SERVICE_ID
+				LEFT JOIN QLDV_EMPLOYEE reciver ON Ser_reciver.SERVICE_RECEIVEER_USERNAME = reciver.USER_NAME
+				LEFT JOIN QLDV_UNIT u ON eRequest.UNIT_ID = u.UNIT_ID
+				LEFT JOIN M_SYSTEM_CODE msc ON sta.CALCULATION_UNIT = msc.CODE_VALUE
+				WHERE 1
+				AND msc.MASTER_CLASS = 'S009' AND msc.STATUS =1
+				AND u.`PATH` LIKE CONCAT('%', #{item}, '%')
+				<if test = "detailSignVofficeId != null and detailSignVofficeId != 0 ">
+					AND iss.DETAIL_SIGN_VOFFICE_ID =#{detailSignVofficeId}
+				</if>
+				<if test = "syntheticSignVofficeId != null and syntheticSignVofficeId != 0">
+					AND iss.SYNTHETIC_SIGN_VOFFICE_ID =#{syntheticSignVofficeId}
+				</if>
+				
+				GROUP BY
+				u.UNIT_ID,
+				iss.ISSUES_SERVICE_ID,
+				s.SERVICE_ID,
+				sta.STATIONERY_ID
+			</foreach>
+		</if>
+	</select>
+	
+	
+	<!-- <select id="findIssueServiceByDetailSignVoffice"
+		parameterType="com.viettel.vtnet360.signVoffice.entity.ReportSynthetic"
+		resultType="com.viettel.vtnet360.signVoffice.entity.Stationery">
+		SELECT a.ISSUES_SERVICE_ID AS issueServiceId
+				,a.TIME_START_PLAN AS  timeStartPlan
+				,c.SERVICE_ID  AS serviceId
+				,b.SERVICE_NAME AS serviceName
+				,e.STATIONERY_ID AS stationeryID
+				,e.STATIONERY_NAME AS stationeryName
+				,f.CODE_NAME AS codeName
+				,d.QUANTITY  AS quantity
+				,c.FULL_NAME AS fullName
+				,g.FULL_NAME AS fullNameRequest
+			FROM ISSUES_SERVICE a
+			LEFT JOIN SERVICES b ON a.SERVICE_ID = b.SERVICE_ID
+			LEFT JOIN ( SELECT GROUP_CONCAT(c.FULL_NAME) AS FULL_NAME
+						,GROUP_CONCAT(b.SERVICE_RECEIVEER_USERNAME) AS SERVICE_RECEIVEER_USERNAME
+						,a.SERVICE_ID 
+						from SERVICES a
+						LEFT JOIN SERVICE_RECEIVEER b ON a.SERVICE_ID =b.SERVICE_ID
+						LEFT JOIN QLDV_EMPLOYEE c ON b.SERVICE_RECEIVEER_USERNAME = c.USER_NAME 
+						GROUP BY b.SERVICE_ID ) AS c ON b.SERVICE_ID = c.SERVICE_ID
+			LEFT JOIN ISSUES_SERVICE_SPENT d ON a.ISSUES_SERVICE_ID = d.ISSUES_SERVICE_ID
+			LEFT JOIN STATIONERY e ON d.STATIONERY_ID = e.STATIONERY_ID
+			LEFT JOIN M_SYSTEM_CODE f ON e.CALCULATION_UNIT = f.CODE_VALUE 
+			LEFT JOIN QLDV_EMPLOYEE g ON a.ISSUES_USERNAME = g.USER_NAME 
+
+		<where>
+		f.MASTER_CLASS = 'S009'
+		AND a.DETAIL_SIGN_VOFFICE_ID =#{detailSignVofficeId}
+		</where> 
+	</select>  -->
+	
+	<select id="findUnitByListId"
+		parameterType="com.viettel.vtnet360.signVoffice.entity.ReportSynthetic"
+		resultType="com.viettel.vtnet360.signVoffice.entity.ReportSynthetic">
+		SELECT GROUP_CONCAT(a.UNIT_NAME) as unitName
+			FROM QLDV_UNIT a
+		<where>
+		a.UNIT_ID IN 
+		  	<foreach item="sId" collection="listUnitId" separator="," open="(" close=")">
+		        #{sId}
+		    </foreach>
+		</where> 
+	</select> 
+	
+	<update id="updateSignVofficeTransCode"
+		parameterType="com.viettel.vtnet360.vt00.vt000000.entity.VT000000EntityResultSign">
+		UPDATE
+		SIGN_VOFFICE AS s SET
+		s.TRANS_CODE = #{controlId}
+		WHERE s.SIGN_VOFFICE_ID = #{signVofficeId}
+	</update>
+	
+	<select id="findUnitByUserName"
+		parameterType="String"
+		resultType="String">
+		SELECT b.UNIT_ID AS userName
+			FROM QLDV_EMPLOYEE a JOIN QLDV_UNIT b ON a.UNIT_ID =b.UNIT_ID
+		<where>
+			1=1 AND a.USER_NAME =#{useName}
+		</where> 
+	</select> 
+	
+	<select id="findSignVofficeById" parameterType="long" resultType="com.viettel.vtnet360.signVoffice.entity.SignVofficeEntity">
+		SELECT SIGN_VOFFICE_ID AS signVofficeId,
+		STATUS AS status,
+		VOTEXTID AS voTextId,
+		USERNAMEVOFFICE AS userNameVoffice,
+		PASSWORDVOFFICE AS passwordVoffice
+			FROM SIGN_VOFFICE 
+		<where>
+			SIGN_VOFFICE_ID =#{signVofficeId}
+		</where> 
+
+	</select>
+	
+</mapper>

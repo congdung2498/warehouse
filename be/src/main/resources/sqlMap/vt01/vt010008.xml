@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.viettel.vtnet360.vt01.vt010008.dao.VT010008DAO">
+
+	<!-- update status of in-out register -->
+	<update id="updateStatusInOut" parameterType="com.viettel.vtnet360.vt01.vt010008.entity.VT010008Condition">
+		UPDATE
+		IN_OUT_REGISTER i SET
+			i.STATUS = #{status}
+			<if test = "guardOutUserName != null">
+				, i.GUARD_OUT_USER_NAME = #{guardOutUserName}
+			</if>
+			<if test = "guardInUserName != null">
+				, i.GUARD_IN_USER_NAME = #{guardInUserName}
+			</if>
+			<if test = "reasonOfGuard">
+				, i.REASON_OF_GUARD = #{reasonOfGuard}
+			</if>
+		WHERE
+			i.IN_OUT_REGISTER_ID = #{inOutRegisterId}
+	</update>
+
+</mapper>

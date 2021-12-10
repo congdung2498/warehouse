@@ -1,0 +1,17 @@
+th {
+    text-align: center;
+}
+
+.ui-dropdown {
+    width: 100% !important;
+}
+.date-link {
+    color: dodgerblue;
+    cursor: pointer;
+}
+
+.image-link {
+    color: dodgerblue;
+    border-bottom:1px solid dodgerblue;
+    cursor: pointer;
+}

@@ -1,0 +1,212 @@
+<!-- Picasso Hoang -->
+<div class="container">
+  <div class="container-fluid text-center mt-3">
+    <h1>TRA CỨU TÀI LIỆU</h1>
+  </div>
+  <div class="row mb-3">
+    <div class="col-xl-12 mb-3">
+      <p-fieldset legend="Thông tin tìm kiếm">
+        <div class="row">
+          <div class="col-lg-1 hidden-md-down"></div>
+          <div class="col-lg-10 col-md-12">
+
+            <!-- select warehouse field -->
+            <div class="row mb-3" style="margin-left: 20px;">
+              <div class="col-lg-1 hidden-md-down"></div>
+              <div class="col-lg-2" style="text-align: left; padding-top: 5px;">
+                Kho:
+              </div>
+              <div class="col-lg-8 ui-fluid" style="margin-left: -10px;">
+                <p-autoComplete [(ngModel)]="selectedWarehouse" [suggestions]="suggestedWarehouse"
+                  (completeMethod)="loadWarehouse($event)" [size]="200" [minLength]="1" placeholder="--Chọn Kho--"
+                  [dropdown]="true" field="name" [dropdown]="true" class="fix-drop-down"
+                  emptyMessage="Kho không tồn tại">
+                </p-autoComplete>
+              </div>
+              <div class="col-lg-1 hidden-md-down"></div>
+            </div>
+
+            <!-- input keyword field -->
+            <div class="row mb-3" style="margin-left: 20px;">
+              <div class="col-lg-1 hidden-md-down"></div>
+              <div class="col-lg-2" style="text-align: left; padding-top: 5px;">
+                Từ khóa<span style="color: red;">*</span>:
+              </div>
+              <div class="col-lg-8 ui-fluid" style="margin-left: -10px;">
+                <input autofocus type="text" [style]="{'width': '100%'}" pInputText [(ngModel)]="keyword" />
+              </div>
+              <div class="col-lg-1 hidden-md-down"></div>
+            </div>
+
+            <!-- checkbox criteria field -->
+            <div class="row mb-3" style="margin-left: 20px;">
+              <div class="col-lg-1 hidden-md-down"></div>
+              <div class="col-lg-2" style="text-align: left; padding-top: 5px;">
+                Tìm kiếm theo<span style="color: red;">*</span>:
+              </div>
+              <div class="col-lg-8 ui-fluid" style="margin-left: -10px;">
+                <p-dropdown #inputType [options]="searchTypeList" [(ngModel)]="searchType"
+                  placeholder="--Chọn loại tìm kiếm--" optionLabel="name" optionValue="code"
+                  [style]="{'width':'99.9%'}"></p-dropdown>
+
+              </div>
+              <div class="col-lg-1 hidden-md-down"></div>
+            </div>
+
+          </div>
+          <div class="col-lg-1 hidden-md-down"></div>
+        </div>
+      </p-fieldset>
+    </div>
+    <div class="col-xl-12">
+      <div class="text-center">
+        <!-- search button -->
+        <button type="button" pButton icon="fa fa-search" iconPos="left" label="Tìm kiếm"
+          (click)="doSearch(searchResultTable)" [disabled]="keyword.trim() == ''" style="text-align: center;"></button>
+        <!-- refresh button -->
+        <button type="button" pButton icon="fa fa-refresh" iconPos="left" label="Làm mới" (click)="refresh()"
+          style="text-align: center;"></button>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- search result table -->
+  <div class="">
+    <div class="col-xs-12">
+      <p-table [columns]="cols" [scrollable]="true" [value]="searchResult" [totalRecords]="totalSearchRecord"
+        [paginator]="true" [rows]="10" [resizableColumns]="true" (onPage)="paginateSearch($event)" [loading]="loading"
+        #searchResultTable>
+        <ng-template pTemplate="colgroup" let-columns>
+          <colgroup>
+            <col [style.width]="'50px'">
+            <col [style.width]="'180px'">
+            <col *ngFor="let col of columns" [style.width]="col.width">
+          </colgroup>
+        </ng-template>
+        <ng-template pTemplate="header" let-columns>
+          <tr>
+            <th class="column-header">
+              <span>STT</span>
+            </th>
+
+            <th class="column-header">
+              <span>Thao tác</span>
+            </th>
+
+            <th *ngFor="let col of columns" pResizableColumn class="column-header">
+              <span>{{col.header}}</span>
+              <div><small>{{col.subHeader}}</small></div>
+            </th>
+          </tr>
+        </ng-template>
+        <ng-template let-ri="rowIndex" pTemplate="body" let-rowData let-columns="columns">
+          <tr>
+            <td>{{ri+1}}</td>
+            <td>
+              <div class="row">
+                <div class="col-sm-12">
+                  <button *ngIf="_currentType.sync && !rowData.synchrony" pButton pRipple type="button"
+                    icon="pi pi-replay" class="p-button-rounded p-button-text" pTooltip="Đồng bộ"
+                    (click)="sync(rowData[_currentType.idField], true)"></button>
+                  <button *ngIf="_currentType.sync && rowData.synchrony" pButton pRipple type="button"
+                    icon="pi pi-times" class="p-button-rounded p-button-text" pTooltip="Không đồng bộ"
+                    (click)="sync(rowData[_currentType.idField], false)"></button>
+                  <button pButton pRipple type="button" icon="pi pi-eye" class="p-button-rounded p-button-text"
+                    (click)="showTinBoxDetails(rowData, documentsTable)" pTooltip="Chi tiết"></button>
+                </div>
+              </div>
+
+            </td>
+
+            <td *ngFor="let col of columns" [ngClass]="col.class">
+              <div *ngIf="col.field === 'synchrony'">
+                {{rowData[col.field] ? 'Đồng bộ' : 'Chưa đồng bộ'}}
+              </div>
+              <div *ngIf="col.field !== 'synchrony'">
+                {{rowData[col.field] === '//' ? '' : rowData[col.field]}}
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage" let-columns>
+          <tr>
+            <td [attr.colspan]="columns.length + 2">
+              <span *ngIf="loading == true">Đang tìm kiếm</span>
+              <span *ngIf="resultShowFlag === true && loading == false">Không tìm thấy dữ liệu liên quan đến từ khóa
+                {{searchedKeyword}}</span>
+              <span *ngIf="resultShowFlag === false && loading == false">Bạn cần nhập từ khóa</span>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="paginatorright">
+          <span style="position: absolute; right: 30px; bottom: 6px;">{{totalSearchRecord == 0 ? searchPageNumber :
+            searchPageNumber + 1}} - {{searchPageNumber+pageSize>totalSearchRecord ? totalSearchRecord :
+            searchPageNumber+pageSize}}
+            / {{totalSearchRecord}}</span>
+        </ng-template>
+      </p-table>
+
+    </div>
+  </div>
+  <!-- end search result table-->
+
+  <!-- tin box details modal -->
+  <p-dialog [modal]="true" [width]="1200" [(visible)]="isShowModal" class="row" appendTo='body'>
+    <div class="modal-table-container">
+      <div class="container-fluid text-center mt-3">
+        <h3>Chi tiết tài liệu trong thùng</h3>
+        <h4>Tên thùng: {{selectedDoc.tinBoxName}}</h4>
+      </div>
+
+      <div class="col-xs-12">
+        <p-table [scrollable]="true" scrollHeight="450px" [columns]="modal_cols" [value]="tinBoxDetails"
+          [totalRecords]="totalDocumentRecord" [paginator]="true" [rows]="10" [resizableColumns]="true"
+          (onPage)="paginateDocument($event)" #documentsTable id="documents_tbl">
+          <ng-template pTemplate="colgroup" let-columns>
+            <colgroup>
+              <col [style.width]="'50px'">
+              <col *ngFor="let col of columns" [style.width]="col.width">
+            </colgroup>
+          </ng-template>
+          <ng-template pTemplate="header" let-columns>
+            <tr>
+              <th pResizableColumn class="column-header">
+                <span>STT</span>
+              </th>
+              <th *ngFor="let col of columns" pResizableColumn class="column-header">
+                <span>{{col.header}}</span>
+              </th>
+            </tr>
+          </ng-template>
+          <ng-template let-ri="rowIndex" pTemplate="body" let-rowData let-columns="columns">
+            <tr>
+              <td class="center-align">{{ri+1}}</td>
+              <td *ngFor="let col of columns" [ngClass]="col.class">
+                {{rowData[col.field]}}
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage" let-columns>
+            <tr>
+              <td [attr.colspan]="columns.length + 1" style="text-align: center;">
+                Không có tài liệu
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="paginatorright">
+            <span style="position: absolute; right: 30px; bottom: 6px;">{{totalDocumentRecord == 0 ? documentPageNumber
+              : documentPageNumber + 1}} - {{documentPageNumber+pageSize>totalDocumentRecord ? totalDocumentRecord :
+              documentPageNumber+pageSize}}
+              / {{totalDocumentRecord}}</span>
+          </ng-template>
+        </p-table>
+
+      </div>
+    </div>
+
+  </p-dialog>
+  <!-- end tin box details modal-->
+</div>
+
+<app-document-box-search-detail-dialog></app-document-box-search-detail-dialog>

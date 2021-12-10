@@ -1,0 +1,105 @@
+<div class="container">
+
+ <div class="col-sm-12" style="margin-top: 20px;">
+  <p-fieldset legend="Thông tin tìm kiếm">
+    <div class="row">
+      <div class="col-sm-6">
+        <div class="form-group row">
+          <div class="col-sm-2"></div>
+            <label class="col-sm-3 ">Loại tham số <span style="color: red;">*</span>:  </label>
+          <div class="col-sm-7">
+            <p-dropdown #msClassFld [options]="msClassConfigList" [style]="{'width': '100%'}" [(ngModel)]="msClassConfig"
+                        placeholder="-- Chọn loại tham số --" emptyFilterMessage="Không có dữ liệu" [disabled] = "isShow"
+                        filter="true" optionLabel="masterName" [showClear]="true"></p-dropdown>
+          </div>
+        </div>
+        <div class="form-group row">
+          <div class="col-sm-2"></div>
+            <label class="col-sm-3 ">Trạng thái <span style="color: red;">*</span>:  </label>
+          <div class="col-sm-7">
+            <div class="row ui-fluid">
+              <div class="col-sm-5">
+                <p-radioButton name="group1" value="1" label="Hoạt động" [(ngModel)]="status" inputId="opt1"></p-radioButton>
+              </div>
+              <div class="col-sm-7">
+                <p-radioButton name="group1" value="0" label="Không hoạt động" [(ngModel)]="status" inputId="opt2"></p-radioButton>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6">
+        <div class="form-group row">
+            <label class="col-ms-4" style="margin-left: 14px;">Giá trị tham số <span style="color: red;">*</span>:  </label>
+          <div class="col-sm-7 ui-fluid" style="margin-left: 5px;">
+          <input #msClassText type="text" [style]="{'width': '100%'}"
+                 value="Đăng ký mới" style="font-weight: bold;" [(ngModel)]="paramName"
+                 pInputText/>
+          </div>
+          <div class="col-sm-1"></div>
+        </div>
+      </div>
+    </div>
+  </p-fieldset>
+ </div>
+  <div class="mt-3 mb-3" style="text-align: center">
+      <button pButton class="ui-button-info" icon="pi pi-search" label="Tìm kiếm" *ngIf="isSearch;"
+              (click)="handleSearch()"></button>
+          <button pButton class="ui-button-info" icon="fa fa-refresh" label="Làm mới"
+                  (click)="handleReset()"></button>
+        <button *ngIf="isAdd;" pButton class="ui-button-info"  icon="fa fa-plus" label="Thêm"
+                (click)="addNew()"></button>
+        <button *ngIf="isEdit;" pButton class="ui-button-info" icon="fa fa-save" label="Lưu"
+                (click)="handleEdit()"></button>
+
+  </div>
+    <div class="col-sm-12">
+        <p-table #myTable [value]="searchClassConfigList" [totalRecords]="totalRecords" [paginator]="true" (onLazyLoad)="onLazyLoad($event)" [lazy]="true"
+                 [rows]="15" [resizableColumns]="true"
+        >
+            <ng-template pTemplate="header">
+                <tr style="font-weight: bold;">
+                    <th rowspan="1" style="width: 10%; font-weight: bold;text-align: center">STT</th>
+                    <th rowspan="5" style="width: 10%; font-weight: bold;text-align: center">Thao tác</th>
+                    <th rowspan="5" style="width: 35%; font-weight: bold;text-align: center">Loại tham số</th>
+                    <th rowspan="5" style="width: 50%; font-weight: bold;text-align: center">Giá trị</th>
+                    <th rowspan="5" style="width: 20%; font-weight: bold;text-align: center">Trạng thái</th>
+                </tr>
+
+            </ng-template>
+            <ng-template let-ri="rowIndex" pTemplate="body" let-item>
+                <tr>
+                    <td >{{ri+1}}</td>
+                    <td class="wrapText"
+                        >
+                        <p-button  icon="pi pi-pencil" (onClick)="doEdit(item)" [disabled] ="isDisabled" ></p-button>
+                    </td>
+                    <td class="wrapText"  [pTooltip]="item.masterClass"  style="width: 5rem; text-align: left !important;"
+                        >
+                        {{item.masterClass}}
+                    </td>
+                    <td class="wrapText"  [pTooltip]="item.name"  style="width: 5rem; text-align: left !important;"
+                       >
+                        {{item.name}}
+                    </td>
+                    <td class="wrapText"  [pTooltip]="convertStatus[item.status]"  style="width: 5rem; text-align: left !important;"
+                    >
+                        {{convertStatus[item.status]}}
+                    </td>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td [attr.colspan]="5">
+                        Không có dữ liệu
+                    </td>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="paginatorright">
+          <span style="position: absolute; right: 30px; bottom: 6px;">{{totalRecords == 0 ? pageNumber : pageNumber + 1}} - {{pageNumber+pageSize>totalRecords ? totalRecords : pageNumber+pageSize}}
+            / {{totalRecords}}</span>
+            </ng-template>
+        </p-table>
+    </div>
+
+</div>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt03.vt030011.dao.VT030011DAO">
+	<!--  -->
+	<update id="updateRequest" parameterType="com.viettel.vtnet360.vt03.vt030011.entity.VT030011CancelRequest">
+		UPDATE 
+			CAR_BOOKING
+		SET 	
+			STATUS = 3,  
+			UPDATE_USER=#{userName}, 
+			UPDATE_DATE=now()
+		WHERE 
+			CAR_BOOKING_ID= #{bookCarId};
+	</update>
+
+	<select id="getStatusRequest" parameterType="com.viettel.vtnet360.vt03.vt030011.entity.VT030011CancelRequest" resultType="int">
+		SELECT STATUS
+		FROM CAR_BOOKING
+		WHERE 
+			CAR_BOOKING_ID= #{bookCarId};
+	</select>
+
+	<update id="updateStatusDriveAfterCancel" parameterType="com.viettel.vtnet360.vt03.vt030011.entity.VT030011CancelRequest">
+		UPDATE DRIVER
+		SET 
+			STATUS = 1,
+			PROCESS_STATUS = 7,
+			UPDATE_USER = #{userName},
+			UPDATE_DATE=now()
+		WHERE 
+			EMPLOYEE_USER_NAME = (SELECT DRIVE_USER FROM CAR_BOOKING WHERE CAR_BOOKING_ID = #{bookCarId})
+			AND PROCESS_STATUS != 5
+	</update>
+
+	<update id="updateStatusCarAfterCancel" parameterType="com.viettel.vtnet360.vt03.vt030011.entity.VT030011CancelRequest">
+		UPDATE CARS
+		SET
+		STATUS = 1,
+		PROCESS_STATUS = 7,
+		UPDATE_USER = #{userName},
+		UPDATE_DATE=now()
+		WHERE
+		CAR_ID = (SELECT CAR_ID FROM CAR_BOOKING WHERE CAR_BOOKING_ID = #{bookCarId})
+		AND PROCESS_STATUS != 5
+	</update>
+
+	<update id="updateStatusDriveCarAfterCancel" parameterType="com.viettel.vtnet360.vt03.vt030011.entity.VT030011CancelRequest">
+		UPDATE DRIVE_CAR
+		SET
+			PROCESS_STATUS = 7,
+			UPDATE_USER = #{userName},
+			UPDATE_DATE=now()
+		WHERE
+			CAR_ID = (SELECT CAR_ID FROM CAR_BOOKING WHERE CAR_BOOKING_ID = #{bookCarId})
+			AND PROCESS_STATUS != 5
+	</update>
+
+</mapper>

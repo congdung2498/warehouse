@@ -1,0 +1,12 @@
+.customIcon {
+    position: absolute;
+    top: 9px;
+    right: 46px;
+    cursor: pointer;
+    color: #848484;
+}
+.click-link {
+    color: dodgerblue;
+    border-bottom:1px solid dodgerblue;
+    cursor: pointer;
+}

@@ -1,0 +1,175 @@
+<div id="custom-container" class="container">
+  <div class="container-fluid text-center mt-5">
+    <h1 class="text-center">TẢI TÀI LIỆU DỰ ÁN</h1>
+  </div>
+  <div class="row ">
+    <div class="col-sm-12 " style="margin: auto;">
+      <form ngNoForm onsubmit="return false;">
+        <p-fieldset legend="Chọn file dữ liệu">
+          <div class="row row-button">
+            <div class="col-lg-3">
+            </div>
+            <div class="col-lg-6">
+              <button type="button" pButton icon="fa fa-file-excel-o" iconPos="left" label="Chọn file"
+                style="text-align: center;" (click)="fileInputField.value=''; fileInputField.click();"></button>
+              <p-button icon="fa fa-eye" [disabled]="file ? false : true" label="Xem trước" (click)="previewBtnClick()">
+              </p-button>
+              <button type="button" pButton icon="fa fa-file-excel-o" iconPos="left" label="Tải file mẫu"
+                style="text-align: center;" (click)="downloadSimpleSample()"></button>
+              <button type="button" pButton icon="fa fa-refresh" iconPos="left" label="Làm mới"
+                style="text-align: center;" (click)="reset()"></button>
+            </div>
+            <div class="col-lg-12">
+              <label class="col-12" style="text-align: center;">File Excel
+                <span style="color: red;">*</span>: {{file ? file.name : ''}}</label>
+              <input type="file" style="width:100%" style="display: none;" (change)="incomingfile($event)"
+                #fileInputField accept=".xlsx">
+            </div>
+          </div>
+        </p-fieldset>
+        <div class="row row-button">
+          <div class="col-lg-3">
+          </div>
+          <div class="col-lg-6">
+            <p-button icon="fa fa-upload" [disabled]="file==null || isFileUploaded == true" label="Tải lên"
+              (click)="uploadBtnClick()"></p-button>
+            <p-button icon="fa fa-list" [disabled]="uploadResult ? false : true" label="Xem kết quả"
+              (click)="showResultPopup(resultTable)"></p-button>
+          </div>
+          <div class="col-lg-3"></div>
+        </div>
+      </form>
+    </div>
+  </div>
+  <!-- <div class="table-container" *ngIf="(listExcelImport && listExcelImport.length > 0)"> -->
+  <div class="table-container">
+    <p-table [scrollable]="true" scrollHeight="450px" [columns]="cols" [value]="hanldeFilterTable(listExcelImport)"
+      [totalRecords]="totalRecords" [paginator]="true" [rows]="10" [resizableColumns]="true" (onPage)="paginate($event)"
+      #previewTable>
+
+      <ng-template pTemplate="colgroup" let-columns>
+        <colgroup>
+          <col *ngFor="let col of columns" [style.width]="col.width">
+        </colgroup>
+      </ng-template>
+      <ng-template pTemplate="header" let-columns>
+        <tr>
+          <th ng *ngFor="let col of columns" pResizableColumn style="text-align: center; font-weight: bold;">
+            {{col.header}}
+          </th>
+        </tr>
+      </ng-template>
+      <ng-template let-ri="rowIndex" pTemplate="body" let-rowData let-columns="columns">
+        <tr>
+          <td style="width: 2em;">{{ri+1}}</td>
+          <td *ngIf="selectedFileType == 0">{{rowData["Ma_Thung"]}}</td>
+          <td *ngIf="selectedFileType == 0">{{rowData["Nguoi_Tao"]}}</td>
+          <td *ngIf="selectedFileType == 0">{{rowData["Ma_HS"]}}</td>
+          <td>{{rowData["Du_An"]}}</td>
+          <td>{{rowData["Tai_lieu_du_an"]}}</td>
+          <td>{{rowData["level_baomat_du_an"]}}</td>
+          <td>{{rowData["Goi_thau"]}}</td>
+          <td>{{rowData["Tai_lieu_goi_thau"]}}</td>
+          <td>{{rowData["level_baomat_goi_thau"]}}</td>
+          <td>{{rowData["Hop_dong"]}}</td>
+          <td>{{rowData["Tai_lieu_hop_dong"]}}</td>
+          <td>{{rowData["level_baomat_hop_dong"]}}</td>
+          <td>{{rowData["Cong_trinh"]}}</td>
+          <td>{{rowData["Tai_lieu_cong_trinh"]}}</td>
+          <td>{{rowData["level_baomat_cong_trinh"]}}</td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage" let-columns>
+        <tr>
+          <td [attr.colspan]="columns.length" style="text-align: center;">
+            Bạn cần chọn tệp
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="paginatorright">
+        <span style="position: absolute; right: 30px; bottom: 6px;">{{totalRecords == 0 ? pageNumber : pageNumber + 1}}
+          - {{pageNumber + pageSize > totalRecords ? totalRecords : pageNumber
+          + pageSize}} / {{totalRecords}}</span>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- Upload result modal -->
+  <p-dialog [modal]="true" [width]="1200" [(visible)]="isShowingResult" header="Kết quả dữ liệu dự án"
+    id="upload_result_modal">
+
+    <p-button icon="fa fa-file-excel-o" [disabled]="uploadResult ? false : true" label="Tải kết quả về"
+      (click)="testExportFromServer()" style="margin-bottom: 10px;"></p-button>
+    <br>
+    Tổng số tài liệu trong file excel: {{totalDocumentsInExcel}}
+    <span class="h-spacer">-</span>
+    Tổng số tài liệu thêm mới thành công: {{totalDocumentsInserted}}
+    <span class="h-spacer">-</span>
+    Tổng số tài liệu bị trùng: {{totalDuplicateDocuments}}
+    <span class="h-spacer">-</span>
+    Tổng số tài liệu bị lỗi: {{totalDocumentsHasError}}
+    <p-table [scrollable]="true" scrollHeight="450px" [columns]="resultCols" [value]="uploadResult"
+      [totalRecords]="uploadResult ? uploadResult.length : 0" [paginator]="true" [rows]="10" [resizableColumns]="true"
+      (onPage)="paginateResult($event)" #resultTable>
+
+      <ng-template pTemplate="colgroup" let-columns>
+        <colgroup>
+          <col *ngFor="let col of columns" [style.width]="col.width">
+        </colgroup>
+      </ng-template>
+      <ng-template pTemplate="header" let-columns>
+        <tr>
+          <th ng *ngFor="let col of columns" pResizableColumn style="text-align: center; font-weight: bold;">
+            {{col.header}}
+          </th>
+        </tr>
+      </ng-template>
+      <ng-template let-ri="rowIndex" pTemplate="body" let-rowData let-columns="columns">
+        <tr>
+          <td style="width: 2em;">{{ri+1}}</td>
+          <td *ngIf="selectedFileType == 0">{{rowData["tinBoxQrCode"]}}</td>
+          <td *ngIf="selectedFileType == 0">{{rowData["createUser"]}}</td>
+          <td *ngIf="selectedFileType == 0">{{rowData["folderQrCode"]}}</td>
+          <td>{{rowData["projectName"]}}</td>
+          <td>{{rowData["projectDoc"]}}</td>
+          <td>{{rowData["levelBaoMatProject"]}}</td>
+          <td>{{rowData["packageName"]}}</td>
+          <td>{{rowData["packageDoc"]}}</td>
+          <td>{{rowData["levelBaoMatPackage"]}}</td>
+          <td>{{rowData["contractName"]}}</td>
+          <td>{{rowData["contractDoc"]}}</td>
+          <td>{{rowData["levelBaoMatContract"]}}</td>
+          <td>{{rowData["constructionName"]}}</td>
+          <td>{{rowData["constructionDoc"]}}</td>
+          <td>{{rowData["levelBaoMatConstruction"]}}</td>
+          <td style="text-align: left !important;" [innerHTML]="rowData.rowReport"></td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage" let-columns>
+        <tr>
+          <td [attr.colspan]="columns ? columns.length : 999" style="text-align: center;">
+            Bạn cần chọn tệp
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="paginatorright">
+        <span style="position: absolute; right: 30px; bottom: 6px;" [innerHTML]="getResultPagingLabel()"></span>
+      </ng-template>
+    </p-table>
+
+  </p-dialog>
+
+</div>
+
+<div [hidden]=!isLoadingFile class="loading">
+  <div class="lds-roller">
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
+</div>

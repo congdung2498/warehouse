@@ -1,0 +1,163 @@
+<!-- 
+  @Author: CuongHD 08/09/2018
+ -->
+<div class="container">
+  <div class="container-fluid text-center mt-5">
+    <h1 class="text-center">THÊM MỚI ĐỘI XE</h1>
+  </div>
+  <div class="row ">
+    <div class="col-sm-12 " style="margin: auto;">
+      <form ngNoForm onsubmit="return false;">
+        <p-fieldset legend="Thông tin đội xe">
+          <div class="row">
+            <div class="col-sm-6">
+              <div class="form-group row" *ngIf="isEdit">
+                <div class="col-sm-2"></div>
+                <label class="col-sm-3 ">Mã đội xe:</label>
+                <div class="col-sm-7">
+                  <input id="input" type="text" disabled size="30" pInputText [(ngModel)]="driveId" style="width: 100%;">
+                </div>
+
+              </div>
+              <div class="form-group row">
+                <div class="col-sm-2"></div>
+                <label class="col-sm-3 ">Tên đội xe
+                  <span style="color: red;">*</span>:</label>
+                <div class="col-sm-7">
+                  <input #inputSquad id="input" type="text" size="30" name="teamName" maxlength="255" pInputText [(ngModel)]="squadName" [pKeyFilter]="onlyChar" (ngModelChange)="onChangeSquad()" (blur)="removeBlank()" style="width: 100%;"  >
+                </div>
+
+              </div>
+              <div class="form-group row">
+                <div class="col-sm-2"></div>
+                <label class="col-sm-3 ">Chọn vị trí
+                  <span style="color: red;">*</span>:
+                </label>
+                <div class="col-sm-7 ui-fluid ">
+                  <p-autoComplete #inputPlace [(ngModel)]="place" [suggestions]="listPlace" (completeMethod)="filterPlace($event)" [size]="200" [minLength]="1" (blur)="removeBlank()"
+                                  placeholder="--Chọn vị trí--" [dropdown]="true" field="placeName" class="fix-drop-down" emptyMessage="Vị trí không tồn tại"
+                                  (onBlur)="isSelected()" (onSelect)="getDriver($event)">
+                  </p-autoComplete>
+                </div>
+              </div>
+
+              <div class="form-group row">
+                <div class="col-sm-2"></div>
+                <label class="col-sm-3 ">Trạng thái
+                  <span style="color: red;">*</span>:</label>
+                <div class="col-sm-7">
+                  <div class="row ui-fluid">
+                    <div class="col-sm-5">
+                      <p-radioButton name="group1" value="1" label="Hoạt động" [(ngModel)]="status" inputId="opt1"></p-radioButton>
+                    </div>
+                    <div class="col-sm-7">
+                      <p-radioButton name="group1" value="0" label="Không hoạt động" [(ngModel)]="status" inputId="opt2"></p-radioButton>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-sm-6">
+              <div class="form-group row">
+                <label class="col-ms-4" style="margin-left: 14px;">Chọn đội trưởng
+                  <span style="color: red;">*</span>:</label>
+                <div class="col-sm-7 ui-fluid" style="margin-left: 5px;">
+                  <!-- <p-autoComplete [(ngModel)]="manager" [suggestions]="listManagerDriver" (completeMethod)="filterDriver($event)" [minLength]="1"
+                    placeholder="Chọn đội trưởng" field="displayOption" (onSelect)="setPhoneAndUnitName($event)" (onBlur)="isSelected()">
+                  </p-autoComplete> -->
+
+                  <p-autoComplete #inputEmployee [(ngModel)]="manager" [suggestions]="listManagerDriver" (completeMethod)="filterDriver($event)" [size]="200"
+                                  [minLength]="1" placeholder="--Chọn đội trưởng--" [dropdown]="true" field="displayOption" [minLength]="1"
+                                  [dropdown]="true" class="fix-drop-down" (onSelect)="setPhoneAndUnitName($event)" (onBlur)="isSelected()" emptyMessage="Không tồn tại đồng chí này">
+                  </p-autoComplete>
+                </div>
+                <div class="col-sm-1"></div>
+              </div>
+              <div class="form-group row ">
+
+                <label class="col-sm-3 ">Số điện thoại:</label>
+                <div class="col-sm-7">
+                  <input id="float-input" type="text" disabled [(ngModel)]="phone" size="30" pInputText style="width: 100%;">
+                </div>
+                <div class="col-sm-2"></div>
+              </div>
+
+              <div class="form-group row ">
+
+                <label class="col-sm-3 ">Đơn vị:</label>
+                <div class="col-sm-7">
+                  <input id="float-input" type="text" disabled [(ngModel)]="unitName" size="30" pInputText style="width: 100%;">
+                </div>
+                <div class="col-sm-2"></div>
+              </div>
+            </div>
+          </div>
+        </p-fieldset>
+        <div class="row row-button">
+          <div class="col-sm-4"></div>
+          <div class="col-sm-4">
+            <p-button label="Tìm kiếm" icon="pi pi-search" (click)="handleSearch()"></p-button>
+            <p-button class="ui-button-danger" icon="pi pi-plus" label="Lưu" (click)="handleAdd()"></p-button>
+            <button type="button" tabindex="0" pButton icon="fa fa-refresh" iconPos="left" label="Làm mới" (click)="resetButton()" style="text-align: center;"></button>
+          </div>
+          <div class="col-sm-4"></div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-sm-12">
+      <p-table [columns]="cols" [lazy]="true" [loading]="loading" [value]="listDriveSquad" [totalRecords]="totalRecords" [paginator]="true"
+               [rows]= "10" [resizableColumns]="true" (onPage)="paginate($event)" #myTable>
+        <ng-template pTemplate="colgroup" let-columns>
+          <colgroup>
+            <col *ngFor="let col of columns" [style.width]="col.width">
+          </colgroup>
+        </ng-template>
+        <ng-template pTemplate="header" let-columns>
+          <tr>
+            <th *ngFor="let col of columns" pResizableColumn style="text-align: center; font-weight: bold;">
+              {{col.header}}
+            </th>
+          </tr>
+        </ng-template>
+        <ng-template let-ri="rowIndex" pTemplate="body" let-rowData let-columns="columns">
+          <tr>
+            <td>{{ri+1}}</td>
+            <td>
+              <div class="row">
+                <div class="col-sm-5">
+                  <p-button [disabled]="isEdit" icon="pi pi-trash" (onClick)="doDelete(rowData)" pTooltip="Xóa"></p-button>
+                </div>
+
+                <div class="col-sm-7">
+                  <p-button [disabled]="isEdit" icon="pi pi-pencil" (onClick)="doEdit(rowData)" pTooltip="Chỉnh sửa"></p-button>
+                </div>
+              </div>
+            </td>
+            <td style="text-align: left !important;">{{rowData["placeName"]}}</td>
+            <td style="text-align: left !important;">{{rowData["squadName"]}}</td>
+            <td style="text-align: left !important;">{{rowData["fullName"]}}</td>
+            <td style="text-align: left !important;" *ngIf="rowData['status']==1; else Flag">Hoạt động</td>
+            <ng-template #Flag>
+              <td style="text-align: left !important;">Ngừng hoạt động</td>
+            </ng-template>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage" let-columns>
+          <tr>
+            <td [attr.colspan]="columns.length" style="text-align: center;">
+              Không có dữ liệu
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="paginatorright">
+          <span style="position: absolute; right: 30px; bottom: 6px;">{{totalRecords == 0 ? pageNumber : pageNumber + 1}} - {{pageNumber + pageSize > totalRecords ? totalRecords : pageNumber
+            + pageSize}} / {{totalRecords}}</span>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</div>

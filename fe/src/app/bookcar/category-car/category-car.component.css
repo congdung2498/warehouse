@@ -1,0 +1,12 @@
+
+
+:host>>>.item>p-button>button{
+    width: 30px !important;
+    height: 30px !important;
+}
+
+:host >>> .fix-drop-down > .ui-widget {
+    height: 35px !important;
+    top: -1px !important;
+}
+

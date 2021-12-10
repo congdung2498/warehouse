@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.viettel.vtnet360.vt04.vt040002.dao.VT040002DAO">
+
+	<!-- get list of stationery name -->
+	<select id="findListStationery"
+		resultType="com.viettel.vtnet360.vt04.vt040002.entity.VT040002Stationery"
+		parameterType="com.viettel.vtnet360.vt04.vt040002.entity.VT040002Stationery">
+		SELECT
+		sta.STATIONERY_ID AS stationeryId,
+		sta.STATIONERY_NAME AS
+		stationeryName
+		FROM
+		STATIONERY sta
+
+		WHERE ( sta.DELETE_FLAG = 0 )
+
+		<if test="stationeryName != null and stationeryName.length &gt; 0">
+			<bind name="pattern" value="'%' + stationeryName + '%'" />
+			AND (sta.STATIONERY_NAME LIKE #{pattern})
+		</if>
+
+		ORDER BY
+		sta.STATIONERY_NAME
+		LIMIT 50
+	</select>
+
+	<!-- get list of type or unit -->
+	<select id="findListStationeryTypeOrUnit"
+		resultType="com.viettel.vtnet360.vt04.vt040002.entity.VT040002SystemCode"
+		parameterType="java.lang.String">
+		SELECT
+		msc.CODE_VALUE AS codeValue,
+		msc.CODE_NAME AS codeName
+		FROM
+		M_SYSTEM_CODE msc
+		<where>
+			msc.MASTER_CLASS = #{masterClass} AND msc.STATUS =1
+		</where>
+
+		ORDER BY codeName
+
+	</select>
+
+	<!-- get list of stationery -->
+	<select id="findStationeryReport"
+		parameterType="com.viettel.vtnet360.vt04.vt040002.entity.VT040002Stationery"
+		resultType="com.viettel.vtnet360.vt04.vt040002.entity.VT040002Stationery">
+		SELECT
+		sta.STATIONERY_ID AS stationeryId,
+		sta.STATIONERY_NAME AS
+		stationeryName,
+		mscType.CODE_NAME AS stationeryType,
+		mscUnit.CODE_NAME
+		AS stationeryUnitCal,
+		mscType.CODE_VALUE AS codeTypeValue,
+		mscUnit.CODE_VALUE AS codeUnitValue,
+		sta.UNIT_PRICE AS stationeryPrice,
+		sta.STATUS AS status
+		FROM
+		STATIONERY sta
+		LEFT JOIN M_SYSTEM_CODE mscType
+		ON
+		sta.STATIONERY_TYPE = mscType.CODE_VALUE
+		LEFT JOIN M_SYSTEM_CODE
+		mscUnit ON
+		sta.CALCULATION_UNIT = mscUnit.CODE_VALUE
+		<where>
+			sta.DELETE_FLAG = 0
+			<if test="masterClassType != null and masterClassType.length &gt; 0">
+				AND mscType.MASTER_CLASS = #{masterClassType} AND mscType.STATUS =1
+			</if>
+			<if test="masterClassUnit != null and masterClassUnit.length &gt; 0">
+				AND mscUnit.MASTER_CLASS = #{masterClassUnit} AND mscUnit.STATUS =1
+			</if>
+			<if test="stationeryId != null and stationeryId.length &gt; 0">
+				AND sta.STATIONERY_ID = #{stationeryId}
+			</if>
+			<if test="stationeryName != null and stationeryName.length &gt; 0">
+				<bind name="pattern" value="'%' + stationeryName + '%'" />
+				AND sta.STATIONERY_NAME LIKE #{pattern}
+			</if>
+			<if test="stationeryType != null and stationeryType.length &gt; 0">
+				AND sta.STATIONERY_TYPE = #{stationeryType}
+			</if>
+			<if
+				test="masterClassUnit != null and masterClassUnit.length &gt; 0 and stationeryUnitCal != null and stationeryUnitCal.length &gt; 0">
+				AND sta.CALCULATION_UNIT = #{stationeryUnitCal}
+			</if>
+			<if test="stationeryPrice &gt; 0">
+				AND sta.UNIT_PRICE = #{stationeryPrice}
+			</if>
+			<if test="status != null and status.length &gt; 0">
+				AND sta.STATUS = #{status}
+			</if>
+			ORDER BY
+			sta.STATIONERY_NAME,
+			mscType.CODE_NAME
+			<if test="startRow != -1 &amp;&amp; rowSize != -1">
+				LIMIT #{startRow}, #{rowSize}
+			</if>
+		</where>
+	</select>
+
+	<!-- count total record of stationery -->
+	<select id="countTotalRecord"
+		parameterType="com.viettel.vtnet360.vt04.vt040002.entity.VT040002Stationery"
+		resultType="java.lang.Integer">
+		SELECT
+		COUNT(*)
+		FROM
+		STATIONERY sta
+		LEFT JOIN M_SYSTEM_CODE mscType ON
+		sta.STATIONERY_TYPE = mscType.CODE_VALUE
+		LEFT JOIN M_SYSTEM_CODE
+		mscUnit ON
+		sta.CALCULATION_UNIT = mscUnit.CODE_VALUE
+		<where>
+			sta.DELETE_FLAG = 0
+			<if test="masterClassType != null and masterClassType.length &gt; 0">
+				AND mscType.MASTER_CLASS = #{masterClassType}  AND mscType.STATUS =1
+			</if>
+			<if test="masterClassUnit != null and masterClassUnit.length &gt; 0">
+				AND mscUnit.MASTER_CLASS = #{masterClassUnit} AND mscUnit.STATUS =1
+			</if>
+			<if test="stationeryId != null and stationeryId.length &gt; 0">
+				AND sta.STATIONERY_ID = #{stationeryId}
+			</if>
+			<if test="stationeryName != null and stationeryName.length &gt; 0">
+				<bind name="pattern" value="'%' + stationeryName + '%'" />
+				AND sta.STATIONERY_NAME LIKE #{pattern}
+			</if>
+			<if test="stationeryType != null and stationeryType.length &gt; 0">
+				AND sta.STATIONERY_TYPE = #{stationeryType}
+			</if>
+			<if
+				test="masterClassUnit != null and masterClassUnit.length &gt; 0 and stationeryUnitCal != null and stationeryUnitCal.length &gt; 0">
+				AND sta.CALCULATION_UNIT = #{stationeryUnitCal}
+			</if>
+			<if test="stationeryPrice &gt; 0">
+				AND sta.UNIT_PRICE = #{stationeryPrice}
+			</if>
+			<if test="status != null and status.length &gt; 0">
+				AND sta.STATUS = #{status}
+			</if>
+		</where>
+	</select>
+
+	<!-- check existing stationery to do actions (update and delete) -->
+	<select id="checkExistStationery"
+		parameterType="com.viettel.vtnet360.vt04.vt040002.entity.VT040002Stationery"
+		resultType="java.lang.Integer">
+		SELECT
+		COUNT(*)
+		FROM
+		STATIONERY sta
+		<where>
+			sta.DELETE_FLAG = 0
+			<if test="stationeryId != null and stationeryId.length &gt; 0">
+				AND sta.STATIONERY_ID = #{stationeryId}
+			</if>
+		</where>
+	</select>
+
+
+	<!-- check stationery deleted : yet or not yet -->
+	<select id="checkDeletedStatus"
+		parameterType="com.viettel.vtnet360.vt04.vt040002.entity.VT040002Stationery"
+		resultType="int">
+
+		SELECT DELETE_FLAG
+		FROM STATIONERY
+		WHERE STATIONERY_ID =
+		#{stationeryId}
+
+	</select>
+
+	<!-- check existing stationery name (may be with stationery id) -->
+	<select id="checkDuplicateName"
+		parameterType="com.viettel.vtnet360.vt04.vt040002.entity.VT040002Stationery"
+		resultType="java.lang.Integer">
+		SELECT
+		COUNT(*)
+		FROM
+		STATIONERY sta
+		<where>
+			sta.DELETE_FLAG = 0
+			<if test="stationeryName != null and stationeryName.length &gt; 0">
+				AND sta.STATIONERY_NAME = #{stationeryName}
+			</if>
+			<if test="stationeryType != null and stationeryType.length &gt; 0">
+				AND sta.STATIONERY_TYPE = #{stationeryType}
+			</if>
+			<if test="stationeryId != null and stationeryId.length &gt; 0">
+				AND sta.STATIONERY_ID != #{stationeryId}
+			</if>
+		</where>
+	</select>
+
+	<!-- insert stationery -->
+	<insert id="insertStationery"
+		parameterType="com.viettel.vtnet360.vt04.vt040002.entity.VT040002Stationery">
+		<selectKey keyProperty="stationeryId" resultType="java.lang.String"
+			order="BEFORE">
+			SELECT CONCAT( 'VTN_SR_',NEXT VALUE FOR VTN_S) as stationeryId
+		</selectKey>
+		INSERT
+		INTO
+		STATIONERY ( STATIONERY_ID,
+		STATIONERY_NAME,
+		STATIONERY_TYPE,
+		STATUS,
+		UNIT_PRICE,
+		CALCULATION_UNIT,
+		CREATE_USER,
+		CREATE_DATE )
+		VALUES(
+		#{stationeryId},
+		#{stationeryName},
+		#{stationeryType},
+		#{status},
+		#{stationeryPrice},
+		#{stationeryUnitCal},
+		#{loginUserName},
+		SYSDATE() )
+	</insert>
+
+	<!-- check stationeries are used in requesting or not -->
+	<select id="checkStationeryRequesting" parameterType="java.lang.String"
+		resultType="java.lang.Integer">
+		SELECT
+		COUNT(*)
+		FROM
+		ISSUES_SERVICE_SPENT isp
+		LEFT JOIN ISSUES_SERVICE iss
+		ON
+		isp.ISSUES_SERVICE_ID = iss.ISSUES_SERVICE_ID
+		<where>
+			( iss.STATUS = 0
+			OR iss.STATUS = 1
+			OR iss.STATUS = 3
+			OR iss.STATUS = 4 )
+			<if test="stationeryId != null and stationeryId.length &gt; 0">
+				AND isp.STATIONERY_ID = #{stationeryId}
+			</if>
+		</where>
+	</select>
+
+	<!-- update stationery -->
+	<update id="updateStationery"
+		parameterType="com.viettel.vtnet360.vt04.vt040002.entity.VT040002Stationery">
+		UPDATE
+		STATIONERY SET
+		STATIONERY_NAME = #{stationeryName},
+		STATIONERY_TYPE = #{stationeryType},
+		STATUS = #{status},
+		UNIT_PRICE =
+		#{stationeryPrice},
+		CALCULATION_UNIT = #{stationeryUnitCal},
+		UPDATE_USER = #{loginUserName},
+		UPDATE_DATE = SYSDATE()
+		WHERE
+		STATIONERY_ID = #{stationeryId}
+	</update>
+
+	<!-- delete stationery -->
+	<delete id="deleteStationery"
+		parameterType="com.viettel.vtnet360.vt04.vt040002.entity.VT040002Stationery">
+		UPDATE
+		STATIONERY SET
+		DELETE_FLAG = 1,
+		UPDATE_USER =
+		#{loginUserName},
+		UPDATE_DATE = SYSDATE()
+		WHERE
+		STATIONERY_ID =
+		#{stationeryId}
+	</delete>
+
+
+	<select id="getStationeryProcess" parameterType="java.lang.String"
+		resultType="java.lang.Integer">
+		select iss.STATUS from STATIONERY s left join
+		ISSUES_SERVICE_SPENT isp
+		on s.STATIONERY_ID=isp.STATIONERY_ID left join
+		ISSUES_SERVICE iss on
+		isp.ISSUES_SERVICE_ID=iss.ISSUES_SERVICE_ID
+		where
+		s.DELETE_FLAG=0 and s.STATUS=1 and s.STATIONERY_ID= #{stationeryId}
+		and iss.STATUS IS NOT NULL
+	</select>
+
+</mapper>

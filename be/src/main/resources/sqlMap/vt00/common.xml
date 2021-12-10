@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt00.common.dao.VTCommonDAO">
+
+	<!-- storage Sms -->
+	<insert id="storageSms" parameterType="java.util.HashMap">
+	INSERT INTO CAT_MESSAGE
+	(USER_ID, CONTENT, STATUS, INSERT_TIME, PHONE, SMS_TYPE, SEND_TIME)
+	VALUES(#{toUserId}, #{content} , #{status} , #{insertTime}, #{phone}, #{smsType}, #{sendTime})
+	</insert>	
+	
+	<!-- storage Notification -->
+	<insert id="storageNotification" parameterType="java.util.HashMap">
+	
+	<!-- tra ve notilogId ban ghi -->
+	<selectKey keyProperty="returnedLogId" resultType="String" order="BEFORE">
+            SELECT CONCAT( 'VTN_SR_',NEXT VALUE FOR VTN_S) as returnedLogId
+	</selectKey>
+	
+	INSERT INTO NOTI_LOG
+	(NOTI_LOG_ID, USERNAME, DEVICE_ID, TITLE, MESSAGE, TYPE, ADDITIONAL_INFOMATION, STATUS, CREATE_USER, CREATE_DATE, STATUS_RECORD)
+	VALUES(#{returnedLogId}, #{toUserName}, #{tokenDevice}, #{title}, #{message} , #{type}, #{additionalInformation}, #{statusSend}, #{createUser}, #{timeNow}, #{statusRecord});
+	
+	</insert>	
+	
+	
+	<!-- "ind TokenDevice -->	
+	<select id="findTokenDevice" parameterType="String" resultType='java.util.Map'>
+	SELECT DEVICE_ID, DEVICE_TYPE
+	FROM NOTI_REG
+	WHERE USERNAME = #{toUserName}
+	</select>	
+	
+	<!-- "info by UserName -->	
+	<select id="findInfo" parameterType="String" resultType="java.util.Map">
+	SELECT
+	EMPLOYEE_ID as empId,
+	PHONE_NUMBER as empPhone
+	FROM
+	QLDV_EMPLOYEE
+	WHERE USER_NAME = #{toUserName}
+	</select>	
+	
+	<!-- "info by UserName -->	
+	<select id="findNotifyWaitSend" parameterType="String" resultType="java.util.Map">
+	
+	SELECT
+	NOTI_LOG_ID as notiLogId,
+	USERNAME as userName,
+	DEVICE_ID as deviceId,
+	TITLE as title,
+	MESSAGE as message,
+	TYPE as type,
+	ADDITIONAL_INFOMATION as addInfo,
+	STATUS as status,
+	CREATE_USER as createUser,
+	CREATE_DATE as createDate,
+	STATUS_RECORD as statusRecord
+	FROM
+	NOTI_LOG
+	WHERE
+	USERNAME = #{toUserName} AND STATUS = 0
+	
+	</select>	
+	
+	<!-- updateStorageNotification by notiLogID -->
+	
+	<update id="updateStorageNotification" parameterType="java.util.Map">
+	UPDATE
+	NOTI_LOG 
+	SET
+		DEVICE_ID = #{tokenDevice},
+		STATUS = #{statusSend}
+	WHERE
+		NOTI_LOG_ID = #{notiLogid}
+	</update>
+	
+</mapper>

@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt05.vt050000.dao.VT050000DAO">
+	
+	<select id="findStationeryByName" resultType="com.viettel.vtnet360.vt05.vt050000.entity.VT050000StationeryInfo"
+										parameterType="com.viettel.vtnet360.vt05.vt050000.entity.VT050000InfoToFindStationery">
+		SELECT 	si.STATIONERY_ID as stationeryID, 
+				si.STATIONERY_NAME as stationeryName,
+				si.UNIT_PRICE as unitPrice,
+				msc.CODE_NAME as calculationUnit
+		FROM STATIONERY_ITEMS si JOIN M_SYSTEM_CODE msc ON msc.CODE_VALUE = si.CALCULATION_UNIT
+		WHERE 	msc.MASTER_CLASS = #{masterClass} AND msc.STATUS =1
+				AND si.STATUS = #{status}
+				AND si.DELETE_FLAG = 0
+				<if test="stationeryName != null">
+					 <bind name="pattern" value="'%' + stationeryName + '%'" />
+					 AND si.STATIONERY_NAME LIKE #{pattern}
+				</if>
+				<if test="listStationeryNotGet != null and listStationeryNotGet.size() > 0">
+					AND si.STATIONERY_ID NOT IN
+					<foreach collection="listStationeryNotGet" item="item" index="index" open="(" separator="," close=")">
+						#{item}
+   					</foreach>
+				</if>
+		ORDER BY si.STATIONERY_NAME ASC
+		<if test="pageNumber >=0 and pageSize > 0">
+					LIMIT #{pageNumber}, #{pageSize}
+				</if>
+	</select>
+	
+	<select id="findMoneyUseInThisMonthNotFinish" resultType="java.lang.Double" parameterType="com.viettel.vtnet360.vt05.vt050000.entity.VT050000InfoTofindMoneyUsed">
+		SELECT IFNULL(SUM(isi.TOTAL_REQUEST * isi.UNIT_PRICE), 0) as total
+		FROM ISSUES_STATIONERY ist JOIN ISSUES_STATIONERY_ITEMS isi ON ist.ISSUE_STATIONERY_ID = isi.ISSUES_STATIONERY_ID
+		WHERE ist.EMPLOYEE_USERNAME = #{userName}
+				AND MONTH(ist.REQUEST_DATE) = MONTH(NOW())
+				AND YEAR(ist.REQUEST_DATE) = YEAR(NOW())
+				AND isi.STATUS NOT IN 
+					<foreach collection="listSatus" item="item" index="index" open="(" separator="," close=")">
+						#{item}
+   					</foreach>
+	</select>
+	
+	<select id="findMoneyUseInThisMonthFinish" resultType="java.lang.Double" parameterType="com.viettel.vtnet360.vt05.vt050000.entity.VT050000InfoTofindMoneyUsed">
+   		SELECT IFNULL( SUM(IFNULL(shr.TOTAL_FULFILL, isi.TOTAL_REQUEST) *  isi.UNIT_PRICE), 0) AS total 
+		FROM ISSUES_STATIONERY ist 
+		         LEFT JOIN ISSUES_STATIONERY_ITEMS isi ON ist.ISSUE_STATIONERY_ID = isi.ISSUES_STATIONERY_ID
+		         LEFT JOIN STORAGE_HCDV_REQUEST shr ON isi.ISSUES_STATIONERY_ITEM_ID = shr.ISSUES_STATIONERY_ITEM_ID
+		WHERE ist.EMPLOYEE_USERNAME = #{userName}
+		    AND MONTH(ist.REQUEST_DATE) = MONTH(NOW())
+		    AND YEAR(ist.REQUEST_DATE) = YEAR(NOW())
+		    AND isi.STATUS IN (0, 1, 2, 4, 5, 7, 8, 10)
+	</select>
+	
+	<select id="findSpendingLimit" resultType="java.lang.Double" parameterType="java.lang.Integer">
+		SELECT IFNULL( 
+			(SELECT QUOTA 
+	        FROM STATIONERY_QUOTA 
+	        WHERE UNIT_ID = #{unitId}), 
+	    0);
+	</select>
+	<select id="findIssuesStationeryStatus" resultType="java.lang.Integer" parameterType="java.lang.String">
+		SELECT DISTINCT(STATUS) 
+		FROM ISSUES_STATIONERY_ITEMS 
+		WHERE ISSUES_STATIONERY_ID = #{issuesStationeryID}
+	</select>
+	
+	<update id="updateIssuesStaioneryStatus" parameterType="com.viettel.vtnet360.vt05.vt050000.entity.VT050000IssuesStationery">
+		UPDATE ISSUES_STATIONERY
+		SET STATUS = #{status},
+			UPDATE_USER = #{updateUser},
+			UPDATE_DATE = NOW()
+		WHERE ISSUE_STATIONERY_ID = #{issuesStationeryID}
+	</update>
+	<select id="findInfoHcdvRequest" parameterType="java.util.List" resultType="com.viettel.vtnet360.vt05.vt050000.entity.VT050000InfoHcdvRequest">
+		SELECT 	HCDV_USERNAME as hcdvUserName,
+				HCDV_MESSAGE as hcdvMessage,
+				CREATE_DATE as dateRequest
+		FROM ISSUES_STATIONERY_APPROVED
+		WHERE ISSUES_STATIONERY_APPROVED_ID IN
+				<foreach collection="list" item="item" index="index" open="(" separator="," close=")">
+					#{item}
+				</foreach>
+	</select>
+
+	<select id="findFullNameByUserName" parameterType="java.lang.String" resultType="java.lang.String">
+		SELECT FULL_NAME 
+		FROM QLDV_EMPLOYEE
+		WHERE USER_NAME = #{userName}
+				AND STATUS = 1
+	</select>
+
+	<select id="findSpendingLimitUnit" parameterType="com.viettel.vtnet360.vt05.vt050000.entity.VT050000InfoToFindSpendingLimitUnit" resultType="java.lang.Double">
+        SELECT IFNULL ((SELECT IFNULL(QUOTA, 0) * IFNULL(QUANTITY, 0) as limitMoneyUnit
+        FROM STATIONERY_QUOTA 
+        WHERE UNIT_ID = #{unitId}), 0)
+    </select>
+
+<select id="findSpendingLimitUnitExcel"  resultType="java.lang.Double" parameterType="java.lang.Integer">
+        SELECT IFNULL ((SELECT IFNULL(QUOTA, 0) * IFNULL(QUANTITY, 0) as limitMoneyUnit
+        FROM STATIONERY_QUOTA 
+        WHERE UNIT_ID = #{unitId}), 0)
+    </select>
+
+
+	<select id="checkHcdvInStaffConfig" parameterType="java.lang.String" resultType="java.lang.Integer">
+		SELECT COUNT(*)
+		FROM STATIONERY_STAFF 
+		WHERE EMPLOYEE_USERNAME = #{userName}
+				AND JOB_CODE = '01'
+				AND DELETE_FLAG = 0
+	</select>
+	
+	<select id="checkHctctInStaffConfig" parameterType="java.lang.String" resultType="java.lang.Integer">
+		SELECT COUNT(*)
+		FROM STATIONERY_STAFF 
+		WHERE EMPLOYEE_USERNAME = #{userName}
+				AND JOB_CODE = '02'
+				AND DELETE_FLAG = 0
+	</select>
+
+	<select id="findListEmployeeOfUnit" parameterType="com.viettel.vtnet360.vt05.vt050000.entity.VT050000InfoToFindListEmployeeOfUnit"
+			resultType="com.viettel.vtnet360.vt05.vt050000.entity.VT050000InfoOfEmployee">
+		SELECT
+			USER_NAME as userName,
+			FULL_NAME as fullName,
+			TITLE as title,
+			LEVEL_EMPLOYEE as levelEmployee
+		FROM
+			QLDV_EMPLOYEE qe
+		LEFT JOIN QLDV_UNIT qu ON
+			qe.UNIT_ID = qu.UNIT_ID
+		<where>
+			qe.STATUS = 1
+			<if test="roleAdmin == false">
+					AND qu.`PATH` LIKE 
+							(SELECT CONCAT(	'%',
+									(SELECT UNIT_ID 
+									FROM STATIONERY_STAFF 
+									WHERE EMPLOYEE_USERNAME = #{hcdvUserName}
+										AND JOB_CODE = '01'
+										AND DELETE_FLAG = 0)
+									,'%')
+							)
+			</if>
+			<if test="roleAdmin == true">
+					AND qu.`PATH` LIKE CONCAT('%','234841','%')
+			</if>
+			<if test="pattern != null and pattern.length > 0">
+				 <bind name="pattern1" value="'%' + pattern + '%'" />
+				 AND (
+						CODE LIKE #{pattern1}
+						OR FULL_NAME LIKE #{pattern1}
+						OR EMAIL LIKE #{pattern1}
+						OR PHONE_NUMBER LIKE #{pattern1}
+					 )
+			</if>
+		</where>
+		ORDER BY FULL_NAME ASC
+		<if test="pageNumber >=0 and pageSize > 0">
+				LIMIT #{pageNumber}, #{pageSize}
+		</if>
+	</select>
+<select id="checkUnitdQuotaConfig" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM STATIONERY_QUOTA 
+        WHERE UNIT_ID = #{unitId}
+              
+    </select>
+
+
+
+</mapper>

@@ -1,0 +1,797 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.viettel.vtnet360.vt04.vt040001.dao.VT040001DAO">
+
+	<!-- get list of places -->
+	<select id="findListPlace"
+		parameterType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListPlace"
+		resultType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListPlace">
+		SELECT
+		p.PLACE_ID AS placeId,
+		p.PLACE_NAME AS placeName
+		FROM
+		QLDV_PLACE p
+		<where>
+			p.STATUS = 1
+			<if test="placeName != null and placeName.length &gt; 0">
+				<bind name="pattern" value="'%' + placeName + '%'" />
+				AND p.PLACE_NAME LIKE #{pattern}
+			</if>
+		</where>
+		ORDER BY
+		PLACE_NAME
+		LIMIT 50
+	</select>
+
+	<!-- get list of services -->
+	<select id="findListService"
+		parameterType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListService"
+		resultType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListService">
+		SELECT
+		s.SERVICE_ID AS serviceId,
+		s.SERVICE_NAME AS serviceName,
+		s.FULL_FILL_TIME AS fullFillTime,
+		s.REQUIRE_SIGN AS requireSign
+		FROM
+		SERVICES s
+		LEFT JOIN QLDV_PLACE p ON
+		s.SERVICE_LOCATION = p.PLACE_ID
+		<where>
+			( s.STATUS = 1 AND s.DELETE_FLAG = 0 )
+			<if test="serviceName != null and serviceName.length &gt; 0">
+				<bind name="pattern" value="'%' + serviceName + '%'" />
+				AND s.SERVICE_NAME LIKE #{pattern}
+			</if>
+			<!-- get service follow place -->
+			<if test="placeId != null and placeId.length &gt; 0">
+				AND p.PLACE_ID = #{placeId}
+			</if>
+			<if test="placeName != null and placeName.length &gt; 0">
+				<bind name="pattern1" value="'%' + placeName + '%'" />
+				AND p.PLACE_NAME LIKE #{pattern1}
+			</if>
+		</where>
+		ORDER BY
+		SERVICE_NAME
+		LIMIT 50
+	</select>
+
+	<!-- get list of units -->
+	<select id="findListUnit"
+		parameterType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListPlace"
+		resultType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListPlace">
+		SELECT
+			u.UNIT_ID AS placeId,
+			u.UNIT_NAME as placeName,
+			CASE 
+				WHEN u.UNIT_ID = 234841 THEN IFNULL(u.UNIT_NAME, '')
+				WHEN f.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''), IFNULL(CONCAT(' / ', f.UNIT_NAME), ''))
+				ELSE CONCAT(IFNULL(u.UNIT_NAME, ''), IFNULL(CONCAT(' / ', f.UNIT_NAME), ''), IFNULL(CONCAT(' / ', r.UNIT_NAME), ''))
+			END AS threeLevelUnit
+		FROM
+			QLDV_UNIT u
+			LEFT JOIN QLDV_UNIT f on u.PARENT_UNIT_ID=f.UNIT_ID
+			LEFT JOIN QLDV_UNIT r on f.PARENT_UNIT_ID = r.UNIT_ID
+		<where>
+			u.STATUS = 1
+			AND u.`PATH` LIKE '%234841%'
+			<if test="placeName != null">
+				<bind name="pattern" value="'%' + placeName + '%'" />
+				<bind name="pattern1" value="placeName + '%'" />
+				<bind name="pattern2" value="'% %' + placeName + '% %'" />
+				<bind name="pattern3" value="'%' + placeName" />
+				AND u.UNIT_NAME LIKE #{pattern}
+		
+				<!-- ORDER BY CASE placeName	WHEN placeName like #{pattern1} THEN 0
+				WHEN placeName like #{pattern2} THEN 1
+				WHEN placeName like #{pattern3} THEN 2
+				END DESC, placeName -->
+			</if>
+		
+		</where>
+		ORDER BY threeLevelUnit ASC
+		<if test="isLimit == null">
+				LIMIT 0, 50
+			</if>
+		
+	</select>
+
+	<!-- get list receiver -->
+	<select id="findListReceiver"
+		parameterType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListEmployee"
+		resultType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListEmployee">
+		
+				
+		SELECT 
+		qe.USER_NAME AS receiverUserName,
+		qe.FULL_NAME AS receiverName
+		FROM QLDV_EMPLOYEE qe JOIN QLDV_UNIT qu ON qe.UNIT_ID = qu.UNIT_ID
+		
+		WHERE qe.STATUS = 1 AND  qu.`PATH` LIKE CONCAT('%','234841','%') AND 
+		((qe.ROLE LIKE CONCAT('%',',PMQT_HCVP,','%')) OR (qe.ROLE LIKE CONCAT('PMQT_HCVP,','%')) OR (qe.ROLE LIKE CONCAT('%',',PMQT_HCVP')))
+		
+			<if test="unitId != null">
+			AND  qu.`PATH` LIKE CONCAT('%',#{unitId},'%')
+			</if>
+			<!-- <bind name="employeePattern" value="'%PMQT_HCVP%'" />
+			AND e.`ROLE` LIKE #{employeePattern} -->
+			
+			<if test="receiverName != null and receiverName.length &gt; 0">
+				<bind name="pattern" value="'%' + receiverName + '%'" />
+				AND qe.FULL_NAME LIKE #{pattern}
+			</if>
+			
+			<if
+				test="listUserNameReceiver != null and listUserNameReceiver.length &gt; 0">
+				<foreach item="item" collection="listUserNameReceiver" open="AND ("
+					separator=" AND " close=")">
+					qe.USER_NAME != #{item}
+				</foreach>
+			</if>
+
+			<!-- <if test="unitId != null">
+				AND e.UNIT_ID = #{unitId}
+			
+			</if> -->
+		
+		GROUP BY
+		qe.USER_NAME,
+		qe.FULL_NAME
+		ORDER BY
+		qe.FULL_NAME
+		LIMIT 50
+	</select>
+	
+	
+	
+	<!-- get list receiver for sussgest-->
+	<select id="findListReceiverForSussgest"
+		parameterType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001InfoToFindEmployee"
+		resultType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListEmployee">
+			
+		
+		
+			
+			SELECT DISTINCT
+			receiverUserName,receiverName,status
+			
+			FROM (
+			
+						SELECT DISTINCT
+					qe.USER_NAME AS receiverUserName,
+					qe.FULL_NAME AS receiverName,
+					qe.STATUS as status
+			FROM
+			QLDV_EMPLOYEE as qe
+			INNER JOIN SERVICE_RECEIVEER as SR ON
+			qe.USER_NAME = SR.SERVICE_RECEIVEER_USERNAME
+			JOIN QLDV_UNIT qu ON qe.UNIT_ID = qu.UNIT_ID
+			
+			WHERE 
+				<if test="roleToGetUnit == true">
+					qu.`PATH` LIKE CONCAT('%', (SELECT UNIT_ID FROM QLDV_EMPLOYEE WHERE USER_NAME = #{userName} AND STATUS = 1) ,'%')
+				</if>
+				<if test="roleToGetUnit == false">
+					qu.`PATH` LIKE CONCAT('%','234841','%')
+				</if>
+					
+			UNION
+			
+			SELECT 
+				qe.USER_NAME AS receiverUserName,
+				qe.FULL_NAME AS receiverName,
+				qe.STATUS as status
+				
+			FROM QLDV_EMPLOYEE as qe
+			LEFT JOIN QLDV_UNIT ON qe.UNIT_ID = QLDV_UNIT.UNIT_ID
+			
+			WHERE qe.ROLE  LIKE '%PMQT_ADMIN%' AND QLDV_UNIT.`PATH` LIKE CONCAT('%','234841','%')
+					 
+					) as FINAL_TBL
+						
+			WHERE status = 1 
+		
+			<if test="receiverName != null and receiverName.length &gt; 0">
+				<bind name="pattern" value="'%' + receiverName + '%'" />
+				AND receiverName LIKE #{pattern}
+			</if>
+
+		ORDER BY
+		receiverName
+		LIMIT 50
+	</select>
+
+	<!-- get list receiver of service -->
+	<select id="findListReceiverOfService"
+		parameterType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListEmployee"
+		resultType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListEmployee">
+		SELECT
+		e.USER_NAME AS receiverUserName,
+		e.FULL_NAME AS receiverName
+		FROM
+		QLDV_EMPLOYEE e
+		<if test="serviceId != null and serviceId.length &gt; 0">
+			LEFT JOIN SERVICE_RECEIVEER sr ON
+			e.USER_NAME =
+			sr.SERVICE_RECEIVEER_USERNAME
+		</if>
+		<where>
+			e.STATUS = 1
+			<!-- <bind name="employeePattern" value="'%PMQT_HCVP%'" />
+			AND e.`ROLE` LIKE #{employeePattern} -->
+			<if test="serviceId != null and serviceId.length &gt; 0">
+				AND sr.SERVICE_ID = #{serviceId}
+			</if>
+		</where>
+	</select>
+
+	<!-- get list services -->
+	<select id="findListSearchMenuService"
+		parameterType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListService"
+		resultType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListService">
+		SELECT DISTINCT
+			p.PLACE_ID AS placeId,
+			p.PLACE_NAME AS placeName,
+			s.SERVICE_ID AS
+			serviceId,
+			s.SERVICE_NAME AS serviceName,
+			s.UNIT_ID AS unitId,
+			u.UNIT_NAME AS unitName,
+			CASE 
+				WHEN u.UNIT_ID = 234841 THEN IFNULL(u.UNIT_NAME, '')
+				WHEN b.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''))
+				WHEN c.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''), IFNULL(CONCAT(' / ', c.UNIT_NAME), ''))
+				ELSE CONCAT(IFNULL(b.UNIT_NAME, ''), IFNULL(CONCAT(' / ', c.UNIT_NAME), ''), IFNULL(CONCAT(' / ', d.UNIT_NAME), ''))
+			END AS detailUnit,
+			s.FULL_FILL_TIME AS responseTime,
+			s.STATUS AS statusService,
+			r.receiver AS receivers,
+			s.REQUIRE_SIGN AS requireSign
+		FROM
+			SERVICES s
+			LEFT JOIN QLDV_PLACE p ON
+				s.SERVICE_LOCATION = p.PLACE_ID
+			LEFT JOIN QLDV_UNIT u ON
+				s.UNIT_ID = u.UNIT_ID
+			LEFT JOIN QLDV_UNIT b ON
+				u.PARENT_UNIT_ID = b.UNIT_ID
+			LEFT JOIN QLDV_UNIT c ON
+				b.PARENT_UNIT_ID = c.UNIT_ID
+			LEFT JOIN QLDV_UNIT d ON
+				c.PARENT_UNIT_ID = d.UNIT_ID
+			LEFT JOIN (
+				SELECT
+					GROUP_CONCAT(a.FULL_NAME) AS receiver,
+						b.SERVICE_ID
+					FROM
+						QLDV_EMPLOYEE a
+						JOIN SERVICE_RECEIVEER b ON a.USER_NAME = b.SERVICE_RECEIVEER_USERNAME
+						GROUP BY b.SERVICE_ID
+				) r on s.SERVICE_ID = r.SERVICE_ID	
+		<if test="listReceiverUserName != null and listReceiverUserName.length &gt; 0">
+			JOIN SERVICE_RECEIVEER sr ON sr.SERVICE_ID = s.SERVICE_ID
+		</if>
+		<where>
+			s.DELETE_FLAG = 0
+			<if test="placeId != null and placeId.length &gt; 0">
+				AND p.PLACE_ID = #{placeId}
+			</if>
+			<if test="placeName != null and placeName.length &gt; 0">
+				<bind name="pattern" value="'%' + placeName + '%'" />
+				AND p.PLACE_NAME LIKE #{pattern}
+			</if>
+			<if test="serviceId != null and serviceId.length &gt; 0">
+				AND s.SERVICE_ID = #{serviceId}
+			</if>
+			<if test="serviceName != null and serviceName.length &gt; 0">
+				<bind name="pattern1" value="'%' + serviceName + '%'" />
+				AND s.SERVICE_NAME LIKE #{pattern1}
+			</if>
+			<if test="unitId != null and unitId.length &gt; 0">
+				AND s.UNIT_ID = #{unitId}
+			</if>
+			<if test="unitName != null and unitName.length &gt; 0">
+				<bind name="pattern2" value="'%' + unitName + '%'" />
+				AND u.UNIT_NAME LIKE #{pattern2}
+			</if>
+			<if test="responseTime != null and responseTime.length &gt; 0">
+				AND s.FULL_FILL_TIME = #{responseTime}
+			</if>
+			<if test="statusService != null and statusService.length &gt; 0">
+				AND s.STATUS = #{statusService}
+			</if>
+			<if test="listReceiverUserName != null and listReceiverUserName.length &gt; 0">
+			AND 
+				<foreach collection="listReceiverUserName" item="item" index="index" separator="AND">
+					#{item} IN (SELECT SERVICE_RECEIVEER_USERNAME FROM SERVICE_RECEIVEER WHERE SERVICE_ID = sr.SERVICE_ID)  
+  				</foreach>
+			</if>
+			<if test="requireSign == 1">
+                AND s.REQUIRE_SIGN = #{requireSign}
+            </if>
+		</where>
+		ORDER BY
+		p.PLACE_NAME,
+		s.SERVICE_NAME,
+		u.UNIT_NAME
+		<if test="startRow != -1 and rowSize != -1">
+			LIMIT #{startRow}, #{rowSize}
+		</if>
+	</select>
+
+	<!-- count total menu services -->
+	<select id="countTotalMenuService"
+		parameterType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListService"
+		resultType="java.lang.Integer">
+		SELECT
+		COUNT(*)
+		FROM
+		(
+			(SELECT DISTINCT
+				s.SERVICE_ID AS serviceId
+			FROM
+				SERVICES s
+				LEFT JOIN QLDV_PLACE p ON
+				s.SERVICE_LOCATION = p.PLACE_ID
+				LEFT JOIN QLDV_UNIT u ON
+				s.UNIT_ID =
+				u.UNIT_ID
+				LEFT JOIN QLDV_UNIT b ON
+				u.PARENT_UNIT_ID = b.UNIT_ID
+				LEFT JOIN
+				QLDV_UNIT c ON
+				b.PARENT_UNIT_ID = c.UNIT_ID
+				<if test="listReceiverUserName != null and listReceiverUserName.length &gt; 0">
+					JOIN SERVICE_RECEIVEER sr ON sr.SERVICE_ID = s.SERVICE_ID
+				</if>
+				<where>
+					s.DELETE_FLAG = 0
+					<if test="placeId != null and placeId.length &gt; 0">
+						AND p.PLACE_ID = #{placeId}
+					</if>
+					<if test="placeName != null and placeName.length &gt; 0">
+						<bind name="pattern" value="'%' + placeName + '%'" />
+						AND p.PLACE_NAME LIKE #{pattern}
+					</if>
+					<if test="serviceId != null and serviceId.length &gt; 0">
+						AND s.SERVICE_ID = #{serviceId}
+					</if>
+					<if test="serviceName != null and serviceName.length &gt; 0">
+						<bind name="pattern1" value="'%' + serviceName + '%'" />
+						AND s.SERVICE_NAME LIKE #{pattern1}
+					</if>
+					<if test="unitId != null and unitId.length &gt; 0">
+						AND s.UNIT_ID = #{unitId}
+					</if>
+					<if test="unitName != null and unitName.length &gt; 0">
+						<bind name="pattern2" value="'%' + unitName + '%'" />
+						AND u.UNIT_NAME LIKE #{pattern2}
+					</if>
+					<if test="responseTime != null and responseTime.length &gt; 0">
+						AND s.FULL_FILL_TIME = #{responseTime}
+					</if>
+					<if test="statusService != null and statusService.length &gt; 0">
+						AND s.STATUS = #{statusService}
+					</if>
+					<if test="listReceiverUserName != null and listReceiverUserName.length &gt; 0">
+					AND 
+						<foreach collection="listReceiverUserName" item="item" index="index" separator="AND">
+							#{item} IN (SELECT SERVICE_RECEIVEER_USERNAME FROM SERVICE_RECEIVEER WHERE SERVICE_ID = sr.SERVICE_ID)  
+		  				</foreach>
+					</if>
+					<if test="requireSign == 1">
+		                AND s.REQUIRE_SIGN = #{requireSign}
+		            </if>
+				</where>) as tableService
+		)
+		
+	</select>
+
+	<!-- insert service -->
+	<insert id="insertService"
+		parameterType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListService">
+		<selectKey keyProperty="serviceId" resultType="String"
+			order="BEFORE">
+			SELECT CONCAT( 'VTN_SR_',NEXT VALUE FOR VTN_S) as serviceId
+		</selectKey>
+		INSERT
+		INTO
+		SERVICES ( SERVICE_ID,
+		SERVICE_NAME,
+		SERVICE_LOCATION,
+		UNIT_ID,
+		FULL_FILL_TIME,
+		STATUS,
+		CREATE_USER,
+		CREATE_DATE, 
+		REQUIRE_SIGN)
+		VALUES(
+		#{serviceId},
+		#{serviceName},
+		#{placeId},
+		#{unitId},
+		#{responseTime},
+		#{statusService},
+		#{loginUserName},
+		SYSDATE(),
+		#{requireSign} )
+	</insert>
+
+	<!-- insert service receiver -->
+	<insert id="insertReceiver"
+		parameterType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListService">
+		INSERT
+		INTO
+		SERVICE_RECEIVEER ( SERVICE_ID,
+		SERVICE_RECEIVEER_USERNAME,
+		CREATE_USER,
+		CREATE_DATE )
+		VALUES
+		<if
+			test="listReceiverUserName != null and listReceiverUserName.length &gt; 0">
+			<foreach item="item" collection="listReceiverUserName"
+				separator=",">
+				( #{serviceId},
+				#{item},
+				#{loginUserName},
+				SYSDATE() )
+			</foreach>
+		</if>
+	</insert>
+
+	<!-- check couple service name and place before inserting -->
+	<select id="checkServiceNameAndPlace"
+		parameterType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListService"
+		resultType="java.lang.Integer">
+		SELECT
+		COUNT(*)
+		FROM
+		SERVICES s
+		<where>
+			s.DELETE_FLAG = 0
+			<if test="serviceName != null and serviceName.length &gt; 0">
+				AND s.SERVICE_NAME = #{serviceName}
+			</if>
+			<if test="placeId != null and placeId.length &gt; 0">
+				AND s.SERVICE_LOCATION = #{placeId}
+			</if>
+			<if test="serviceId != null and serviceId.length &gt; 0">
+				AND s.SERVICE_ID != #{serviceId}
+			</if>
+		</where>
+	</select>
+
+	<!-- check existed service name and place before deleting -->
+	<select id="checkServiceNameAndPlaceForDeleting"
+		parameterType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListService"
+		resultType="java.lang.Integer">
+		SELECT
+		COUNT(*)
+		FROM
+		SERVICES s
+		<where>
+			s.DELETE_FLAG = 0
+			<if test="serviceName != null and serviceName.length &gt; 0">
+				AND s.SERVICE_NAME = #{serviceName}
+			</if>
+			<if test="placeId != null and placeId.length &gt; 0">
+				AND s.SERVICE_LOCATION = #{placeId}
+			</if>
+			<if test="serviceId != null and serviceId.length &gt; 0">
+				AND s.SERVICE_ID = #{serviceId}
+			</if>
+		</where>
+	</select>
+
+	<!-- check service is requesting or not -->
+	<select id="checkServiceRequesting"
+		parameterType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListService"
+		resultType="java.lang.Integer">
+		SELECT
+		COUNT(*)
+		FROM
+		ISSUES_SERVICE iss
+		<where>
+			( iss.STATUS = 0
+			OR iss.STATUS = 1
+			OR iss.STATUS = 3
+			OR iss.STATUS = 4 )
+			<if test="serviceId != null and serviceId.length &gt; 0">
+				AND iss.SERVICE_ID = #{serviceId}
+			</if>
+		</where>
+	</select>
+	
+	
+	<!-- check status Service -->
+	<select id="checkDeleteFlagService"
+		parameterType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListService" resultType="int">
+		
+	SELECT DELETE_FLAG 
+	FROM SERVICES
+	WHERE SERVICE_ID = #{serviceId}
+		
+	</select>
+
+	<!-- update service -->
+	<update id="updateService"
+		parameterType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListService">
+		UPDATE
+		SERVICES SET
+		SERVICE_NAME = #{serviceName},
+		SERVICE_LOCATION = #{placeId},
+		UNIT_ID = #{unitId},
+		FULL_FILL_TIME =
+		#{responseTime},
+		STATUS = #{statusService},
+		UPDATE_USER =
+		#{loginUserName},
+		UPDATE_DATE = SYSDATE(),
+		REQUIRE_SIGN = #{requireSign}
+		WHERE
+		SERVICE_ID = #{serviceId}
+	</update>
+
+	<!-- start update receiver -->
+	<!-- select created user and created date -->
+	<select id="findCreatedUser"
+		parameterType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListService"
+		resultType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListService">
+		SELECT
+		sr.CREATE_USER AS placeName,
+		sr.CREATE_DATE AS unitName
+		FROM
+		SERVICE_RECEIVEER sr
+		<where>
+			<if test="serviceId != null and serviceId.length &gt; 0">
+				AND sr.SERVICE_ID = #{serviceId}
+			</if>
+		</where>
+		GROUP BY sr.CREATE_USER
+	</select>
+
+	<!-- delete all receiver by serviceId -->
+	<delete id="deleteServiceReceiver"
+		parameterType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListService">
+		DELETE
+		FROM
+		SERVICE_RECEIVEER
+		WHERE
+		SERVICE_ID =
+		#{serviceId}
+	</delete>
+
+	<!-- insert receiver -->
+	<insert id="updateReceiverByInsert"
+		parameterType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListService">
+		INSERT
+		INTO
+		SERVICE_RECEIVEER ( SERVICE_ID,
+		SERVICE_RECEIVEER_USERNAME,
+		CREATE_USER,
+		CREATE_DATE,
+		UPDATE_USER,
+		UPDATE_DATE )
+		VALUES
+		<if
+			test="listReceiverUserName != null and listReceiverUserName.length &gt; 0">
+			<foreach item="item" collection="listReceiverUserName"
+				separator=",">
+				( #{serviceId},
+				#{item},
+				#{placeName},
+				#{unitName},
+				#{loginUserName},
+				SYSDATE() )
+			</foreach>
+		</if>
+	</insert>
+	<!-- end update receiver -->
+
+	<!-- delete service -->
+	<delete id="deleteService"
+		parameterType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListService">
+		UPDATE
+		SERVICES SET
+		DELETE_FLAG = 1,
+		UPDATE_USER =
+		#{loginUserName},
+		UPDATE_DATE = SYSDATE()
+		WHERE
+		SERVICE_ID = #{serviceId}
+	</delete>
+	
+	<select id="getListPlace"
+		parameterType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListPlace"
+		resultType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListPlace">
+		SELECT
+		p.PLACE_ID AS placeId,
+		p.PLACE_NAME AS placeName
+		FROM
+		QLDV_PLACE p
+		<where>
+			p.STATUS = 1
+			<if test="placeName != null and placeName.length &gt; 0">
+				<bind name="pattern" value="'%' + placeName + '%'" />
+				AND p.PLACE_NAME LIKE #{pattern}
+			</if>
+		</where>
+		ORDER BY
+		PLACE_NAME
+	</select>
+	
+	<select id="getListService"
+		parameterType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListService"
+		resultType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListService">
+		SELECT
+		s.SERVICE_ID AS serviceId,
+		s.SERVICE_NAME AS serviceName,
+		s.FULL_FILL_TIME AS fullFillTime
+		FROM
+		SERVICES s
+		LEFT JOIN QLDV_PLACE p ON
+		s.SERVICE_LOCATION = p.PLACE_ID
+		<where>
+			( s.STATUS = 1 AND s.DELETE_FLAG = 0 )
+			<if test="serviceName != null and serviceName.length &gt; 0">
+				<bind name="pattern" value="'%' + serviceName + '%'" />
+				AND s.SERVICE_NAME LIKE #{pattern}
+			</if>
+			<!-- get service follow place -->
+			<if test="placeId != null and placeId.length &gt; 0">
+				AND p.PLACE_ID = #{placeId}
+			</if>
+			<if test="placeName != null and placeName.length &gt; 0">
+				<bind name="pattern1" value="'%' + placeName + '%'" />
+				AND p.PLACE_NAME LIKE #{pattern1}
+			</if>
+		</where>
+		ORDER BY
+		SERVICE_NAME
+	</select>
+	
+	<select id="getListUnit"
+		parameterType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListPlace"
+		resultType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListPlace">
+		SELECT
+			u.UNIT_ID AS placeId,
+			u.UNIT_NAME as placeName,
+			CASE 
+				WHEN u.UNIT_ID = 234841 THEN IFNULL(u.UNIT_NAME, '')
+				WHEN f.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''), IFNULL(CONCAT(' / ', f.UNIT_NAME), ''))
+				ELSE CONCAT(IFNULL(u.UNIT_NAME, ''), IFNULL(CONCAT(' / ', f.UNIT_NAME), ''), IFNULL(CONCAT(' / ', r.UNIT_NAME), ''))
+			END AS threeLevelUnit
+		FROM
+			QLDV_UNIT u
+			LEFT JOIN QLDV_UNIT f on u.PARENT_UNIT_ID=f.UNIT_ID
+			LEFT JOIN QLDV_UNIT r on f.PARENT_UNIT_ID = r.UNIT_ID
+		<where>
+			u.STATUS = 1
+			AND u.`PATH` LIKE '%234841%'
+			<if test="placeName != null">
+				<bind name="pattern" value="'%' + placeName + '%'" />
+				<bind name="pattern1" value="placeName + '%'" />
+				<bind name="pattern2" value="'% %' + placeName + '% %'" />
+				<bind name="pattern3" value="'%' + placeName" />
+				AND u.UNIT_NAME LIKE #{pattern}
+			</if>
+			<if test="unitName != null and unitName.length &gt; 0">
+				<bind name="pattern1" value="'%' + unitName + '%'" />
+				AND u.UNIT_NAME LIKE #{pattern1}
+			</if>
+		
+		</where>
+		ORDER BY threeLevelUnit ASC
+	</select>
+	
+	<select id="getListReceiver"
+		parameterType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListEmployee"
+		resultType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListEmployee">
+				
+		SELECT 
+		qe.USER_NAME AS receiverUserName,
+		qe.FULL_NAME AS receiverName
+		FROM QLDV_EMPLOYEE qe JOIN QLDV_UNIT qu ON qe.UNIT_ID = qu.UNIT_ID
+		
+		WHERE qe.STATUS = 1 AND  qu.`PATH` LIKE CONCAT('%','234841','%')
+		
+			<if test="unitId != null">
+			AND  qu.`PATH` LIKE CONCAT('%',#{unitId},'%')
+			</if>
+			<!-- <bind name="employeePattern" value="'%PMQT_HCVP%'" />
+			AND e.`ROLE` LIKE #{employeePattern} -->
+			
+			<if test="receiverName != null and receiverName.length &gt; 0">
+				<bind name="pattern" value="'%' + receiverName + '%'" />
+				AND qe.USER_NAME LIKE #{pattern}
+			</if>
+			
+			<if
+				test="listUserNameReceiver != null and listUserNameReceiver.length &gt; 0">
+				<foreach item="item" collection="listUserNameReceiver" open="AND ("
+					separator=" AND " close=")">
+					qe.USER_NAME != #{item}
+				</foreach>
+			</if>
+
+			<!-- <if test="unitId != null">
+				AND e.UNIT_ID = #{unitId}
+			
+			</if> -->
+		
+		GROUP BY
+		qe.USER_NAME,
+		qe.FULL_NAME
+		ORDER BY
+		qe.FULL_NAME
+	</select>
+	
+	<select id="getPlaceByName"
+		parameterType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListPlace"
+		resultType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListPlace">
+		SELECT
+		p.PLACE_ID AS placeId,
+		p.PLACE_NAME AS placeName
+		FROM
+		QLDV_PLACE p
+		<where>
+			p.STATUS = 1 AND p.PLACE_NAME = #{placeName}
+		</where>
+	</select>
+	
+	<select id="getServiceByName"
+		parameterType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListService"
+		resultType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListService">
+		SELECT
+		s.SERVICE_ID AS serviceId,
+		s.SERVICE_NAME AS serviceName,
+		s.FULL_FILL_TIME AS fullFillTime
+		FROM
+		SERVICES s
+		LEFT JOIN QLDV_PLACE p ON
+		s.SERVICE_LOCATION = p.PLACE_ID
+		<where>
+			 s.STATUS = 1 AND s.DELETE_FLAG = 0 
+			 <if test="serviceName != null">
+			 	AND s.SERVICE_NAME = #{serviceName} 
+			 </if>
+			 AND p.PLACE_ID = #{placeId}
+		</where>
+		
+	</select>
+	
+	<select id="getUnitByName"
+		parameterType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListPlace"
+		resultType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListPlace">
+		SELECT
+			u.UNIT_ID AS placeId,
+			u.UNIT_NAME as placeName
+		FROM
+			QLDV_UNIT u
+		<where>
+			u.STATUS = 1 AND u.`PATH` LIKE '%234841%' AND u.UNIT_ID = #{unitId}
+		</where>
+	</select>
+	
+	<select id="findReceiverByUserName"
+		parameterType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListEmployee"
+		resultType="com.viettel.vtnet360.vt04.vt040001.entity.VT040001ListEmployee">
+		
+				
+		SELECT 
+		qe.USER_NAME AS receiverUserName,
+		qe.FULL_NAME AS receiverName
+		FROM QLDV_EMPLOYEE qe JOIN QLDV_UNIT qu ON qe.UNIT_ID = qu.UNIT_ID
+		
+		WHERE qe.STATUS = 1 AND  qu.`PATH` LIKE CONCAT('%','234841','%') AND qe.ROLE LIKE CONCAT('%','PMQT_HCVP','%')
+		<if test="unitId != null">
+			AND  qu.`PATH` LIKE CONCAT('%',#{unitId},'%') 
+		</if>
+			AND qe.USER_NAME = #{receiverUserName}
+			
+		GROUP BY qe.USER_NAME,qe.FULL_NAME
+
+	</select>
+
+</mapper>

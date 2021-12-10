@@ -1,0 +1,468 @@
+<div class="container">
+  <div class="container-fluid text-center mt-3">
+    <h1>DANH SÁCH MENU</h1>
+  </div>
+
+  <div class="row mb-3">
+    <div class="col-xl-12 mb-3">
+      <p-fieldset legend="Thông tin menu">
+        <div class="row">
+          <div class="col-sm-12">
+            <div class="row" style="margin-left: 5px; margin-right:10px;">
+              <!-- kitchen name field -->
+              <div class="col-sm-6">
+                <div class="row mb-4">
+                  <div class="col-sm-3">Bếp:
+                    <span style="color: red;">*</span></div>
+                  <div class="col-sm-9" >
+                    <p-dropdown *ngIf ="isShow"  [options]="kitchens" [(ngModel)]="selectedKitchen" optionLabel="kitchenName" filter="true" [style]="{'width': '100%'}"
+                                 (onChange)="onChangeKitchen($event)"  placeholder=" --Lựa chọn bếp--" emptyFilterMessage="Không có dữ liệu" ></p-dropdown>
+                    <p-dropdown *ngIf ="isShowDropManager" [options]="kitchens" [(ngModel)]="selectedKitchen" optionLabel="kitchenName" filter="true" [style]="{'width': '100%'}"
+                                 (onChange)="onChangeKitchen($event)" emptyFilterMessage="Không có dữ liệu" ></p-dropdown>
+                  </div>
+                </div>
+              </div>
+              <!-- chef field -->
+              <div class="col-sm-6">
+                <div class="row mb-4">
+                  <div class="col-sm-3">Bếp trưởng</div>
+                  <div class="col-sm-9 ui-fluid">
+                    <input pInputText type="text" value="{{chefNameFld}}" disabled="true"/>
+                  </div>
+                </div>
+              </div>
+
+              <!--datetime-->
+              <div class="col-sm-6">
+                <div class="row mb-4">
+                  <div class="col-sm-3">Từ ngày: </div>
+                  <div class="col-sm-9 ui-fluid" >
+                    <p-calendar  [(ngModel)]="dateFrom"
+                                [showIcon]="true" dateFormat="dd/mm/yy" placeholder="dd/mm/yyyy"
+                                [readonlyInput]="true" showButtonBar="true" [locale]="vn" [monthNavigator]="true"
+                                [yearNavigator]="true" yearRange="2000:2030" ></p-calendar>
+                    <span *ngIf="dateFrom != null" class="customIcon pi pi-times" (click)="clearFromDate()"></span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-6">
+                <div class="row mb-4">
+                  <div class="col-sm-3">Đến ngày: </div>
+                  <div class="col-sm-9 ui-fluid" >
+                    <p-calendar  [(ngModel)]="dateTo"
+                                [showIcon]="true" dateFormat="dd/mm/yy" placeholder="dd/mm/yyyy"
+                                [readonlyInput]="true" showButtonBar="true" [locale]="vn" [monthNavigator]="true"
+                                [yearNavigator]="true" yearRange="2000:2030" ></p-calendar>
+                    <span *ngIf="dateTo != null" class="customIcon pi pi-times" (click)="clearToDate()"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </p-fieldset>
+    </div>
+    <div class="col-xl-12">
+      <div class="text-center">
+        <button type="button" tabindex="0" pButton icon="fa fa-search" iconPos="left" label="Tìm Menu" (click)="onSearchListMenu()" style="text-align: center;"></button>
+        <button *ngIf="isEmployee"  type="button" tabindex="0" pButton icon="fa fa-plus" iconPos="left" label="Thêm Menu" (click)="onDisplayForm()" style="text-align: center;"></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-xl-12">
+      <div  class="errorMsg">
+        <!-- if no data is reasonable -->
+        <p-table #dt [rows]="10" [value]="menuSettings" [totalRecords]="total_record"
+                 (onLazyLoad)="onLazyLoad($event)" [lazy]="true" [paginator]="true">
+          <ng-template pTemplate="header" style="width:100%">
+            <tr style="font-weight: bold;">
+              <th style="width: 30%">Ngày</th>
+              <th style="width: 70%">Danh sách món</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td [attr.colspan]="13">
+                Không có dữ liệu
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template let-ri="rowIndex" pTemplate="body" let-item>
+            <tr>
+              <td *ngIf="isNhanVien" style="width: 5rem"><span>{{ item.dateOfMenu | date:'dd/MM/yyyy'}}</span></td>
+              <td *ngIf="isAdmin"style="width: 5rem"><span  (click)="onEditMenu(item)" class="date-link" pTooltip="Xem chi tiết">
+                  {{ item.dateOfMenu | date:'dd/MM/yyyy'}}</span></td>
+              <td style="width: 18rem; text-align: left !important;">
+                <ul class="dish-line" >
+                  <li *ngFor="let menu of item.listDish; let i = index">
+                    {{i+1}} . {{menu.dishName}}
+                    <button *ngIf="menu.image != null && menu.image.length > 0" type="button" class="ui-button-secondary"
+                            pButton icon="fa fa-file-image-o" (click)="openDlgImage(menu)" pTooltip="Xem ảnh"></button>
+                  </li>
+                </ul>
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="paginatorright">
+          <span style="position: absolute; right: 30px; bottom: 6px;">
+            {{startRow + 1}} - {{startRow + rowSize}} / {{total_record}}
+          </span>
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td [attr.colspan]="7" style="text-align: center;">
+                Không có dữ liệu
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="footer"></ng-template>
+        </p-table>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-xl-12">
+      <p-dialog header="Thiết lập menu" [(visible)]="isNew" [modal]="true" [width]="700" >
+        <div class="row">
+          <div style="height: 600px" class="col-sm-12">
+            <div class="row ">
+              <div class="col-sm-3 mb-3">Chọn ngày: <span style="color: red;">*</span></div>
+              <div class="col-sm-9 mb-3 ui-fluid">
+                <div class="row">
+                  <div class="col-sm-1"></div>
+                  <div class="col-sm-10">
+                    <p-calendar #inputSettingDate
+                                [(ngModel)]="settingDate"  [minDate]="minDate"
+                                [showIcon]="true" dateFormat="dd/mm/yy" placeholder="dd/mm/yyyy"
+                                [readonlyInput]="true" showButtonBar="true" [locale]="vn" [monthNavigator]="true"
+                                [yearNavigator]="true" yearRange="2000:2030" ></p-calendar>
+                    <span *ngIf="settingDate != null" class="customIcon pi pi-times" (click)="clearToDateAdd()"></span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-3">Chọn món : <span style="color: red;">*</span></div>
+              <div class="col-sm-9">
+                <div *ngFor="let item of selectedMenuItems; let i = index" class="row mb-3">
+                  <div class="col-sm-1">
+                    <button *ngIf="item.image != null && item.image.length > 0" type="button" class="ui-button-secondary"
+                            pButton icon="fa fa-file-image-o" (click)="openDlgImage(item)"></button>
+                  </div>
+                  <div class="col-sm-9">
+                    <p-dropdown    placeholder="Lựa chọn món" [options]="menuItems" optionLabel="dishName" [style]="{minWidth:'89%'}"
+                                (onChange)="onSelectMenu($event.value, i)"   [filter]="true">
+                    </p-dropdown>
+                  </div>
+                  <div class="col-sm-2">
+                    <button type="button" class="ui-button-danger" pButton icon="fa fa-minus" (click)="onRemoveMenu(i)"></button>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-sm-4">
+                  </div>
+                  <div class="col-sm-8">
+                    <button type="button" pButton icon="fa fa-plus" (click)="onAddMenu()"></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p-footer>
+          <button type="button" pButton icon="fa fa-refresh" iconPos="left" label="Lưu" (click)="onInsertMenu()" style="text-align: center;"></button>
+        </p-footer>
+      </p-dialog>
+    </div>
+  </div>
+</div>
+
+<!--edit menu-->
+<div class="row">
+  <div class="col-xl-12">
+    <p-dialog header="Sửa menu" [(visible)]="isEdit" [modal]="true" [width]="700" (onHide)="onHideEditDialog()" >
+      <div class="row">
+        <div style="height: 600px" class="col-sm-12">
+          <div class="row ">
+            <div class="col-sm-3 mb-3">Chọn ngày</div>
+            <div class="col-sm-9 mb-3 ui-fluid">
+              <div class="row">
+                <div class="col-sm-1"></div>
+                <div class="col-sm-10">
+                  <p-calendar #transferDateFromF [(ngModel)]="selectedEditMenuItem.dateOfMenu" [ngModelOptions]="{standalone: true}" [minDate]="tomorrow"
+                              [showIcon]="true" dateFormat="dd/mm/yy" placeholder="dd/mm/yyyy"
+                              [readonlyInput]="true" showButtonBar="true" [locale]="vn" [monthNavigator]="true"
+                              [yearNavigator]="true" yearRange="2000:2030" ></p-calendar>
+                  <span *ngIf="selectedEditMenuItem.dateOfMenu != null" class="customIcon pi pi-times"
+                        (click)="clearDateOfMenu($event)"></span>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-3">Chọn món</div>
+            <div class="col-sm-9">
+              <div *ngFor="let item of selectedEditMenuItem.listDish; let i = index" class="row mb-3">
+                <div class="col-sm-1">
+                  <button *ngIf="item.image != null && item.image.length > 0" type="button" class="ui-button-secondary"
+                          pButton icon="fa fa-file-image-o" (click)="openDlgImage(item)"></button>
+                </div>
+                <div class="col-sm-9">
+                  <p-dropdown    placeholder="Lựa chọn món" [options]="menuItems" optionLabel="dishName" [style]="{minWidth:'89%'}"
+                                [(ngModel)]="selectedEditMenuItem.listDish[i]"  [filter]="true">
+                  </p-dropdown>
+                </div>
+                <div class="col-sm-2">
+                  <button type="button" class="ui-button-danger" pButton icon="fa fa-minus" (click)="onRemoveMenuUpdate(i)"></button>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-sm-4">
+                </div>
+                <div class="col-sm-8">
+                  <button type="button" pButton icon="fa fa-plus" (click)="onAddMenuUpdate()"></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p-footer>
+        <button type="button" pButton icon="fa fa-save" iconPos="left" label="Cập nhật" (click)="updateMenu()"  style="text-align: center;"></button>
+        <button type="button" pButton icon="fa fa-save" iconPos="left" label="Sao chép" (click)="copyMenu(selectedEditMenuItem)" style="text-align: center;"></button>
+      </p-footer>
+    </p-dialog>
+  </div>
+</div>
+
+<!--copy menu-->
+<div class="row">
+  <div class="col-xl-12">
+    <p-dialog header="Sao chép menu" [(visible)]="isCopyOld" [modal]="true" [width]="700" >
+      <div class="row">
+        <div style="height: 600px" class="col-sm-12">
+          <div class="row ">
+            <div class="col-sm-3 mb-3">Chọn ngày</div>
+            <div class="col-sm-9 mb-3 ui-fluid">
+              <div class="row">
+                <div class="col-sm-1"></div>
+                <div class="col-sm-10">
+                  <p-calendar #transferDateFromF [(ngModel)]="selectedEditMenuItem.dateOfMenu" [ngModelOptions]="{standalone: true}"  disabled="true"
+                              [showIcon]="true" dateFormat="dd/mm/yy" placeholder="dd/mm/yyyy "
+                              [readonlyInput]="true" showButtonBar="true" [locale]="vn" [monthNavigator]="true"
+                              [yearNavigator]="true" yearRange="2000:2030" ></p-calendar>
+                  <span class="customIcon pi pi-times" ></span>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-3">Chọn món</div>
+            <div class="col-sm-9">
+              <div *ngFor="let item of selectedEditMenuItem.listDish; let i = index" class="row mb-3">
+                <div class="col-sm-1">
+                  <button *ngIf="item.image != null && item.image.length > 0" type="button" class="ui-button-secondary"
+                          pButton icon="fa fa-file-image-o" (click)="openDlgImage(item)"></button>
+                </div>
+                <div class="col-sm-9">
+                  <p-dropdown    placeholder="Lựa chọn món" [options]="menuItems" optionLabel="dishName" [style]="{minWidth:'89%'}" disabled="item.isDisabled"
+                                 [(ngModel)]="selectedEditMenuItem.listDish[i]"  [filter]="true">
+                  </p-dropdown>
+
+                </div>
+                <div class="col-sm-2">
+                  <button type="button" class="ui-button-danger" pButton icon="fa fa-minus" (click)="onRemoveMenuCopy(i)" disabled="true" ></button>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-sm-4">
+                </div>
+                <div class="col-sm-8">
+                  <button type="button" pButton icon="fa fa-plus" (click)="onAddMenuCopy()" disabled="true" ></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p-footer>
+        <button type="button" pButton icon="fa fa-save" iconPos="left" label="Sao chép" (click)="copyEditMenuDisable(selectedEditMenuItem)" style="text-align: center;"  ></button>
+      </p-footer>
+    </p-dialog>
+  </div>
+</div>
+
+
+<div class="row">
+  <div class="col-xl-12">
+    <p-dialog header="Sao chép menu" [(visible)]="isCopy" [modal]="true" [width]="700" >
+      <div class="row">
+        <div style="height: 600px" class="col-sm-12">
+          <div class="row ">
+            <div class="col-sm-4 mb-3">Chọn ngày
+              <span style="color: red;">* </span></div>
+            <div class="col-sm-8 mb-3 ui-fluid">
+              <div class="row">
+                <div class="col-sm-10">
+                  <p-calendar #transferDateFromF [(ngModel)]="selectedEditMenuItem.dateOfMenu" [ngModelOptions]="{standalone: true}"  disabled="true"
+                              [showIcon]="true" dateFormat="dd/mm/yy" placeholder="dd/mm/yyyy"
+                              [readonlyInput]="true" showButtonBar="true" [locale]="vn" [monthNavigator]="true"
+                              [yearNavigator]="true" yearRange="2000:2030" ></p-calendar>
+                  <span class="customIcon pi pi-times" ></span>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-4">Chọn món :
+              <span style="color: red;">* </span></div>
+            <div class="col-sm-8">
+              <div *ngFor="let item of selectedEditMenuItem.listDish; let i = index" class="row mb-3">
+                <div class="col-sm-10" >
+                  <p-dropdown    placeholder="Lựa chọn món" [options]="menuItems" optionLabel="dishName" [style]="{minWidth:'100%'}" disabled="item.isDisabled"
+                                [(ngModel)]="selectedEditMenuItem.listDish[i]"  [filter]="true">
+                  </p-dropdown>
+
+                </div>
+                <div class="col-sm-2">
+                  <button type="button" class="ui-button-danger" pButton icon="fa fa-minus" (click)="onRemoveMenuCopy(i)" disabled="true" ></button>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-sm-4">
+                </div>
+                <div class="col-sm-8">
+                  <button type="button" pButton icon="fa fa-plus" (click)="onAddMenuCopy()" disabled="true" ></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <p-footer>
+        <button type="button" pButton icon="fa fa-save" iconPos="left" label="Sao chép"  (click)="copyEditMenu(selectedEditMenuItem)" style="text-align: center;"  ></button>
+      </p-footer>
+    </p-dialog>
+  </div>
+</div>
+
+<!--insert copy-->
+<div class="row">
+  <div class="col-xl-12">
+    <p-dialog header="Sao chép  Menu" [(visible)]="isEditNew" [modal]="true" [width]="700" >
+      <div class="row">
+        <div style="height: 600px" class="col-sm-12">
+          <div class="row ">
+            <div class="col-sm-3 mb-3">Chọn ngày:</div>
+            <div class="col-sm-9 mb-3 ui-fluid">
+              <div class="row">
+                <div class="col-sm-1"></div>
+                <div class="col-sm-10">
+                  <p-calendar #transferDateFromF [(ngModel)]="selectedEditMenuItem.dateOfMenu" [ngModelOptions]="{standalone: true}"
+                              [showIcon]="true" dateFormat="dd/mm/yy" placeholder="dd/mm/yyyy"
+                              [readonlyInput]="true" showButtonBar="true" [locale]="vn" [monthNavigator]="true" [minDate]="tomorrow"
+                              [yearNavigator]="true" yearRange="2000:2030" ></p-calendar>
+                  <span *ngIf="selectedEditMenuItem.dateOfMenu != null" class="customIcon pi pi-times"
+                        (click)="clearDateOfMenu($event)"></span>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-3">Chọn món:</div>
+            <div class="col-sm-9">
+              <div *ngFor="let item of selectedEditMenuItem.listDish; let i = index" class="row mb-3">
+                <div class="col-sm-1">
+                  <button *ngIf="item.image != null && item.image.length > 0" type="button" class="ui-button-secondary"
+                          pButton icon="fa fa-file-image-o" (click)="openDlgImage(item)"></button>
+                </div>
+                <div class="col-sm-9">
+                  <p-dropdown    placeholder="Lựa chọn món" [options]="menuItems" optionLabel="dishName" [style]="{minWidth:'89%'}"
+                                 [(ngModel)]="selectedEditMenuItem.listDish[i]"  [filter]="true">
+                  </p-dropdown>
+                </div>
+                <div class="col-sm-2">
+                  <button type="button" class="ui-button-danger" pButton icon="fa fa-minus" (click)="onRemoveMenuUpdate(i)"></button>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-sm-4">
+                  <div class="row">
+                    <div class="col-sm-4">
+                    </div>
+                    <div class="col-sm-8">
+                      <button type="button" pButton icon="fa fa-plus" (click)="onAddMenuUpdate()"></button>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p-footer>
+        <button type="button" pButton icon="fa fa-save" iconPos="left" label="Lưu lại" (click)="onInsertCopyMenu()" style="text-align: center;"></button>
+      </p-footer>
+    </p-dialog>
+  </div>
+</div>
+
+
+<div class="row">
+  <div class="col-xl-12">
+    <p-dialog header="Chỉnh sửa  Menu" [(visible)]="isEditOld" [modal]="true" [width]="700" >
+      <div class="row">
+        <div style="height: 600px" class="col-sm-12">
+          <div class="row ">
+            <div class="col-sm-4 mb-3">Chọn ngày:</div>
+            <div class="col-sm-8 mb-3 ui-fluid">
+              <div class="row">
+                <div class="col-sm-10">
+                  <p-calendar #transferDateFromF [(ngModel)]="selectedEditMenuItem.dateOfMenu" [ngModelOptions]="{standalone: true}"
+                              [showIcon]="true" dateFormat="dd/mm/yy" placeholder="dd/mm/yyyy"
+                              [readonlyInput]="true" showButtonBar="true" [locale]="vn" [monthNavigator]="true" [minDate]="minDate"
+                              [yearNavigator]="true" yearRange="2000:2030" ></p-calendar>
+                  <span class="customIcon pi pi-times" ></span>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-4">Chọn món:</div>
+            <div class="col-sm-8">
+              <div *ngFor="let item of selectedEditMenuItem.listDish; let i = index" class="row mb-3">
+                <div class="col-sm-1">
+                  <button *ngIf="item.image != null && item.image.length > 0" type="button" class="ui-button-secondary"
+                          pButton icon="fa fa-file-image-o" (click)="openDlgImage(item)"></button>
+                </div>
+                <div class="col-sm-9">
+                  <p-dropdown placeholder="Lựa chọn món" [options]="menuItems" optionLabel="dishName" [style]="{minWidth:'89%'}" disabled="true"
+                                 [(ngModel)]="selectedEditMenuItem.listDish[i]"  [filter]="true">
+                  </p-dropdown>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p-footer>
+        <button type="button" pButton icon="fa fa-save" iconPos="left" label="Lưu lại" (click)="onInsertCopyMenu()" style="text-align: center;"></button>
+      </p-footer>
+    </p-dialog>
+  </div>
+</div>
+
+
+<p-dialog header="Ảnh món ăn" id="dlgChef" [(visible)]="showDlgImage" (onHide)="onHideImagePopup()"
+          [modal]="true"
+          [positionTop]="100"
+          (onHide)="closeDlgImage()"
+          [closable]="true" [responsive]="true" [width]="500" [minWidth]="200" [minY]="70" [maximizable]="false"
+          [dismissableMask]="true" [baseZIndex]="10000" >
+  <div *ngIf="imageData != null" style="margin: auto;text-align: center;margin-top: 10px;">
+    <img style="max-height: 500px; max-width: 200px;"  src="data:image/JPEG;base64,{{imageData}}">
+  </div>
+  <div *ngIf="!imageData" style="min-height: 500px; min-width: 200px;">
+    <span>{{showImageLabel}}</span>
+  </div>
+</p-dialog>
+
+

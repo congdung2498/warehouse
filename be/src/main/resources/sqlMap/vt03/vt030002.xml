@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt03.vt030002.dao.VT030002DAO">
+
+	<select id="selectallCars" resultType="com.viettel.vtnet360.vt03.vt030002.entity.Cars">
+		SELECT
+		a.CAR_ID as carId,
+		a.DRIVE_SQUAD_ID as squadId,
+		b.SQUAD_NAME as squadName,
+		a.LICENSE_PLATE
+		as licensePlate,
+		a.TYPE as type,
+		a.SEAT as seat,
+		a.STATUS as status,
+		a.PROCESS_STATUS as processStatus
+
+		FROM
+		CARS as
+		a INNER JOIN
+		DRIVES_SQUAD
+		as b ON a.DRIVE_SQUAD_ID =
+		b.DRIVE_SQUAD_ID
+		where
+		a.STATUS=1 and
+		a.DELETE_FLAG = 0 order by LICENSE_PLATE
+
+	</select>
+
+	<select id="getallCars" resultType="com.viettel.vtnet360.vt03.vt030002.entity.Cars">
+		SELECT
+		a.CAR_ID as carId,
+		a.DRIVE_SQUAD_ID as squadId,
+		b.SQUAD_NAME as squadName,
+		a.LICENSE_PLATE
+		as licensePlate,
+		a.TYPE as type,
+		a.SEAT as seat,
+		a.STATUS as status,
+		a.PROCESS_STATUS as processStatus
+
+		FROM
+		CARS as
+		a INNER JOIN
+		DRIVES_SQUAD
+		as b ON a.DRIVE_SQUAD_ID =
+		b.DRIVE_SQUAD_ID and
+		a.DELETE_FLAG = 0 order
+		by LICENSE_PLATE
+
+	</select>
+
+	<select id="getSquad"
+		resultType="com.viettel.vtnet360.vt03.vt030000.entity.VT030000EntityDriveSquad">
+		select a.DRIVE_SQUAD_ID as
+		squadId, a.SQUAD_NAME as
+		squadName, b.PLACE_NAME as placeName
+		from DRIVES_SQUAD a inner JOIN
+		QLDV_PLACE b on a.PLACE_ID=b.PLACE_ID where DELETE_FLAG=0
+	</select>
+
+
+	<select id="searchCar" parameterType="com.viettel.vtnet360.vt03.vt030002.entity.Cars"
+		resultType="com.viettel.vtnet360.vt03.vt030002.entity.Cars">
+		SELECT
+		a.CAR_ID as carId,
+		a.DRIVE_SQUAD_ID as squadId,
+		b.SQUAD_NAME as
+		squadName,
+		a.LICENSE_PLATE
+		as licensePlate,
+		a.TYPE as type,
+		a.SEAT as
+		seat,
+		a.STATUS as status,
+		a.PROCESS_STATUS as processStatus
+
+		FROM
+		CARS as
+		a
+		INNER JOIN
+		DRIVES_SQUAD as b ON a.DRIVE_SQUAD_ID =
+		b.DRIVE_SQUAD_ID
+		where a.STATUS = #{status} and a.DELETE_FLAG = 0
+
+		<if test="squadName !=null">
+			AND
+			<bind name="pattern" value="'%' 
+			+ squadName + '%'" />
+			b.SQUAD_NAME like #{pattern}
+		</if>
+		<if test="licensePlate 
+			!=null">
+			AND
+			<bind name="pattern1" value="'%' + licensePlate + '%'" />
+			a.LICENSE_PLATE
+			like #{pattern1}
+		</if>
+		<if test="type !=null">
+			AND
+			<bind name="pattern2" value="'%' + type + '%'" />
+			a.TYPE like #{pattern2}
+		</if>
+		<if test="seat 
+			!=null">
+			AND
+			<bind name="pattern3" value="'%' + seat + '%'" />
+			a.SEAT like
+			#{pattern3}
+		</if>
+		order by LICENSE_PLATE
+	</select>
+
+
+	<!-- insert -->
+	<insert id="insertCars" parameterType="com.viettel.vtnet360.vt03.vt030002.entity.Cars">
+		INSERT INTO CARS
+		(CAR_ID,
+		DRIVE_SQUAD_ID,
+		LICENSE_PLATE,
+		`TYPE`,
+		SEAT,
+		STATUS,
+		PROCESS_STATUS,
+		CREATE_USER,
+		CREATE_DATE
+		)
+		VALUES(CONCAT('VTN_SR_', NEXT VALUE FOR
+		VTN_S),
+		#{squadId},
+		#{licensePlate},
+		#{type},
+		#{seat},
+		#{status},
+		#{processStatus},
+		#{userAssign},
+		now())
+	</insert>
+
+	<!-- update -->
+	<update id="updateCars" parameterType="com.viettel.vtnet360.vt03.vt030002.entity.Cars">
+		UPDATE CARS
+		SET
+		DRIVE_SQUAD_ID=#{squadId},
+		LICENSE_PLATE=#{licensePlate},
+		`TYPE`=#{type},
+		SEAT=#{seat},
+		STATUS=#{status},
+		UPDATE_USER=#{userAssign},
+		UPDATE_DATE=now()
+		WHERE CAR_ID=#{carId};
+	</update>
+
+	<select id="getCarType" resultType="com.viettel.vtnet360.vt03.vt030014.entity.VT030014ListCondition">
+		SELECT CODE_VALUE as typeId,
+		CODE_NAME as type
+		FROM
+		M_SYSTEM_CODE where MASTER_CLASS='S001'
+		order by 	
+		CODE_NAME
+	</select>
+	
+	<select id="getCarType2" resultType="com.viettel.vtnet360.vt03.vt030002.entity.Type">
+		SELECT CODE_VALUE as typeId,
+		CODE_NAME as type
+		FROM
+		M_SYSTEM_CODE where MASTER_CLASS='S001'
+		order by 	
+		CODE_NAME
+	</select>
+	
+	<select id="getCarTypeById" resultType="com.viettel.vtnet360.vt03.vt030014.entity.VT030014ListCondition"
+	                               parameterType="com.viettel.vtnet360.driving.dto.SearchData">
+		SELECT CODE_VALUE as carType,
+		CODE_NAME as type
+		FROM
+		M_SYSTEM_CODE where MASTER_CLASS='S001'
+		<if test="searchDTO != null  and searchDTO.length &gt; 0">
+		  AND CODE_VALUE = #{searchDTO}
+		</if>
+	</select>
+
+	<select id="getCarSeat" resultType="com.viettel.vtnet360.vt03.vt030014.entity.VT030014ListCondition">
+		SELECT CODE_VALUE as seat,
+		CODE_NAME as seatName
+		FROM M_SYSTEM_CODE where MASTER_CLASS='S002' ORDER BY seatName;
+	</select>
+	
+	<select id="getCarSeat2" resultType="com.viettel.vtnet360.vt03.vt030002.entity.Seat">
+		SELECT CODE_VALUE as seatId,
+        CODE_NAME as seat
+        FROM M_SYSTEM_CODE where MASTER_CLASS='S002' ORDER BY seat * 1;
+	</select>
+
+    <select id="getCarSeatById" resultType="com.viettel.vtnet360.vt03.vt030014.entity.VT030014ListCondition"
+                                parameterType="com.viettel.vtnet360.driving.dto.SearchData">
+		SELECT CODE_VALUE as seat,
+		CODE_NAME as seatName
+		FROM M_SYSTEM_CODE where MASTER_CLASS='S002' 
+		<if test="searchDTO != null  and searchDTO.length &gt; 0">
+		AND CODE_VALUE = #{searchDTO} ;
+		</if>
+	</select>
+	
+	<select id="checkActiveCar" parameterType="java.lang.String"
+		resultType="int">
+		SELECT COUNT(*)
+		FROM CARS
+		WHERE STATUS = 1 AND PROCESS_STATUS
+		!= 7 AND PROCESS_STATUS
+		!= 0 AND DELETE_FLAG=0 AND LICENSE_PLATE =
+		#{license}
+	</select>
+
+	<select id="getProcessStatus" parameterType="java.lang.String"
+		resultType="int">
+		select PROCESS_STATUS from CARS where CAR_ID=#{carId}
+	</select>
+	
+	<update id="deleteCar" parameterType="com.viettel.vtnet360.vt03.vt030002.entity.Cars">
+		UPDATE CARS
+		SET
+		UPDATE_USER=#{userAssign},
+		UPDATE_DATE=now(),
+		DELETE_FLAG=1
+		WHERE
+		CAR_ID=#{carId};
+	</update>
+
+	<select id="getStatus" resultType="int" parameterType="java.lang.String">
+		SELECT
+		STATUS
+		FROM CARS
+		WHERE CAR_ID = #{carid}
+	</select>
+
+
+	<select id="checkDeleted" parameterType="com.viettel.vtnet360.vt03.vt030002.entity.Cars" resultType="int">
+		SELECT DELETE_FLAG FROM CARS where
+		CAR_ID=#{carId}
+	</select>
+</mapper>

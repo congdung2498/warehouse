@@ -1,0 +1,6 @@
+::ng-deep #shortTree > .ui-tree{
+    border: 0px !important;
+}
+::ng-deep #shortTreeDlg > .ui-tree{
+    border: 0px !important;
+}

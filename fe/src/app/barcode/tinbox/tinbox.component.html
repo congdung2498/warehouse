@@ -1,0 +1,220 @@
+
+ <div id="custom-container" class="container">
+  <div class="container-fluid text-center mt-5">
+    <h1 class="text-center">IN NHÃN THÙNG</h1>
+  </div>
+  <div class="row ">
+    <div class="col-sm-12 " style="margin: auto;">
+      <form ngNoForm onsubmit="return false;">
+        <p-fieldset legend="Thông tin thùng">
+          <div class="row">
+            <div class="col-sm-6">
+             
+              <div class="form-group row">
+                <label class="col-4" style="text-align: right;">Kho
+                  
+                  <span style="color: red;">*</span>:
+                </label>
+                <div class="col-8 ui-fluid ">
+                  <p-autoComplete [disabled]="!isEdit" #inputTypeWarehouseDetail [(ngModel)]="typeWarehouseDetail" [suggestions]="listTypeWarehouseDetail" (completeMethod)="filterTypeWarehouseDetail($event)" [size]="200" [minLength]="1"
+                                  placeholder="--Loại kho--" [dropdown]="true" field="name" class="fix-drop-down" emptyMessage="Tên kho không tồn tại"
+                                  (onSelect)="getDriver($event)"
+                                  (onBlur)="isSelected()" >
+                                    
+                  </p-autoComplete>
+                </div>
+              </div>
+
+              <div class="form-group row">
+                <label class="col-4" style="text-align: right;">Loại
+                  
+                  <span style="color: red;">*</span>:
+                </label>
+                <div class="col-8 ui-fluid ">
+                   <p-autoComplete #inputTypeTinbox [(ngModel)]="typeTinbox" [suggestions]="listTypeTinbox" (completeMethod)="filterTypeTinbox($event)" [size]="200" [minLength]="1" 
+                                  placeholder="--Loại thùng--" [dropdown]="true" class="fix-drop-down" emptyMessage="Loại thùng không tồn tại" 
+                                  (onSelect)="getDriverTinbox($event)"
+                                  (onBlur)="isSelectedTinbox()" >
+                                    
+                  </p-autoComplete> 
+                </div>
+              </div>
+
+              <div class="form-group row">
+                <label class="col-4" style="text-align: right;">Người quản lý
+                  <span style="color: red;">*</span>:</label>
+                <div class="col-8">
+                  <input #inputMngUser id="input" type="text" size="30" name="mngUser" placeholder="Người quản lý" (ngModelChange)="changeMngUser()"
+                   onblur="this.value=this.value.trim();"
+                   maxlength="50" style="width: 100%;"  pInputText [(ngModel)]="mngUser"  />
+                 
+                </div>
+              </div>
+             
+            </div>
+
+            <div class="col-sm-6">
+              <div class="form-group row">
+                  <label class="col-4" style="text-align: right;">Tên thùng
+                    <span style="color: red;">*</span>:</label>
+                  <div class="col-8">
+                    <textarea #inputName id="inputName" type="text" size="30" name="name" placeholder="Tên thùng" (ngModelChange)="changeName()"
+                    onblur="this.value=this.value.trim();"
+                    maxlength="255" style="width: 100%; height: 81px;"  pInputText [(ngModel)]="name"  > </textarea> 
+                    
+                  </div>
+              </div>
+
+              <div class="form-group row">
+                <label class="col-4" style="text-align: right;">Số thùng
+                  <span style="color: red;">*</span>:</label>
+                <div class="col-8">
+                    <input #inputIndex type="number" pKeyFilter="pint" 
+                    (keyup)="limitValue(inputIndex, 1, 999)" (focusout)="setIndex(inputIndex)"
+                    style="width:100%" pInputText [(ngModel)]="index"  />
+                </div>
+
+              </div>
+              
+            </div>
+
+            <div class="col-sm-12">
+              <div class="form-group row">
+                  <label class="col-2" style="text-align: right;">Dự án
+                    <!-- <span style="color: red;">*</span> -->
+                    :</label>
+                  <div class="col-10">
+                    <textarea #inputTinBoxProjects id="inputTinBoxProjects" type="text" size="30" placeholder="Các dự án có tài liệu trong thùng" 
+                    onblur="this.value=this.value.trim();"
+                    maxlength="255" style="width: 100%; height: 81px;"  pInputText [(ngModel)]="tinBoxProjects"> </textarea>                     
+                  </div>
+              </div>              
+            </div>
+          </div>
+        </p-fieldset>
+        <div class="row row-button">
+          <div class="col-lg-3"></div>
+          <div class="col-lg-6">
+            <p-button style="margin-top:5px;" label="Tìm kiếm" icon="pi pi-search" (click)="handleSearch()"></p-button>            
+            <p-button class="ui-button-danger" [disabled]="isEdit" icon="fa fa-print" label="In nhãn" (click)="edit()">
+            </p-button>
+            <button type="button" tabindex="0" pButton icon="fa fa-refresh" iconPos="left" label="Làm mới"
+              style="text-align: center; margin-top:5px" (click)="resetButton()"></button>
+          </div>
+          <div class="col-lg-3"></div>
+        </div>
+        <!-- <div class="row row-button">
+          <div class="col-sm-4"></div>
+          <div class="col-sm-5">
+            <p-button label="Tìm kiếm" icon="pi pi-search" (click)="handleSearch()"></p-button>
+            <p-button class="ui-button-danger" [disabled]="isEdit" icon="fa fa-print" label="In nhãn" (click)="edit()"></p-button>
+            <button type="button" tabindex="0" pButton icon="fa fa-refresh" iconPos="left" label="Làm mới" (click)="resetButton()" style="text-align: center;"></button>
+          </div>
+          <div class="col-sm-4"></div>
+        </div> -->
+      </form>
+    </div>
+  </div>
+  <div class="table-container">
+  <div class="row">
+    <div class="col-sm-12">
+      <p-table [style]="{'min-width':'1000px'}" [columns]="cols" [value]="listTinbox" [totalRecords]="totalRecords" [paginator]="true"
+               [rows]= "10" [resizableColumns]="true" (onPage)="paginate($event)" #myTable>
+              
+        <ng-template pTemplate="colgroup" let-columns>
+          <colgroup>
+            <col *ngFor="let col of columns" [style.width]="col.width">
+          </colgroup>
+        </ng-template>
+        <ng-template pTemplate="header" let-columns>
+          <tr>
+            <th *ngFor="let col of columns" pResizableColumn style="text-align: center; font-weight: bold;">
+              {{col.header}}
+            </th>
+          </tr>
+        </ng-template>
+        <ng-template let-ri="rowIndex" pTemplate="body" let-rowData let-columns="columns">
+          <tr>
+            <td>{{ri+1}}</td>
+            <td>
+              <div class="row">
+                <div class="col-sm-7">
+                  <p-button icon="pi pi-pencil" (onClick)="doEdit(rowData)" pTooltip="Chọn in"></p-button>
+                </div>
+              </div>
+            </td>
+            <td style="text-align: left !important;" [innerHTML]="rowData.name"></td>
+            <td style="text-align: left !important;">{{rowData["warehouseName"]}}</td>
+            <td style="text-align: left !important;">{{rowData["type"]}}</td>
+            <td style="text-align: right !important;">{{rowData["index"] == 0 ? null : rowData["index"]}}</td>
+            <td style="text-align: left !important;" [innerHTML]="rowData.mngUser"></td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage" let-columns>
+          <tr>
+            <td [attr.colspan]="columns.length" style="text-align: center;">
+              <span *ngIf="isSearched == true">Không có dữ liệu</span>
+              <span *ngIf="isSearched == false">Bạn cần chọn kho</span>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="paginatorright">
+          <span style="position: absolute; right: 30px; bottom: 6px;">{{totalRecords == 0 ? pageNumber : pageNumber + 1}} - {{pageNumber + pageSize > totalRecords ? totalRecords : pageNumber
+            + pageSize}} / {{totalRecords}}</span>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+  </div>
+  
+    <p-dialog [modal]="true" [width]="1000" [(visible)]="isShowUpdateDialog" [style]="{'position':'absolute'}">
+      
+      
+    <p-header>
+      {{fieldSetTitle}}
+    </p-header>
+    <p-scrollPanel [style]="{width: '100%', height: '80%'}" >
+    <div class="container" >
+      <div class="row"  media="print">
+          
+        <div class="col-xl-12 mb-2" style=" text-align: left; "  >
+          
+        
+            <div id="exportPDF"  class="" style="margin-left: 70px; float: left; margin-top: 30px;margin-right: 30px;margin-bottom: 30px;"    >
+              <!-- [qrc-element-type]="canvas" -->
+              <ngx-qrcode  [qrc-value] = "qrCode" [qrc-version] = "6" >
+              </ngx-qrcode>
+              <!-- <div>
+                <qrcode [qrdata]="'typeTinbox'" [size]="180" [level]="'M'"></qrcode>
+              </div> -->
+              
+            
+           </div> 
+          
+           <div class="" style="margin-left: 70px;margin-right: 70px;margin-bottom: 30px;margin-top: 40px;"   >
+            <p style="font-size: 22px;">
+              Mã thùng: {{qrCode}}   <br>
+              Loại: {{typeTinbox}}  <br>
+              Nội dung: {{name}} <br>
+              Số thùng: {{index}} <br>
+              Người quản lý: {{mngUser}} <br>
+              Dự án: {{tinBoxProjects}}
+            </p>
+            </div> 
+                  
+           
+        </div>
+      
+      </div>
+    </div>
+  </p-scrollPanel>
+  <div class="col-xl-12">
+    <div style="text-align: right; margin-right: 10px;">
+      <button  tabindex="8" type="button" pButton label="In nhãn thùng" (click)="doPrint()" style="text-align: center;"></button>
+      <button  tabindex="8" type="button" pButton label="Đóng" (click)="close()" style="text-align: center;"></button>
+
+    </div>
+  </div>
+  </p-dialog>  
+ 
+</div> 

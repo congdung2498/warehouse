@@ -1,0 +1,15 @@
+:host>>>.no-border>div {
+    border: none;
+    overflow: unset !important;
+    width: 100%;
+}
+
+.ui-dialog .ui-dialog-titlebar {
+    text-align: center;
+}
+
+.dialog-header {
+    text-align: center;
+    color: #2399e5;
+    font-size: 20px;
+}

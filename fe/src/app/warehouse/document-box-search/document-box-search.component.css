@@ -1,0 +1,77 @@
+h3, h4 {
+  font-family: tahoma;
+}
+
+h3 {
+  color: #007ad9 !important;
+}
+
+.left-align {
+  text-align: left !important;
+}
+
+.right-align {
+  text-align: right !important;
+}
+
+.center-align{
+  text-align: center !important;
+}
+
+.zero-padding {
+  padding: 0 !important;
+}
+
+.column-header{
+  text-align: center; font-weight: bold;
+}
+
+.modal-container{
+  width: 100%;
+}
+
+#documents_tbl td {
+  text-align: left !important;
+}
+
+@media only screen and (max-width: 1024px){
+  .container{
+    padding-right: 5px;
+    padding-left: 55px;
+  }
+}
+
+@media only screen and (max-width: 600px){
+  .hidden-when-small{
+    display: none;
+  }
+}
+
+@media only screen and (min-width: 601px){
+  .hidden-when-big{
+    display: none;
+  }
+}
+
+@media only screen and (max-width: 580px){  
+  .modal-table-container{
+    padding-right: 3px;
+    padding-left: 20px;
+  }
+
+  .col-xs-12{
+    margin-right: 15px;
+    margin-left: 15px;
+  }
+
+  th, td{
+    padding: 1px !important;
+    word-wrap: break-word;
+  }
+}
+
+@media only screen and (max-width: 768px){
+  .hidden-stt{
+    display: none;
+  }
+}

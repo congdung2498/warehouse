@@ -1,0 +1,356 @@
+<div class="container">
+    <div class="container-fluid text-center mt-5">
+        <h1 class="text-center">THÊM MỚI DANH MỤC LÁI XE</h1>
+    </div>
+    <div class="row ">
+        <div class="col-sm-12 " style="margin: auto;">
+            <form ngNoForm onsubmit="return false;">
+                <p-fieldset legend="Thông tin danh mục xe">
+
+                    <div class="row">
+                        <div class="col-sm-6">
+
+
+                            <div class="form-group row">
+                                <div class="col-sm-1"></div>
+                                <label class="col-sm-3 ">Tên đội xe
+                                    <span style="color: red;">*</span>:</label>
+                                <div class="col-sm-8">
+
+                                    <p-autoComplete #inputSquad [(ngModel)]="squad"
+                                                    [suggestions]="filteredCountriesSingleSquad"
+                                                    (completeMethod)="filterCountrySingle($event)"
+                                                    [size]="30" [minLength]="1" placeholder="--Chọn đội xe--"
+                                                    [dropdown]="true" field="squadName"
+                                                    class="fix-drop-down" (onSelect)="squadSelect($event)"
+                                                    emptyMessage="Đội xe không tồn tại, xin kiểm tra lại">
+                                    </p-autoComplete>
+                                </div>
+                                <div class="col-sm-1"></div>
+
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-1"></div>
+                                <label class="col-sm-3 ">Tên lái xe
+                                    <span style="color: red;">*</span>:</label>
+                                <div class="col-sm-8">
+
+                                    <p-autoComplete #inputDriver [(ngModel)]="driver"
+                                                    [suggestions]="filteredCountriesSingleDriver"
+                                                    (completeMethod)="filterCountrySingleDriver($event)"
+                                                    [size]="30" [minLength]="1" placeholder="--Chọn lái xe--"
+                                                    [dropdown]="true" field="fullName" [minLength]="1"
+                                                    [dropdown]="true"  class="fix-drop-down"
+                                                    (onSelect)="driverSelect($event)"
+                                                    emptyMessage="Lái xe không tồn tại, xin kiểm tra lại">
+                                    </p-autoComplete>
+
+                                </div>
+                                <div class="col-sm-1"></div>
+                            </div>
+
+                            <div class="form-group row">
+                                <div class="col-sm-1"></div>
+                                <label class="col-sm-3 ">Trạng thái
+                                    <span style="color: red;">*</span>:</label>
+                                <div class="col-sm-8">
+                                    <div class="row ui-fluid">
+                                        <div class="col-sm-5">
+                                            <p-radioButton name="group1" value="1" label="Hoạt động"
+                                                           [(ngModel)]="status" inputId="opt1"></p-radioButton>
+                                        </div>
+                                        <div class="col-sm-7">
+                                            <p-radioButton name="group1" value="0" label="Không hoạt động"
+                                                           [(ngModel)]="status" inputId="opt2"></p-radioButton>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group row">
+                            <label class="col-sm-4 ">Gán xe cho lái xe
+                                <span style="color: red;">*</span>:</label>
+                            <div class="col-sm-8 ui-fluid ">
+                                    <p-scrollPanel [style]="{width: '90%', height: '150px'}">
+                                        <div class="form-group row ">
+
+
+                                            <div class="col-sm-12">
+                                                <div #inputGroup>
+                                                    <div class="row mb-3"
+                                                         *ngFor="let item of listSelectedLicensePlate; let i=index" >
+
+                                                        <div class="col-sm-10 ui-fluid"
+                                                             style="padding-left: 25px !important;">
+                                                            <p-autoComplete #inputListSelectedLicensePlate [forceSelection]="true"
+                                                                            [(ngModel)]="listSelectedLicensePlate[i]"placeholder="--Chọn xe--"
+                                                                            [suggestions]="filterLicensePlate"
+                                                                            (completeMethod)="loadLicensePlate($event)"
+                                                                            emptyMessage="Không có người tiếp nhận nào"
+                                                                            dropdown="true" field="licensePlate"
+                                                                            (onKeyUp)="changeLicensePlate(i)"
+                                                                            (onSelect)="selectLicensePlate(i,$event)"></p-autoComplete>
+                                                        </div>
+                                                        <div class="col-sm-2">
+                                                            <button pButton type="button" icon="pi pi-minus"
+                                                                    title="Xóa một textbox" (click)="removeTextbox(i)"
+                                                                    *ngIf ="listSelectedLicensePlate === null || listSelectedLicensePlate.length !== 1"></button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-sm-10" style="padding-left: 25px !important;">
+                                                        <button pButton type="button" icon="pi pi-plus"
+                                                                title="Thêm một textbox" (click)="addTextbox()"
+                                                                style="margin-right: .5em"></button>
+                                                    </div>
+                                                    <div class="col-sm-2"></div>
+                                                </div>
+
+                                            </div>
+                                            <!--  <input id="input" type="text" size="30" disabled name="position" pInputText [(ngModel)]="phoneNumber" style="width: 100%;">-->
+                                        </div>
+                                        <div class="col-sm-2"></div>
+                                    </p-scrollPanel>
+                            </div>
+                        </div>
+
+
+                    </div>
+                    </div>
+
+                </p-fieldset>
+                <div class="row row-button">
+                    <div class="col-sm-4"></div>
+                    <div class="col-sm-4">
+                        <p-button label="Tìm kiếm" icon="pi pi-search"
+                                  (click)="handleSearch()"></p-button>
+                        <p-button *ngIf="edit === 0" class="ui-button-danger" icon="pi pi-plus" label="Thêm"
+                                  (click)="handleAdd()"></p-button>
+                        <p-button *ngIf="edit === 1" class="ui-button-danger" icon="pi pi-plus" label="Lưu"
+                                  (click)="handleAdd()"></p-button>
+                        <button type="button" tabindex="0" pButton icon="fa fa-refresh" iconPos="left" label="Làm mới"
+                                (click)="resetButton()" style="text-align: center;"></button>
+                    </div>
+                    <div class="col-sm-4"></div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-12">
+            <p-table [columns]="cols" [value]="ListDrive" [totalRecords]="total_record" [paginator]="true" [rows]="10" [lazy]="true"
+                     [resizableColumns]="true"
+                     (onPage)="paginate($event)" #myTable>
+                <ng-template pTemplate="colgroup" let-columns>
+                    <colgroup>
+                        <col *ngFor="let col of columns" [style.width]="col.width">
+                    </colgroup>
+                </ng-template>
+                <ng-template pTemplate="header" let-columns>
+                    <tr>
+                        <th *ngFor="let col of columns" pResizableColumn style="text-align: center; font-weight: bold;">
+                            {{col.header}}
+                        </th>
+                    </tr>
+                </ng-template>
+                <ng-template let-ri="rowIndex" pTemplate="body" let-rowData let-columns="columns">
+                    <tr>
+                        <td>{{ri+1}}</td>
+                        <td style="width: 320px;">
+                            <div class="row">
+                                <div class="col-sm-3">
+                                    <p-button icon="pi pi-trash"  pTooltip="Xóa"
+                                              (onClick)="confirmDelete(rowData)"></p-button>
+                                </div>
+
+                                <div class="col-sm-3">
+                                    <p-button icon="pi pi-pencil"  pTooltip="Chỉnh sửa"
+                                              (onClick)="doEdit(rowData)"></p-button>
+                                </div>
+
+                                <div class="col-sm-3">
+                                    <p-button icon="pi pi-arrow-right"  pTooltip="Gán xe"
+                                              (onClick)="showDialog(rowData)"></p-button>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="text-align: left !important;">{{rowData["squadName"]}}</td>
+                        <td style="text-align: left !important;">{{rowData["fullName"]}}</td>
+                        <td style="text-align: left !important;">{{rowData["employeePhone"]}}</td>
+                        <td style="text-align: left !important;">{{rowData["selectedLicensePlate"]}}</td>
+                        <td style="text-align: left !important;" *ngIf="rowData['status']; else Flag">Hoạt động</td>
+                        <ng-template #Flag>
+                            <td style="text-align: left !important;">Ngừng hoạt động</td>
+                        </ng-template>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage" let-columns>
+                    <tr>
+                        <td [attr.colspan]="columns.length" style="text-align: center;">
+                            Không có dữ liệu
+                        </td>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="paginatorright">
+          <span style="position: absolute; right: 30px; bottom: 6px;">{{total_record == 0 ? pageNumber : pageNumber + 1}} - {{pageNumber+pageSize>total_record ? total_record : pageNumber+pageSize}}
+            / {{total_record}}</span>
+                </ng-template>
+            </p-table>
+        </div>
+    </div>
+
+
+    <p-dialog header="Chức năng gán xe cho admin" id="dialog" [(visible)]="display" [modal]="true" [closable]="false"
+              [responsive]="true"
+              [width]="1150" [minWidth]="200" [minY]="70" [maximizable]="true" [baseZIndex]="1000">
+
+
+        <!-- POP-UPPPPP -->
+        <div class="container">
+            <div class="container-fluid text-center mt-5">
+                <h1 class="text-center">GÁN CÁC XE THUỘC LÁI XE QUẢN LÝ</h1>
+            </div>
+            <div class="row ">
+                <div class="col-sm-12 " style="margin: auto;">
+                    <form ngNoForm onsubmit="return false;">
+                        <p-fieldset legend="Thông tin danh mục các xe gán cho lái xe">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group row">
+                                        <div class="col-sm-1"></div>
+                                        <label class="col-sm-3 ">Tên đội xe
+                                            <span style="color: red;">*</span>:</label>
+                                        <div class="col-sm-8">
+                                            <input id="input" type="text" size="30" placeholder="Chọn đội xe" disabled
+                                                   name="position" pInputText [(ngModel)]="squadMatching.squadName"
+                                                   style="width: 100%;">
+                                        </div>
+                                        <div class="col-sm-1"></div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <div class="col-sm-1"></div>
+                                        <label class="col-sm-3 ">Tên lái xe
+                                            <span style="color: red;">*</span>:</label>
+                                        <div class="col-sm-8">
+                                            <input id="input" type="text" size="30" placeholder="Chọn lái xe" disabled
+                                                   name="position" pInputText [(ngModel)]="driverMatching.fullName"
+                                                   style="width: 100%;">
+                                        </div>
+                                        <div class="col-sm-1"></div>
+                                    </div>
+
+                                    <div class="form-group row">
+                                        <div class="col-sm-1"></div>
+                                        <label class="col-sm-3 col-form-label">Số điện thoại</label>
+                                        <div class="col-sm-8">
+                                            <input id="input" type="text" size="30" disabled name="position" pInputText
+                                                   [(ngModel)]="phoneNumberDetail" style="width: 100%;">
+                                        </div>
+                                        <div class="col-sm-1"></div>
+                                    </div>
+
+                                    <div class="form-group row">
+                                        <div class="col-sm-1"></div>
+                                        <label class="col-sm-3 col-form-label">Trạng thái</label>
+                                        <div class="col-sm-7">
+                                            <div class="row">
+                                                <div class="col-sm-5">
+                                                    <p-radioButton name="group1" disabled value="1" label="Hoạt động"
+                                                                   [(ngModel)]="status" inputId="opt1"></p-radioButton>
+                                                </div>
+                                                <div class="col-sm-7">
+                                                    <p-radioButton name="group1" disabled value="0"
+                                                                   label="Không hoạt động" [(ngModel)]="status"
+                                                                   inputId="opt2"></p-radioButton>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-1"></div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <p-scrollPanel [style]="{width: '100%', height: '200px'}">
+                                        <div class="row">
+                                            <div class="col-sm-4">
+                                                <div class="row">
+                                                    <div class="col-sm-3"></div>
+                                                    <div class="col-sm-9" style="padding: 0px;">
+
+                                                        <label class="col-form-label">Gán xe cho lái xe
+                                                            <span style="color: red;">*</span>:</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-8" style="margin-top: 10px;">
+                                                <div #inputGroup>
+                                                    <div class="row" *ngFor="let x of countUp">
+                                                        <div class="col-sm-11" style="padding-bottom: 5px;">
+
+                                                            <!-- <p-autoComplete [(ngModel)]="listMatching[x]" [suggestions]="filteredCountriesSingleCar" (completeMethod)="filterCountrySingleCar($event)"
+                                                              field="" [size]="30" placeholder="Cars" [minLength]="1"></p-autoComplete> -->
+
+                                                            <p-autoComplete [(ngModel)]="listMatching[x]"
+                                                                            [suggestions]="filteredCountriesSingleCar"
+                                                                            (completeMethod)="filterCountrySingleCar($event)"
+                                                                            [size]="27" [minLength]="1"
+                                                                            placeholder="--Chọn xe--" [dropdown]="true"
+                                                                            (onBlur)="focusOutCar(x)"
+                                                                            field="displayOption"
+                                                                            [minLength]="1" class="fix-drop-down">
+                                                            </p-autoComplete>
+
+                                                            <!-- <p-dropdown [options]="listCar" [(ngModel)]="car" placeholder="--Chọn xe--" filter="true" filterBy="value.licensePlate" optionLabel="licensePlate"
+                                                              [style]="{'width':'99.9%'}"  [showClear]="true"></p-dropdown>  -->
+
+                                                        </div>
+                                                        <div class="col-sm-1" style="padding: 0px; margin-left: -30px;">
+                                                            <p-button (onClick)="remove(x)"
+                                                                      icon="pi pi-minus"></p-button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row" style="padding-top: 5px;">
+                                            <div class="col-sm-1"></div>
+                                            <label class="col-sm-3 col-form-label"></label>
+                                            <div class="col-sm-6">
+                                                <p-button (onClick)="countup()" icon="pi pi-plus"></p-button>
+                                            </div>
+                                            <div class="col-sm-2"></div>
+                                        </div>
+                                    </p-scrollPanel>
+                                </div>
+
+
+                            </div>
+                        </p-fieldset>
+                        <div class="row row-button">
+                            <div class="col-sm-4"></div>
+                            <div class="col-sm-4">
+                                <p-button class="ui-button-danger" icon="pi pi-plus" label="Lưu"
+                                          (click)="add()"></p-button>
+                                <p-button class="ui-button-danger" icon="pi pi-times" label="Đóng"
+                                          (click)="close()"></p-button>
+                            </div>
+                            <div class="col-sm-4"></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <p-footer>
+
+        </p-footer>
+    </p-dialog>
+
+
+    <!-- confirm dialog -->
+
+</div>

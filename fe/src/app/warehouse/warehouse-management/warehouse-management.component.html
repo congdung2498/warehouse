@@ -1,0 +1,247 @@
+<!-- 
+  @Author: CuongHD 08/09/2018
+ -->
+<div  id="custom-container" class="container">
+  <div class="container-fluid text-center mt-5">
+    <h1 class="text-center">Thông tin kho</h1>
+  </div>
+  <div class="row ">
+    <div class="col-sm-12 " style="margin: auto;">
+      <form ngNoForm onsubmit="return false;">
+        <p-fieldset legend="Thông tin kho">
+          <div class="row">
+
+            <div class="col-lg-6">
+
+              <div class="form-group row">
+                <div class="col-lg-2"></div>
+                <label class="col-lg-3 ">Tên Kho
+                  <span style="color: red;">*</span>:
+                </label>
+                <div class="col-lg-7">
+                  <input #inputName id="input_warehouse_name" type="text" size="30" pInputText [(ngModel)]="warehouse_name" 
+                  style="width: 100%;" (ngModelChange)="preventSpecialChar(inputName)" maxlength="255">
+                </div>
+              </div>
+
+              <div class="form-group row">
+                <div class="col-lg-2"></div>
+                <label class="col-lg-3 ">Loại
+                  <span style="color: red;">*</span>:
+                </label>
+                <div class="col-lg-7 ui-fluid ">
+                  <p-autoComplete #inputType id="input_warehouse_type" [(ngModel)]="type" [suggestions]="typesOfWarehouse"
+                    (completeMethod)="addType($event)" [size]="200" [minLength]="1" placeholder="--Chọn loại kho--"
+                    [dropdown]="true" class="fix-drop-down" [immutable]="false" [readonly]="true">
+                  </p-autoComplete>
+                </div>
+              </div>
+
+              <div class="form-group row">
+                <div class="col-lg-2"></div>
+                <label class="col-lg-3 ">Diện Tích
+                  <span style="color: red;">*</span>:</label>
+                <div class="col-lg-7">
+                  <input #inputAcreage id="input_warehouse_acreage" type="number" pInputText [(ngModel)]="acreage" 
+                    pKeyFilter="pnum" min="0" max="9999999999" style="width: 100%;" step="1"
+                    (keyup)="limitValue(inputAcreage, 1, 9999999999)" (focusout)="setArc(inputAcreage)">
+                </div>
+
+              </div>
+
+              <div class="form-group row">
+                <div class="col-lg-2"></div>
+                <label class="col-lg-3 ">Trạng thái
+                  <span style="color: red;">*</span>:</label>
+                <div class="col-lg-7">
+                  <div class="row ui-fluid">
+                    <div class="pl-15">
+                      <p-radioButton name="group1" value="1" [(ngModel)]="status" label="Hoạt động" inputId="opt1">
+                      </p-radioButton>
+                    </div>
+                    <div class="pl-15">
+                      <p-radioButton name="group1" value="0" [(ngModel)]="status" label="Không hoạt động"
+                        inputId="opt2"></p-radioButton>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-lg-6">
+              <div class="form-group row">
+                <label class="col-lg-3 ">Địa chỉ <span style="color: red;">*</span>:</label>
+                <div class="col-lg-7">
+                  <input #inputAddress id="input_warehouse_add" type="text" size="30" pInputText style="width: 100%;" 
+                  [(ngModel)]="address" (ngModelChange)="preventSpecialChar(inputAddress)" maxlength="255">
+                </div>
+                <div class="col-lg-2"></div>
+              </div>
+              <div class="form-group row ">
+
+                <label class="col-lg-3 ">Số hàng <span style="color: red;">*</span>:</label>
+                <div class="col-lg-7">
+                  <input #inputRow id="input_warehouse_rows" type="number" pInputText [(ngModel)]="row_num" pKeyFilter="pint" min="0" max="100"
+                    style="width: 100%;" (keyup)="limitValue(inputRow, 1, 100)" (focusout)="setRow(inputRow)">
+                </div>
+                <div class="col-lg-2"></div>
+              </div>
+
+              <div class="form-group row ">
+
+                <label class="col-lg-3 ">Số cột <span style="color: red;">*</span>:</label>
+                <div class="col-lg-7">
+                  <input #inputColumn id="input_warehouse_cols" type="number" pInputText [(ngModel)]="column_num" pKeyFilter="pint" min="0" max="100"
+                    style="width: 100%;" (keyup)="limitValue(inputColumn, 1, 100)" (focusout)="setCol(inputColumn)">
+                </div>
+                <div class="col-lg-2"></div>
+              </div>
+              <div class="form-group row ">
+
+                <label class="col-lg-3 ">Chiều cao <span style="color: red;">*</span>:</label>
+                <div class="col-lg-7">
+                  <input #inputHeight id="input_warehouse_height" type="number" pInputText [(ngModel)]="height_num" pKeyFilter="pint"
+                    min="0" max="5" style="width: 100%;" (keyup)="limitValue(inputHeight, 1, 5)" (focusout)="setHeight(inputHeight)">
+                </div>
+                <div class="col-lg-2"></div>
+              </div>
+            </div>
+          </div>
+        </p-fieldset>
+        <div class="row row-button">
+          <div class="col-lg-3"></div>
+          <div class="col-lg-6">
+            <p-button style="margin-top:5px;" label="Tìm kiếm" icon="pi pi-search" (click)="handleSearch()"></p-button>
+            <p-button style="margin-top:5px;" class="ui-button-danger" *ngIf="!isEdit" icon="pi pi-plus" label="Tạo mới" (click)="handleAdd()">
+            </p-button>
+            <p-button class="ui-button-danger" *ngIf="isEdit" icon="pi pi-pencil" label="Cập nhật" (click)="handleAdd()">
+            </p-button>
+            <button type="button" tabindex="0" pButton icon="fa fa-refresh" iconPos="left" label="Làm mới"
+              style="text-align: center; margin-top:5px" (click)="resetForm(inputRow, inputColumn, inputHeight, inputAcreage)"></button>
+            <p-button style="margin-top:5px;" class="ui-button-danger" *ngIf="isEdit" icon="pi pi-plus" label="Xem sơ đồ" (click)="showWarehouseMap()"></p-button>
+          </div>
+          <div class="col-lg-3"></div>
+        </div>
+      </form>
+    </div>
+  </div>
+  <p-dialog [modal]="true" [(visible)]="isShowMap" [width]="1000" [height]="1000" [style]="{'text-align':'center', 'position':'fixed'}"
+        [draggable]="false" [resizable]="true">
+    <p-header>
+      Đồng Chí đang xem sơ đồ của <span [innerHTML]="warehouse_name"></span>
+    </p-header>
+    <p-scrollPanel [style]="{'width':'100%','height':'460px'}">
+    <div class="container">
+      <div class="row">
+          <div class="col-sm-9" style="margin: auto;">
+            <div><span>Số thùng đang đặt / Tổng số vị trí trong kho </span><span> ( {{occupiedSlot}} / {{totalTinBox}} )</span></div>
+            <table style="margin:20px auto; width:500px"  id="table-note">  
+              <tr>
+                <td>
+                  <div class="rack-position cg-nearDoor"></div>
+                </td>
+                <td>Gần cửa</td>
+                <td >
+                    <div class="rack-position cg-path"></div>
+                </td>
+                <td>Đường đi</td>
+                <td >
+                    <div class="rack-position cg-rackSlot"></div>
+                </td>
+                <td>Đang sử dụng</td>
+              </tr>
+              <tr>
+                  <td>
+                      <div class="rack-position cg-noUse"></div>
+                  </td>
+                  <td>Không sử dụng</td>
+                  <td>
+                      <div class="rack-position cg-noConfig"></div>
+                  </td>
+                  <td>Chưa cấu hình</td>
+                </tr>
+            </table>
+            
+          </div>
+      </div>
+      <div class="row" style="display:inline-block">
+        <div class="cg-outer">
+          <div *ngFor="let row of listCol">
+            <div class="cg-row">
+              <div *ngFor="let cell of row" class="cg-cell">
+                <div *ngIf="cell.type==-1" class="rack-position cg-noConfig" title="Chưa cấu hình">.</div>
+                <div *ngIf="cell.type==0" class="rack-position cg-nearDoor" title="Gần Cửa">{{cell.numberPerSlot}}</div>
+                <div *ngIf="cell.type==1" class="rack-position cg-path" title="Đường đi">.</div>
+                <div *ngIf="cell.type==2" class="rack-position cg-rackSlot" title="Hàng: {{cell.row}} Cột: {{cell.column}}">{{cell.numberPerSlot}}</div>
+                <div *ngIf="cell.type==3" class="rack-position cg-noUse" title="Không sử dụng">.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </p-scrollPanel>
+  </p-dialog>
+
+  <div class="table-container">
+    <p-table [style]="{'width':'100%'}" [columns]="cols" [lazy]="true" [loading]="loading" [value]="listWarehouse" [totalRecords]="totalRecords"
+        [paginator]="true" [rows]="10" [resizableColumns]="true" (onPage)="paginate($event)" #myTable>
+        <ng-template pTemplate="colgroup" let-columns>
+          <colgroup>
+            <col *ngFor="let col of columns" [style.width]="col.width">
+          </colgroup>
+        </ng-template>
+        <ng-template pTemplate="header" let-columns>
+          <tr>
+            <th *ngFor="let col of columns" pResizableColumn style="text-align: center; font-weight: bold;">
+              {{col.header}}
+            </th>
+          </tr>
+        </ng-template>
+        <ng-template let-ri="rowIndex" pTemplate="body" let-rowData let-columns="columns">
+          <tr>
+            <td>{{ri+1}}</td>
+            <td>
+              <div class="row">
+                <div class="col-lg-5">
+                  <p-button [disabled]="isEdit" icon="pi pi-trash" (onClick)="doDelete(rowData)" pTooltip="Xóa">
+                  </p-button>
+                </div>
+
+                <div class="col-lg-7">
+                  <p-button [disabled]="isEdit" icon="pi pi-pencil" (onClick)="doEdit(rowData)" pTooltip="Chỉnh sửa">
+                  </p-button>
+                </div>
+              </div>
+            </td>
+            <td style="text-align: left !important;" [innerHTML]="rowData.name"></td>
+            <td style="text-align: left !important;">{{rowData["acreage"]}}</td>
+            <td style="text-align: left !important;">{{rowData["rowNum"]}}</td>
+            <td style="text-align: left !important;">{{rowData["columnNum"]}}</td>
+            <td style="text-align: left !important;">{{rowData["heightNum"]}}</td>
+            <td style="text-align: left !important;" *ngIf="rowData['type']==0; else FlagWarehouse">Kho Tạm</td>
+            <ng-template #FlagWarehouse>
+              <td style="text-align: left !important;">Kho lưu</td>
+            </ng-template>
+            <td style="text-align: left !important;" *ngIf="rowData['status']==1; else Flag">Hoạt động</td>
+            <ng-template #Flag>
+              <td style="text-align: left !important;">Không hoạt động</td>
+            </ng-template>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage" let-columns>
+          <tr>
+            <td [attr.colspan]="columns.length" style="text-align: center;">
+              Không có dữ liệu
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="paginatorright">
+          <span
+            style="position: absolute; right: 30px; bottom: 6px;">{{totalRecords == 0 ? pageNumber : pageNumber + 1}} -
+            {{pageNumber+pageSize>totalRecords ? totalRecords : pageNumber+pageSize}}
+            / {{totalRecords}}</span>
+        </ng-template>
+      </p-table>
+  </div>
+</div>

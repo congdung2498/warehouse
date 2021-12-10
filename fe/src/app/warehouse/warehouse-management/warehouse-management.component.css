@@ -1,0 +1,110 @@
+.content {
+  background: #fff;
+}
+.config-right {
+  float: right;
+}
+.config-left {
+  float: left;
+}
+.row-button {
+  padding: 15px;
+  margin: auto;
+  text-align: center;
+}
+
+.loading{
+  position: fixed;
+}
+
+:host >>> .fix-drop-down > .ui-widget {
+  height: 35px !important;
+  top: -1px !important;
+}
+
+.cg-outer {
+  display: table;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.cg-row{
+  display: table-row;
+}
+
+.cg-cell{
+  display: table-cell;
+  width: 70px;
+  height: 70px;
+  line-height: 70px;  
+  text-align: center;
+}
+
+.cg-yellow {
+  color: yellow;
+  background-color: yellow;
+  height:100%;
+}
+
+.cg-gray {
+  color: gray;
+  background-color: gray;
+  height:100%;
+}
+
+.cg-text{
+  background-color: white;
+  height:100%;
+}
+
+#table-container{
+  overflow: hidden;
+}
+
+.pl-15{
+  padding-left: 15px;
+}
+
+.rack-position{
+  width: 5vw;
+  height: 5vw;
+  border: 1px solid #333;
+  margin: 10px;
+}
+
+.cg-noConfig{
+  background-color:#e9e6e6; 
+}
+
+.cg-nearDoor {
+  background-color:#ffc863;
+}
+
+.cg-path{
+  background-color:#aeabab;
+}
+
+.cg-rackSlot{
+  background-color:#2882df;
+}
+
+.cg-noUse{
+  background-color:#ffffff;
+}
+
+@media only screen and (max-width: 700px) {
+  #custom-container{
+    margin-left:30px;
+  }
+  .table-container{
+    width:100%;
+    overflow: auto;
+  }
+}
+
+@media only screen and (max-width: 1000px) {
+  col {
+    width: auto !important;
+  }
+}
+

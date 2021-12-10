@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt07.vt070003.dao.VT070003DAO">
+
+	<select id="getOfficialDispatchDocById" resultType="com.viettel.vtnet360.vt07.vt070003.entity.OfficialDispatchDoc">
+		SELECT
+		odtd.ID,odtd.TYPE,odtd.LEVEL_BAOMAT,odtd.OFFICIAL_DISPATCH_ID,odtd.NAME
+		FROM OFFICIAL_DISPATCH od
+		INNER JOIN OFFICIAL_DISPATCH_TRAVELS_DOC odtd ON od.OFFICIAL_DISPATCH_ID = odtd.OFFICIAL_DISPATCH_ID
+		WHERE od.OFFICIAL_DISPATCH_ID = #{officialDispatchId}
+		union
+		SELECT iodd.ID,od.TYPE,iodd.LEVEL_BAOMAT,iodd.OFFICIAL_DISPATCH_ID,iodd.NAME
+		FROM OFFICIAL_DISPATCH od
+		INNER JOIN INCOMING_OFFICIAL_DISPATCH_DOC iodd ON od.OFFICIAL_DISPATCH_ID =
+		iodd.OFFICIAL_DISPATCH_ID
+		WHERE iodd.OFFICIAL_DISPATCH_ID = #{officialDispatchId}
+	</select>
+
+	<select id="getOfficialDispatchById" resultType="com.viettel.vtnet360.vt07.vt070003.entity.OfficialDispatch">
+		SELECT 
+		 NAME
+		, TYPE
+		, OFFICIAL_DISPATCH_ID 
+		, FOLDER_ID
+		FROM OFFICIAL_DISPATCH
+		WHERE OFFICIAL_DISPATCH_ID = #{officialDispatchId}
+	</select>
+	
+	<select id="getOfficialDispatchIdByName" resultType="java.lang.Long">
+		SELECT IFNULL((SELECT OFFICIAL_DISPATCH_ID FROM OFFICIAL_DISPATCH WHERE NAME = #{name} LIMIT 1 ), -1)
+	</select>
+
+	<insert id="createOfficialDispatch">
+		INSERT INTO OFFICIAL_DISPATCH (NAME, TYPE, STATUS
+		<if test="folderId > 0">
+			,FOLDER_ID
+		</if>
+		)
+		VALUES (#{name}, #{type}, 1
+		<if test="folderId > 0">
+			,#{folderId}
+		</if>
+		);
+	</insert>
+
+	<insert id="createOfficialDispatchTravelsDoc">
+		INSERT INTO OFFICIAL_DISPATCH_TRAVELS_DOC
+		(OFFICIAL_DISPATCH_ID, NAME,
+		TYPE, LEVEL_BAOMAT
+		<if test="folderId > 0">
+			,FOLDER_ID
+		</if>
+		)
+		VALUES
+		(#{officialDispatchId}, #{name}, #{type}, #{levelBaoMat}
+		<if test="folderId > 0">
+			,#{folderId}
+		</if>
+		);
+	</insert>
+
+	<insert id="createIncomingOfficialDispatchDoc">
+		INSERT INTO INCOMING_OFFICIAL_DISPATCH_DOC
+		(OFFICIAL_DISPATCH_ID, NAME,
+		TYPE, LEVEL_BAOMAT
+		<if test="folderId > 0">
+			,FOLDER_ID
+		</if>
+		)
+		VALUES
+		(#{officialDispatchId}, #{name}, #{type}, #{levelBaoMat}
+		<if test="folderId > 0">
+			,#{folderId}
+		</if>
+		);
+	</insert>
+
+	<select id="getOfficialDispatchTravelsDocIdByDispatchIdAndName" resultType="java.lang.Long">
+		SELECT IFNULL((SELECT id FROM OFFICIAL_DISPATCH_TRAVELS_DOC WHERE OFFICIAL_DISPATCH_ID = #{officialDispatchId} AND NAME = #{name} LIMIT 1 ), -1)
+	</select>
+
+	<select id="getIncomingOfficialDispatchDocIdByDispatchIdAndName" resultType="java.lang.Long">
+		SELECT IFNULL((SELECT ID FROM INCOMING_OFFICIAL_DISPATCH_DOC WHERE OFFICIAL_DISPATCH_ID = #{officialDispatchId} AND NAME = #{name} LIMIT 1 ), -1)
+	</select>
+
+	<!-- GROUP REGION -->
+
+	<select id="getOfficialDispatchIdByNameGroup" resultType="java.lang.Long">
+		SELECT IFNULL((SELECT OFFICIAL_DISPATCH_ID FROM OFFICIAL_DISPATCH_GROUP WHERE NAME = #{name} LIMIT 1 ), -1)
+	</select>
+
+	<insert id="createOfficialDispatchGroup">
+		INSERT INTO OFFICIAL_DISPATCH_GROUP (NAME, TYPE,
+		STATUS
+		<if test="folderId > 0">
+			,FOLDER_ID
+		</if>
+		)
+		VALUES (#{name}, #{type}, 1
+		<if test="folderId > 0">
+			,#{folderId}
+		</if>
+		);
+	</insert>
+
+	<insert id="createOfficialDispatchTravelsDocGroup">
+		INSERT INTO OFFICIAL_DISPATCH_TRAVELS_DOC_GROUP (OFFICIAL_DISPATCH_ID, NAME, TYPE, LEVEL_BAOMAT
+		<if test="folderId > 0">
+			,FOLDER_ID
+		</if>
+		)
+		VALUES
+		(#{officialDispatchId}, #{name}, #{type}, #{levelBaoMat}
+		<if test="folderId > 0">
+			,#{folderId}
+		</if>
+		);
+	</insert>
+
+	<insert id="createIncomingOfficialDispatchDocGroup">
+		INSERT INTO INCOMING_OFFICIAL_DISPATCH_DOC_GROUP (OFFICIAL_DISPATCH_ID, NAME, TYPE, LEVEL_BAOMAT
+		<if test="folderId > 0">
+			,FOLDER_ID
+		</if>
+		)
+		VALUES
+		(#{officialDispatchId}, #{name}, #{type}, #{levelBaoMat}
+		<if test="folderId > 0">
+			,#{folderId}
+		</if>
+		);
+	</insert>
+
+	<select id="getOfficialDispatchTravelsDocIdByDispatchIdAndNameGroup" resultType="java.lang.Long">
+		SELECT IFNULL((SELECT id FROM OFFICIAL_DISPATCH_TRAVELS_DOC_GROUP WHERE OFFICIAL_DISPATCH_ID = #{officialDispatchId} AND NAME = #{name} LIMIT 1 ), -1)
+	</select>
+
+	<select id="getIncomingOfficialDispatchDocIdByDispatchIdAndNameGroup" resultType="java.lang.Long">
+		SELECT IFNULL((SELECT ID FROM INCOMING_OFFICIAL_DISPATCH_DOC_GROUP WHERE OFFICIAL_DISPATCH_ID = #{officialDispatchId} AND NAME = #{name} LIMIT 1 ), -1)
+	</select>
+	
+	<!-- Update path file flow search type -->
+	<update id="updateFileUpload"
+	parameterType="com.viettel.vtnet360.vt07.vt070003.entity.FileUploadInfo">
+			
+		<if test="documentType !=null and documentType == 3">
+			UPDATE PROJECT_DOC set PATH = #{path} WHERE PROJECT_DOC_ID = #{documentId}
+		</if>
+		
+		<if test="documentType !=null and documentType == 4">
+			UPDATE PACKAGE_DOC set PATH = #{path} WHERE PACKAGE_DOC_ID = #{documentId}
+		</if>
+		
+		<if test="documentType !=null and documentType == 5">
+			UPDATE CONTRACT_DOC SET PATH = #{path} WHERE CONTRACT_DOC_ID = #{documentId}
+		</if>
+		
+		<if test="documentType !=null and documentType == 6">
+			UPDATE CONSTRUCTION_DOC SET PATH = #{path} WHERE CONSTRUCTION_DOC_ID = #{documentId}
+		</if>
+		
+		<if test="documentType !=null and documentType == 7">
+			UPDATE INCOMING_OFFICIAL_DISPATCH_DOC SET PATH = #{path} WHERE ID = #{documentId}
+		</if>
+		
+		<if test="documentType !=null and documentType == 8">
+			UPDATE OFFICIAL_DISPATCH_TRAVELS_DOC SET PATH = #{path} WHERE ID = #{documentId}
+		</if>
+		
+		<if test="documentType !=null and documentType == 9">
+			UPDATE VOUCHER_DOC SET PATH = #{path} WHERE ID = #{documentId} AND TYPE = 1
+		</if>
+		
+		<if test="documentType !=null and documentType == 10">
+			UPDATE VOUCHER_DOC SET PATH = #{path} WHERE ID = #{documentId} AND TYPE = 2
+		</if>
+		
+		<if test="documentType !=null and documentType == 11">
+			UPDATE PAYMENT_SUMMARY_DOC SET PATH = #{path} WHERE ID = #{documentId}
+		</if>
+	</update>
+	
+	<select id="getFileUploadByIdAndType" resultType="java.lang.String">
+		<if test="documentType !=null and documentType == 3">
+			SELECT PATH FROM PROJECT_DOC WHERE PROJECT_DOC_ID = #{documentId}
+		</if>
+		
+		<if test="documentType !=null and documentType == 4">
+			SELECT PATH FROM PACKAGE_DOC WHERE PACKAGE_DOC_ID = #{documentId}
+		</if>
+		
+		<if test="documentType !=null and documentType == 5">
+			SELECT PATH FROM CONTRACT_DOC WHERE CONTRACT_DOC_ID = #{documentId}
+		</if>
+		
+		<if test="documentType !=null and documentType == 6">
+			SELECT PATH FROM CONSTRUCTION_DOC  WHERE CONSTRUCTION_DOC_ID = #{documentId}
+		</if>
+		
+		<if test="documentType !=null and documentType == 7">
+			SELECT PATH FROM INCOMING_OFFICIAL_DISPATCH_DOC WHERE ID = #{documentId}
+		</if>
+		
+		<if test="documentType !=null and documentType == 8">
+			SELECT PATH FROM OFFICIAL_DISPATCH_TRAVELS_DOC WHERE ID = #{documentId}
+		</if>
+		
+		<if test="documentType !=null and documentType == 9">
+			SELECT PATH FROM VOUCHER_DOC WHERE ID = #{documentId} and type = 1
+		</if>
+		
+		<if test="documentType !=null and documentType == 10">
+			SELECT PATH FROM VOUCHER_DOC  WHERE ID = #{documentId} and type = 2
+		</if>
+		
+		<if test="documentType !=null and documentType == 11">
+			SELECT PATH FROM PAYMENT_SUMMARY_DOC  WHERE ID = #{documentId}
+		</if>			
+	</select>
+</mapper>

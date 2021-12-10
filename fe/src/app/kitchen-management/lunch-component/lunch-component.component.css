@@ -1,0 +1,12 @@
+.pi-star {
+    cursor: pointer;
+}
+
+.customDiv {
+    position: absolute;
+    width: 78% !important;
+    font-size: 15px !important;
+    top: 50px !important;
+    left: 60px !important;
+    z-index: 1000000000000 !important;
+}

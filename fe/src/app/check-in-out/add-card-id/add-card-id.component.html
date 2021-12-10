@@ -1,0 +1,158 @@
+<div class="container">
+  <div class="container-fluid text-center mt-3">
+    <h1>THÊM MÃ THẺ CHO NHÂN VIÊN</h1>
+  </div>
+  <div class="row mb-3">
+    <div class="col-xl-12 mb-3">
+      <p-fieldset legend="Thông tin tìm kiếm">
+        <div class="row">
+          <div class="col-sm-7">
+            <div class="row" style="margin-left: 5px; margin-right:10px;">
+              <!-- employee field -->
+              <div class="col-sm-12">
+                <div class="row mb-4">
+                  <div class="col-sm-2" style="text-align: left; max-width: 100.5px; padding-top: 5px;">Nhân viên:</div>
+                  <div class="col-sm-10 ui-fluid" style="max-width: 611px; position: relative; margin-left: -7px;">
+                    <p-autoComplete tabindex="0" [(ngModel)]="empInfor" [suggestions]="filterEmployee" (completeMethod)="loadEmployee($event)"
+                      [pKeyFilter]="onlyCharEmail" field="result" dropdown="true" placeholder="VD: NV001, Nguyen Van A, ang@...">
+                    </p-autoComplete>
+                    <span *ngIf="empInfor != null && (empInfor.length > 0 || empInfor['result'] !== undefined) && loading2"
+                      class="customIcon2 pi pi-times" (click)="clearEmp($event)"></span>
+                  </div>
+                </div>
+              </div>
+              <!-- card field -->
+              <div class="col-sm-12">
+                <div class="row mb-4">
+                  <div class="col-sm-2" style="text-align: left; max-width: 100.5px; padding-top: 5px;">Mã thẻ:</div>
+                  <div class="col-sm-10 ui-fluid" style="max-width: 611px; position: relative; margin-left: -7px;">
+                    <p-autoComplete tabindex="0" [(ngModel)]="cardInfo" [suggestions]="filterCard" (completeMethod)="loadCard($event)"
+                      [pKeyFilter]="onlyNum" placeholder="VD: 65162549864"></p-autoComplete>
+                    <span *ngIf="cardInfo != null && cardInfo.length > 0 && loading2" class="customIcon2 pi pi-times"
+                      (click)="clearCard($event)"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- tree unit -->
+          <div class="col-sm-5" style="margin-top: -45px;">
+            <div class="col-sm-12 ui-fluid">
+              <p-fieldset legend="Đơn vị" [style]="{'height': '220px'}">
+                <p-scrollPanel [style]="{width: '100%', height: '165px'}">
+                  <p-tree [value]="sectors" selectionMode="checkbox" [(selection)]="selectedSector" (onNodeExpand)="nodeExpand($event)"
+                    [loading]="loadingTree" class="no-border"></p-tree>
+                </p-scrollPanel>
+              </p-fieldset>
+            </div>
+          </div>
+        </div>
+      </p-fieldset>
+    </div>
+    <div class="col-xl-12">
+      <div class="text-center">
+        <!-- search button -->
+        <button type="button" tabindex="0" pButton icon="fa fa-search" iconPos="left" label="Tìm kiếm" (click)="searchData()"
+          style="text-align: center;"></button>
+        <!-- refresh button -->
+        <button type="button" tabindex="0" pButton icon="fa fa-refresh" iconPos="left" label="Làm mới" (click)="resetButton()"
+          style="text-align: center;"></button>
+      </div>
+    </div>
+  </div>
+  <!-- create table -->
+  <div class="row">
+    <div class="col-xl-12">
+      <div *ngIf="isEmpty; else showData" class="errorMsg">
+        <!-- if no data is reasonable -->
+        <p-table>
+          <ng-template pTemplate="header">
+            <tr style="font-weight: bold;">
+              <th style="width: 10rem; font-weight: bold;">TT</th>
+              <th style="width: 20rem; font-weight: bold;">Đơn vị</th>
+              <th style="width: 20rem; font-weight: bold;">Nhân viên</th>
+              <th style="width: 20rem; font-weight: bold;">Mã thẻ</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td [attr.colspan]="4">
+                Không có dữ liệu
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+      <!-- if has data -->
+      <ng-template #showData>
+        <p-table #myTable [value]="listSearchCard" [lazy]="true" (onPage)="paginate($event)" [paginator]="true" [rows]="10"
+          [totalRecords]="totalRecord" [loading]="loading">
+          <ng-template pTemplate="header">
+            <tr style="font-weight: bold;">
+              <th style="width: 3rem; font-weight: bold;">TT</th>
+              <th style="width: 7rem; font-weight: bold;">Đơn vị</th>
+              <th style="width: 7rem; font-weight: bold;">Nhân viên</th>
+              <th style="width: 7rem; font-weight: bold;">Mã thẻ</th>
+              <th style="width: 3rem; font-weight: bold;">Thao tác</th>
+            </tr>
+          </ng-template>
+          <ng-template let-ri="rowIndex" pTemplate="body" let-item>
+            <tr>
+              <td style="width: 3rem; padding: 2px 1.5px !important;">{{ri+1}}</td>
+              <td class="wrapText" pTextEllipsis [pTooltip]="item.detailUnit" style="width: 7rem; text-align: left !important;">
+                {{item.unitName}}
+              </td>
+              <td class="wrapText" pTextEllipsis [pTooltip]="item.empName" style="width: 7rem; text-align: left !important;">
+                {{item.empName}}
+              </td>
+              <td class="wrapText" pTextEllipsis [pTooltip]="item.cardId" style="width: 7rem; text-align: left !important;">
+                {{item.cardId}}
+              </td>
+              <td style="width: 3rem; padding: 2px 1.5px !important;">
+                <button type="button" pButton (click)="showInfoCardEmp(item)" icon="fa fa-wrench" pTooltip="Chỉnh sửa"></button>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="paginatorright">
+            <span style="position: absolute; right: 30px; bottom: 6px;">
+              {{startRow + 1}} - {{startRow + rowSize}} / {{totalRecord}}
+            </span>
+          </ng-template>
+        </p-table>
+      </ng-template>
+    </div>
+  </div>
+  <!-- modal set up card -->
+  <p-dialog *ngIf="displayCardEmployee" header="{{headerCardEmployee}}" [(visible)]="displayCardEmployee" [modal]="true"
+    [responsive]="true" [width]="500" [dismissableMask]="true" [draggable]="false">
+    <div class="col-sm-12">
+      <div class="row mb-3">
+        <div class="col-sm-3" style="text-align: left; max-width: 100.5px; padding-top: 5px;">Đơn vị:</div>
+        <div class="col-sm-9 ui-fluid" style="position: relative; margin-left: -7px; padding-right: 0px !important;">
+          <input type="text" class="ui-inputtext ui-widget ui-state-default ui-corner-all" pInputText [(ngModel)]="itemCard.unitName"
+            [disabled]="true" />
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-sm-3" style="text-align: left; max-width: 100.5px; padding-top: 5px;">Nhân viên:</div>
+        <div class="col-sm-9 ui-fluid" style="position: relative; margin-left: -7px; padding-right: 0px !important;">
+          <input type="text" class="ui-inputtext ui-widget ui-state-default ui-corner-all" pInputText [(ngModel)]="itemCard.empName"
+            [disabled]="true" />
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-sm-3" style="text-align: left; max-width: 100.5px; padding-top: 5px;">Mã thẻ:</div>
+        <div class="col-sm-9 ui-fluid" style="position: relative; margin-left: -7px; padding-right: 0px !important;">
+          <input #inputCard type="text" class="ui-inputtext ui-widget ui-state-default ui-corner-all" pInputText
+            [(ngModel)]="empCardId" (ngModelChange)="changeCard()"  maxlength="20"
+            [pKeyFilter]="onlyNum" />
+        </div>
+      </div>
+      <div class="row">
+        <div class="text-center">
+          <button type="button" pButton icon="fa fa-cog" iconPos="left" label="Cập nhật" (click)="updateData()" style="text-align: center;"></button>
+        </div>
+      </div>
+    </div>
+  </p-dialog>
+</div>

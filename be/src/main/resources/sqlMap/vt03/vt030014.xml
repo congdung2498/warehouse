@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.viettel.vtnet360.vt03.vt030014.dao.VT030014DAO">
+
+	<!-- get list of employee -->
+	<select id="findListEmployee"
+		parameterType="com.viettel.vtnet360.vt03.vt030014.entity.VT030014ListEmployee"
+		resultType="com.viettel.vtnet360.vt03.vt030014.entity.VT030014ListEmployee">
+		SELECT
+			e.FULL_NAME AS result,
+			e.USER_NAME AS userNameBooker
+		FROM QLDV_EMPLOYEE e
+			LEFT JOIN QLDV_UNIT u ON e.UNIT_ID = u.UNIT_ID
+		WHERE
+			e.STATUS = 1 AND u.`PATH` LIKE CONCAT('%','234841','%')
+		<if test="result != null and result.length &gt; 0">
+			<bind name="pattern" value="'%' + result + '%'" />
+			AND ( e.CODE LIKE #{pattern}
+                OR e.FULL_NAME LIKE #{pattern}
+                OR e.EMAIL LIKE #{pattern}
+                OR e.PHONE_NUMBER LIKE #{pattern}
+                OR e.USER_NAME LIKE #{pattern} )
+		</if>
+		<!-- get employee of manager by unit -->
+		<if test="unitIdManager != null and unitIdManager.length &gt; 0">
+			<bind name="pattern2" value="'%' + unitIdManager + '%'" />
+			AND u.`PATH` LIKE #{pattern2}
+		</if>
+		ORDER BY result
+		LIMIT 50
+	</select>
+
+	<!-- get list of employee's phone number -->
+	<select id="findListEmployeePhone"
+		parameterType="com.viettel.vtnet360.vt03.vt030014.entity.VT030014ListEmployee"
+		resultType="com.viettel.vtnet360.vt03.vt030014.entity.VT030014ListEmployee">
+		SELECT
+			e.PHONE_NUMBER AS empPhone,
+			e.FULL_NAME AS result
+		FROM QLDV_EMPLOYEE e
+			LEFT JOIN QLDV_UNIT u ON
+			e.UNIT_ID = u.UNIT_ID
+		
+		WHERE
+		e.STATUS = 1 AND u.`PATH` LIKE CONCAT('%','234841','%')
+		<if test="result != null and result.length &gt; 0">
+			<bind name="pattern" value="'%' + result + '%'" />
+			AND e.PHONE_NUMBER LIKE #{pattern}
+		</if>
+		<!-- get employee phone of manager by unit -->
+		<if test="unitIdManager != null and unitIdManager.length &gt; 0">
+			<bind name="pattern2" value="'%' + unitIdManager + '%'" />
+			AND u.`PATH` LIKE #{pattern2}
+		</if>
+		LIMIT 50
+	</select>
+
+	<!-- get list of driver -->
+	<select id="findListDriver"
+		parameterType="com.viettel.vtnet360.vt03.vt030014.entity.VT030014ListEmployee"
+		resultType="com.viettel.vtnet360.vt03.vt030014.entity.VT030014ListEmployee">
+		SELECT
+			e.FULL_NAME AS result,
+			e.USER_NAME as userNameDriver
+		FROM DRIVER dr
+			LEFT JOIN QLDV_EMPLOYEE e ON dr.EMPLOYEE_USER_NAME = e.USER_NAME
+			LEFT JOIN QLDV_UNIT u ON e.UNIT_ID = u.UNIT_ID
+		<if test="empPhone != null and empPhone.length &gt; 0">
+			LEFT JOIN DRIVES_SQUAD ds ON
+			dr.DRIVE_SQUAD_ID =
+			ds.DRIVE_SQUAD_ID
+		</if>
+		WHERE
+		dr.STATUS = 1 AND dr.DELETE_FLAG = 0 AND e.STATUS = 1 AND u.PATH LIKE CONCAT('%','234841','%')
+		<if test="result != null and result.length &gt; 0">
+			<bind name="pattern" value="'%' + result + '%'" />
+			AND ( e.CODE LIKE #{pattern}
+                OR e.FULL_NAME LIKE #{pattern}
+                OR e.EMAIL LIKE #{pattern}
+                OR e.PHONE_NUMBER LIKE #{pattern}
+                OR e.USER_NAME LIKE #{pattern} )
+		</if>
+		<!-- get driver follow team car -->
+		<if test="squadId != null and squadId.length &gt; 0">
+			AND dr.DRIVE_SQUAD_ID = #{squadId}
+		</if>
+		<if test="empPhone != null and empPhone.length &gt; 0">
+			<bind name="pattern1" value="'%' + empPhone + '%'" />
+			AND ds.SQUAD_NAME LIKE #{pattern1}
+		</if>
+		ORDER BY result
+		LIMIT 50
+	</select>
+
+	<!-- get list of car booking -->
+	<select id="findListTrip"
+		parameterType="com.viettel.vtnet360.vt03.vt030014.entity.VT030014ListCondition"
+		resultType="com.viettel.vtnet360.vt03.vt030014.entity.VT030014ListCondition">
+		SELECT
+			d.SQUAD_NAME AS teamCarName,
+			d.SQUAD_NAME AS squadName,
+			u.UNIT_NAME AS unitName,
+			CASE 
+				WHEN u.UNIT_ID = 234841 THEN IFNULL(u.UNIT_NAME, '')
+				WHEN b.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''))
+				WHEN u2.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''), IFNULL(CONCAT(' / ', u2.UNIT_NAME), ''))
+				ELSE CONCAT(IFNULL(b.UNIT_NAME, ''), IFNULL(CONCAT(' / ', u2.UNIT_NAME), ''), IFNULL(CONCAT(' / ', u3.UNIT_NAME), ''))
+			END AS detailUnit,
+			ebooker.FULL_NAME AS empName,
+			ebooker.PHONE_NUMBER AS empPhone,
+			edriver.FULL_NAME AS driverName,
+			ms.CODE_NAME AS carType,
+			ca.LICENSE_PLATE AS licensePlate,
+			c.`START` AS dateStart,
+			c.CAR_BOOKING_ID as carBookingId,
+			c.`END` AS dateEnd,
+			c.TIME_START as timeReadyStart,
+			c.TIME_FINISH as timeReadyEnd,
+			c.TOTAL_PASSAGE AS numOfPassenger,
+			c.STATUS AS statusTrips,
+			c.RATTING AS rating,
+			c.FEEDBACK AS feedback,
+			c.DRIVER_FEEDBACK AS driverFeedback,
+			c.DRIVER_RATING AS driverRating,
+			c.REASON_REFUSE AS reasonRefuse,
+			c.BOOKED_ACTUALY_TIME as bookedActualyTime,
+			c.REASON_ASSIGNER  as reasonAssigner
+		FROM CAR_BOOKING c
+			LEFT JOIN QLDV_EMPLOYEE ebooker ON c.EMPLOYEE_USER_NAME = ebooker.USER_NAME
+			LEFT JOIN QLDV_EMPLOYEE edriver ON c.DRIVE_USER = edriver.USER_NAME
+			LEFT JOIN DRIVES_SQUAD d ON c.DRIVER_SQUAD_ID = d.DRIVE_SQUAD_ID
+			LEFT JOIN QLDV_UNIT u ON ebooker.UNIT_ID = u.UNIT_ID
+			LEFT JOIN QLDV_UNIT b ON u.PARENT_UNIT_ID = b.UNIT_ID
+			LEFT JOIN QLDV_UNIT u2 ON b.PARENT_UNIT_ID = u2.UNIT_ID
+			LEFT JOIN QLDV_UNIT u3 ON u2.PARENT_UNIT_ID = u3.UNIT_ID
+			LEFT JOIN CARS ca ON c.CAR_ID = ca.CAR_ID
+			LEFT JOIN M_SYSTEM_CODE ms ON c.`TYPE` = ms.CODE_VALUE
+		WHERE 
+			ms.MASTER_CLASS = 'S001' AND ms.STATUS =1 AND ebooker.STATUS = 1
+			<!-- get list trip of manager -->
+			<if test="loginRole == 'PMQT_QL' or loginRole == 'PMQT_CVP'">
+                AND (c.APPOVER_QLTT = #{loginUserName} OR c.APPOVER_LDDV = #{loginUserName} OR c.APPOVER_CVP= #{loginUserName})
+            </if>
+            <if test="unitIdManager != null and unitIdManager.length &gt; 0">
+                <bind name="patternManager" value="'%' + unitIdManager + '%'" />
+                AND u.`PATH` LIKE #{patternManager}
+            </if>
+			<if test="squadId != null and squadId.length &gt; 0">
+				AND d.DRIVE_SQUAD_ID = #{squadId}
+			</if>
+			<if test="squadName != null and squadName.length &gt; 0">
+				<bind name="pattern" value="'%' + driveSquadName + '%'" />
+				AND d.SQUAD_NAME LIKE #{pattern}
+			</if>
+			<if
+				test="userNameDriver == null and driverInfo != null and driverInfo.length &gt; 0">
+				<bind name="pattern1" value="'%' + driverInfo + '%'" />
+				AND edriver.FULL_NAME LIKE #{pattern1}
+			</if>
+			<if
+				test="userNameDriver != null and userNameDriver.length &gt; 0 and driverInfo == null">
+				AND edriver.USER_NAME = #{userNameDriver}
+			</if>
+			<if test="carType != null and carType.length &gt; 0">
+				AND c.`TYPE` = #{carType}
+			</if>
+			<if
+				test="userNameBooker == null and empInfo != null and empInfo.length &gt; 0">
+				<bind name="pattern2" value="'%' + empInfo + '%'" />
+				AND ebooker.FULL_NAME LIKE #{pattern2}
+			</if>
+			<if
+				test="userNameBooker != null and userNameBooker.length &gt; 0 and empInfo == null">
+				AND ebooker.USER_NAME = #{userNameBooker}
+			</if>
+			<if test="startDate != null">
+				AND c.`START` &gt;= CAST(#{startDate} AS DATETIME)		<!-- >= -->
+			</if>
+			<if test="endDate != null">
+				AND c.`START` &lt;= CAST(#{endDate} AS DATETIME) 			<!-- <= -->
+			</if>
+			<if test="loginRole != null and loginRole == 'PMQT_NV'">
+				AND c.EMPLOYEE_USER_NAME = #{loginUserName}
+			</if>
+		ORDER BY c.`START` DESC
+		<if test="startRow != -1 and rowSize != -1">
+		LIMIT #{startRow}, #{rowSize}
+		</if>
+		
+	</select>
+	
+<!-- update status start-->
+<update id="updateApproveBookCar" parameterType="com.viettel.vtnet360.checking.service.entity.Checking">
+	    UPDATE IN_OUT_REGISTER
+	    SET
+	        STATUS = #{status},
+	        UPDATE_USER = #{updateUser},
+	        UPDATE_DATE = #{updateDate}
+	    WHERE IN_OUT_REGISTER_ID = #{inOutRegisterId}
+    </update>   
+<!-- update status end -->
+
+
+	<!-- count total record -->
+	<select id="countTotalRecord"
+		parameterType="com.viettel.vtnet360.vt03.vt030014.entity.VT030014ListCondition"
+		resultType="com.viettel.vtnet360.vt03.vt030014.entity.VT030014ListCondition">
+		SELECT
+			COUNT(*) AS numOfRows,
+			ROUND(AVG(NULLIF( c.RATTING , 0 )), 2) AS
+			averageRating,
+			c.DRIVER_SQUAD_ID
+		FROM CAR_BOOKING c
+			LEFT JOIN QLDV_EMPLOYEE ebooker ON c.EMPLOYEE_USER_NAME = ebooker.USER_NAME
+			LEFT JOIN QLDV_EMPLOYEE edriver ON c.DRIVE_USER = edriver.USER_NAME
+			LEFT JOIN DRIVES_SQUAD as d ON  c.DRIVER_SQUAD_ID = d.DRIVE_SQUAD_ID
+			LEFT JOIN QLDV_UNIT u ON ebooker.UNIT_ID = u.UNIT_ID
+			LEFT JOIN CARS ca ON c.CAR_ID = ca.CAR_ID
+			LEFT JOIN M_SYSTEM_CODE ms ON c.`TYPE` = ms.CODE_VALUE
+		<if test="squadName != null and squadName.length &gt; 0">
+			LEFT JOIN QLDV_PLACE p ON d.PLACE_ID = p.PLACE_ID
+		</if>
+		WHERE
+			ms.MASTER_CLASS = 'S001' AND ms.STATUS =1 AND 
+          ebooker.STATUS = 1
+        <!-- get list trip of manager -->
+        <if test="loginRole == 'PMQT_QL' or loginRole == 'PMQT_CVP'">
+           AND ((c.APPOVER_QLTT = #{loginUserName} OR c.APPOVER_LDDV = #{loginUserName} OR c.APPOVER_CVP= #{loginUserName})
+                OR u.`PATH` LIKE CONCAT('%', #{unitIdManager}, '%'))
+        </if>
+        <!-- <if test="unitIdManager != null and unitIdManager.length &gt; 0">
+            <bind name="patternManager" value="'%' + unitIdManager + '%'" />
+                AND u.`PATH` LIKE #{patternManager}
+        </if> -->
+        <if test="squadId != null and squadId.length &gt; 0">
+            AND d.DRIVE_SQUAD_ID = #{squadId}
+        </if>
+        <if test="squadName != null and squadName.length &gt; 0">
+            <bind name="pattern" value="'%' + squadName + '%'" />
+            AND d.SQUAD_NAME LIKE #{pattern}
+        </if>
+        <if
+            test="userNameDriver == null and driverInfo != null and driverInfo.length &gt; 0">
+            <bind name="pattern1" value="'%' + driverInfo + '%'" />
+            AND edriver.FULL_NAME LIKE #{pattern1}
+        </if>
+        <if
+            test="userNameDriver != null and userNameDriver.length &gt; 0 and driverInfo == null">
+            AND edriver.USER_NAME = #{userNameDriver}
+        </if>
+        <if test="carType != null and carType.length &gt; 0">
+            AND c.`TYPE` = #{carType}
+        </if>
+        <if
+            test="userNameBooker == null and empInfo != null and empInfo.length &gt; 0">
+            <bind name="pattern2" value="'%' + empInfo + '%'" />
+            AND ebooker.FULL_NAME LIKE #{pattern2}
+        </if>
+        <if
+            test="userNameBooker != null and userNameBooker.length &gt; 0 and empInfo == null">
+            AND ebooker.USER_NAME = #{userNameBooker}
+        </if>
+        <if test="selectedCarStatus != null and selectedCarStatus.length &gt; 0" >
+            AND
+        <foreach item="status" index="index" collection="selectedCarStatus"
+                open="(" separator="or" close=")">
+                c.STATUS = #{status}
+            </foreach>
+        </if>
+        <if test="startDate != null">
+                AND c.`START` &gt;= CAST(#{startDate} AS DATETIME)      
+            </if>
+            <if test="endDate != null">
+                AND c.`START` &lt;= CAST(#{endDate} AS DATETIME)        
+            </if>
+	</select>
+
+</mapper>
+
+

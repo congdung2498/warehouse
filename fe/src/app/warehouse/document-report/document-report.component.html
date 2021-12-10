@@ -1,0 +1,114 @@
+<!-- 
+  @Author: CuongHD 08/09/2018
+ -->
+<div class="container report-container">
+  <div class="container-fluid text-center mt-5">
+    <h1 class="text-center">Báo cáo lưu trữ chi tiết tài liệu</h1>
+  </div>
+  <div class="row ">
+    <div class="col-sm-12 " style="margin: auto;">
+      <form ngNoForm onsubmit="return false;">
+        <p-fieldset legend="Báo Cáo">
+          <div class="row">
+            <div class="col-sm-12">
+              <div class="form-group row">
+                <div class="col-sm-2"></div>
+                <label class="col-sm-1 " style="text-align: left;
+                height: 100%;
+                margin: auto;">Kho
+                  <span style="color: red;">*</span>:
+                </label>
+                <div class="col-sm-7 ui-fluid">
+                  <p-autoComplete #inputWarehouse [(ngModel)]="warehouseNameChoose" [suggestions]="filterWarehouse"
+                    (completeMethod)="filterWarehouseName($event)" [size]="200" [minLength]="1" placeholder="--Chọn Kho--"
+                    [dropdown]="true" field="name" [minLength]="1" [dropdown]="true" class="fix-drop-down" (onBlur)="isSelected()" 
+                    (onSelect)="setWarehouse($event)" emptyMessage="Không tồn tại kho nào cả" >
+                  </p-autoComplete>
+                </div>
+                <div class="col-sm-2"></div>
+              </div>
+            </div>
+          </div>
+        </p-fieldset>
+        <div class="row row-button">
+          <div class="col-sm-3"></div>
+          <div class="col-sm-6">
+            <p-button label="Báo cáo" icon="fa fa-file-o" (click)="handleSearch()"></p-button>
+            <p-button class="ui-button-danger" icon="fa fa-download" label="Xuất File" (click)="export()">
+            </p-button>
+          </div>
+          <div class="col-sm-3"></div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <div class="row">
+      <div class="col-sm-12 text-center">
+        <p-table [style]="{'width':'1700px'}" [columns]="cols" [lazy]="true" [loading]="loading"
+          [value]="listDocument" [totalRecords]="totalDocument" [paginator]="true" [rows]="10" [resizableColumns]="false"
+          (onPage)="paginate($event)" #myTable>
+          <ng-template pTemplate="colgroup" let-columns>
+            <colgroup>
+              <col *ngFor="let col of columns" [style.width]="col.width">
+            </colgroup>
+          </ng-template>
+          <ng-template pTemplate="header" let-columns>
+            <tr>
+              <td></td>
+              <td>Tổng số tài liệu: {{totalDocument}}</td>
+              <td></td>
+              <td>Tổng số thùng: {{totalTinbox}}</td>
+              <td></td>
+              <td>Tổng số hồ sơ: {{totalFolder}}</td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <th *ngFor="let col of columns" pResizableColumn style="text-align: center; font-weight: bold;">
+                {{col.header}}
+              </th>
+            </tr>
+          </ng-template>
+          <ng-template let-ri="rowIndex" pTemplate="body" let-rowData let-columns="columns">
+            <tr>
+              <td>{{ri+1}}</td>
+              <td class="left-align" style="word-wrap: break-word;">{{rowData["projectName"]}}</td>
+              <td class="left-align">{{rowData["packageName"]}}</td>
+              <td class="left-align">{{rowData["contractName"]}}</td>
+              <td class="left-align">{{rowData["constructionName"]}}</td>
+              <td class="left-align">{{rowData["documentName"]}}</td>
+              <td>{{rowData["tinBoxQRCode"]}}</td>
+              <td class="left-align">{{rowData["tinBoxName"]}}</td>
+              <td>{{rowData["folderQRCode"]}}</td>
+              <td class="left-align">{{rowData["folderName"]}}</td>
+              <td class="left-align">{{rowData["warehouseName"]}}</td>
+              <td>{{rowData["position"]}}</td>
+              <td>{{rowData["positionQRCode"]}}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage" let-columns>
+            <tr>
+              <td [attr.colspan]="columns.length" style="text-align: center;">
+                Không có dữ liệu
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="paginatorright">
+            <span
+              style="position: absolute; right: 30px; bottom: 6px;">{{totalDocument == 0 ? 0 : (pageNumber-1)*pageSize +1}}
+              -
+              {{calculateEndOfPage()}}
+              / {{totalDocument}}</span>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+  </div>
+</div>

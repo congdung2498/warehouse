@@ -1,0 +1,43 @@
+p-table {
+    text-align: center;
+}
+
+:host>>>p-paginator>.ui-paginator-bottom>.ui-paginator-pages>a {
+    margin-left: 3px !important;
+    margin-right: 3px !important;
+}
+
+:host>>>div.errorMsg>p-table>.ui-table table {
+    width: unset;
+}
+
+.customIcon2 {
+    position: absolute;
+    top: 9px;
+    right: 22px;
+    cursor: pointer;
+    color: #848484;
+}
+
+.text-center {
+    margin: 0px auto;
+}
+
+:host>>>p-scrollpanel>.ui-scrollpanel {
+    margin-top: -28px !important;
+}
+
+:host>>>.no-border>div {
+    border: none;
+    overflow: unset !important;
+    width: 120%;
+}
+
+:host>>>div.ui-tree>ul.ui-tree-container {
+    overflow: unset;
+}
+
+:host>>>p-dialog>.ui-dialog>.ui-dialog-titlebar {
+    font-weight: 700;
+    font-size: 20px;
+}

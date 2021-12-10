@@ -1,0 +1,256 @@
+<div class="container-fluid text-center mt-3 mb-3">
+    <h1>YÊU CẦU ĐẶT XE</h1>
+</div>
+<!--<p-fieldset legend="Chi tiết đăng kí">-->
+<div class="container">
+    <div class="row">
+        <div class="col-xl-12 mb-2">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="row mb-2">
+
+                        <div class="col-sm-3" style="text-align: left">Đơn vị:</div>
+                        <div class="col-sm-9 ui-fluid">
+                            <label>{{unitName}}</label>
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-3" style="text-align: left">Người sử dụng:</div>
+                        <div class="col-sm-9 ui-fluid">
+                            <label>{{fullName}}</label>
+                        </div>
+                    </div>
+
+
+                    <div class="row mb-2">
+
+                        <div class="col-sm-3" style="text-align: left">Số điện thoại:</div>
+                        <div class="col-sm-9 ui-fluid">
+                            <label>{{phoneNumber}}</label>
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-3" style="text-align: left">Trạng thái:</div>
+                        <div class="col-sm-9 ui-fluid" *ngIf="copyInfo">
+                            <span style="color: red;">{{copyInfo.statusLabel}}</span>
+                        </div>
+
+                    </div>
+                    <div class="row col-sm-12 mb-2" style="margin-right:10px;"><b>Thông tin xe yêu cầu</b></div>
+
+                    <div class="row mb-2">
+
+                        <div class="row col-sm-6" style="margin-right:10px;">
+                            <label class="col-sm-6 ">Thời gian bắt đầu
+                                <span style="color: red;">*</span>:</label>
+                            <div class="col-sm-6 ui-fluid">
+                                <p-calendar #createStartTimeFld dateFormat="dd/mm/yy" placeholder="DD/MM/YYYY"
+                                            [(ngModel)]="startDate" [showIcon]="true"
+                                            showButtonBar="true" [locale]="vn" [monthNavigator]="true"
+                                            showTime="true"
+                                            [yearNavigator]="true" yearRange="2000:2030"></p-calendar>
+
+
+                            </div>
+                        </div>
+
+                        <div class="row col-sm-6" style="margin-right:10px;">
+                            <label class="col-sm-6 " style="padding-top :7px">Thời gian kết thúc
+                                <span style="color: red;">*</span>:</label>
+                            <div class="col-sm-6 ui-fluid">
+                                <p-calendar #createEndTimeFld dateFormat="dd/mm/yy" placeholder="DD/MM/YYYY" [(ngModel)]="endDate"
+                                            [showIcon]="true"
+                                            showButtonBar="true" [locale]="vn" [monthNavigator]="true"
+                                            showTime="true"
+                                            [yearNavigator]="true" yearRange="2000:2030"></p-calendar>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="row col-sm-6" style="margin-right:10px;">
+                            <label class="col-sm-6 " style="padding-top :7px">Đội xe
+                                <span style="color: red;">*</span>:</label>
+                            <div class="col-sm-6">
+                                <p-dropdown [options]="squadList" type="text" [style]="{'width': '100%'}"
+                                            disabled="true"
+                                            [(ngModel)]="teamCarName" optionLabel="squadName"></p-dropdown>
+                            </div>
+                        </div>
+
+                        <div class="row col-sm-6" style="margin-right:10px;">
+                            <label class="col-sm-6 " style="padding-top :7px">Loại hành trình
+                                <span style="color: red;">*</span>:</label>
+                            <div class="col-sm-6 ui-fluid">
+                                <p-dropdown [options]="routeWayList" type="text" [style]="{'width': '100%'}"
+                                            disabled="true"
+                                            [(ngModel)]="journey" optionLabel="journey"></p-dropdown>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="row col-sm-6" style="margin-right:10px;">
+                            <label class="col-sm-6 " style="padding-top :7px">Loại xe
+                                <span style="color: red;">*</span>:</label>
+                            <div class="col-sm-6 ui-fluid">
+                                <p-dropdown [options]="typeList" type="text" [style]="{'width': '100%'}"
+                                            value="Đăng ký mới" disabled="true" [(ngModel)]="carType"
+                                            optionLabel="type"></p-dropdown>
+                            </div>
+                        </div>
+                        <div class="row col-sm-6" style="margin-right:10px;">
+                            <label class="col-sm-6 " style="padding-top :7px">Số chỗ
+                                <span style="color: red;">*</span>:</label>
+                            <div class="col-sm-6 ui-fluid">
+                                <p-dropdown [options]="seatList" type="text" [style]="{'width': '100%'}"
+                                            value="Đăng ký mới" disabled="true" [(ngModel)]="seat"
+                                            optionLabel="seat"></p-dropdown>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="row mb-2">
+
+                        <div class="row col-sm-6" style="margin-right:10px;">
+                            <label class="col-sm-6 " style="padding-top :7px">Điểm khởi hành
+                                <span style="color: red;">*</span>:</label>
+                            <div class="col-sm-6 ui-fluid">
+                                <p-dropdown [options]="placeStartList" type="text"
+                                            [style]="{'width': '100%'}"
+                                            value="Đăng ký mới" disabled="true" [(ngModel)]="startPlace"
+                                            optionLabel="placeName"></p-dropdown>
+                            </div>
+                        </div>
+                        <div class="row col-sm-6" style="margin-right:10px;">
+                            <label class="col-sm-6" style="padding-top :7px">Điểm đến
+                                <span style="color: red;">*</span>:</label>
+                            <div class="col-sm-6 ui-fluid">
+                                <input type="text" [style]="{'width': '100%'}" pInputText
+                                       value="Đăng ký mới" style="font-weight: bold;" disabled="true"
+                                       [(ngModel)]="tagetPlace"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="row col-sm-12">
+                            <label class="col-sm-2 ">Tuyến đường
+                                <span style="color: red;">*</span>:</label>
+                            <div class="col-sm-12 ui-fluid" [style]="{'width': '100%'}">
+                                <textarea type="text" pInputTextarea [style]="{'width': '100%'}" disabled="true"
+                                          value="Đăng ký mới" [(ngModel)]="route"></textarea>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="row col-sm-12 mb-2" style="margin-right:10px;"><b>Thông tin sử dụng </b></div>
+                    <div class="row mb-2">
+
+                        <div class="row col-sm-6" style="margin-right:10px;">
+                            <div class="col-sm-6" style="text-align: left; padding-top: 5px;">Số người đi
+                                <span style="color: red;">*</span>:
+                            </div>
+
+                            <div class="col-sm-6 ui-fluid">
+                                <input type="text" pInputText
+                                       value="Đăng ký mới" disabled="true" [style]="{'width': '100%'}"
+                                       [(ngModel)]="numOfPassenger"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="row col-sm-12" style="margin-right:10px;">
+                            <label class="col-sm-6" style="text-align: left;">Nhân sự tham gia :</label>
+                            <div class="col-sm-12 ui-fluid">
+                                <textarea type="text" pInputTextarea [ngModelOptions]="{standalone: true}"
+                                          value="Đăng ký mới" disabled="true" [style]="{'width': '100%'}"
+                                          [(ngModel)]="listOfPassenger"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="row col-sm-12" style="margin-right:10px;">
+                            <label class="col-sm-6" style="text-align: left">Lý do sử dụng :</label>
+                            <div class="col-sm-12 ui-fluid">
+                                <textarea binary="true" pInputTextarea [(ngModel)]="reason"
+                                          disabled="true"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row col-sm-12 md-2" style="margin-right:10px;"><b>Người phê duyệt </b></div>
+                    <div class="row mb-2">
+                        <div class="row col-sm-12" style="margin-right:10px;">
+                            <div class="col-sm-3" style="text-align: left; padding-top: 7px;">Quản lí trực tiếp:
+                            </div>
+                            <div class="col-sm-4 ui-fluid">
+                                <p-dropdown [options]="appoverQlttByUserList" [style]="{'width': '100%'}"
+                                            [(ngModel)]="appoverQltt" optionLabel="fullName"
+                                            emptyFilterMessage="Không có dữ liệu"
+                                            filter="true" [showClear]="true" disabled="true"></p-dropdown>
+                            </div>
+                            <div class="col-sm-4 ui-fluid">
+                                <input type="text" class="ui-inputtext ui-widget ui-state-default ui-corner-all"
+                                       pInputText
+                                       [value]="STATUS_LABELS[flagQltt]" disabled="true"
+                                       [style]="{'width': '100%'}"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="row col-sm-12" style="margin-right:10px;">
+                            <div class="col-sm-3" style="text-align: left; padding-top: 7px;">Quản lí đơn vị
+                                <span style="color: red;">*</span>:
+                            </div>
+                            <div class="col-sm-4 ui-fluid">
+                                <p-dropdown [options]="appoverLddvByUserList" [style]="{'width': '100%'}"
+                                            [(ngModel)]="appoverLddv" optionLabel="fullName"
+                                            emptyFilterMessage="Không có dữ liệu"
+                                            filter="true" [showClear]="true" disabled="true"></p-dropdown>
+                            </div>
+                            <div class="col-sm-4 ui-fluid">
+                                <input type="text" pInputText
+                                       [value]="STATUS_LABELS[flagLddv]" disabled="true"
+                                       [style]="{'width': '100%'}"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-2">
+
+                        <div class="row col-sm-12" style="margin-right:10px;">
+                            <div class="col-sm-3" style="text-align: left; padding-top: 7px;">Phòng hành chính TCT:
+                            </div>
+                            <div class="col-sm-4 ui-fluid">
+                                <p-dropdown [options]="appoverCvpByUserList" [style]="{'width': '100%'}"
+                                            [(ngModel)]="appoverCvp" optionLabel="fullName"
+                                            emptyFilterMessage="Không có dữ liệu"
+                                            filter="true" [showClear]="true" disabled="true"></p-dropdown>
+                            </div>
+                            <div class="col-sm-4 ui-fluid">
+                                <input type="text" class="ui-inputtext ui-widget ui-state-default ui-corner-all"
+                                       pInputText
+                                       [value]="STATUS_LABELS[flagCvp]" disabled="true"
+                                       [style]="{'width': '100%'}"/>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="row mb-12">
+    <div class="col-sm-12" style="padding-left:0px">
+        <div style="text-align: center">
+            <button pButton label="Gia hạn" [style]="{'width': '100%'}" class="ui-button-info" (click)="renewal()"></button>
+        </div>
+    </div>
+</div>

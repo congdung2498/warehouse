@@ -1,0 +1,588 @@
+<div class="container">
+  <div class="container-fluid text-center mt-3">
+    <h1>DANH SÁCH ĐĂNG KÝ RA VÀO</h1>
+  </div>
+  <div class="row mb-3">
+    <div class="col-xl-12 mb-3">
+      <p-fieldset legend="Thông tin đăng ký">
+        <div class="row">
+          <div class="col-sm-7">
+            <div class="row" style="margin-left: 5px; margin-right:10px;">
+              <!-- status field -->
+              <div class="col-sm-12">
+                <div class="row mb-4">
+                  <div class="col-sm-2" style="text-align: left; padding-top: 5px;">Trạng thái:</div>
+                  <div class="col-sm-10 ui-fluid" style="position: relative;">
+                    <p-multiSelect #myDrop [options]="status" [(ngModel)]="selectedStatus" [filter]="false"
+                                   defaultLabel="-- Chọn trạng thái --" [displaySelectedLabel]="true" [maxSelectedLabels]="status.length"
+                                   (onPanelShow)="onShowStatusPanel()" (onPanelHide)="onHideStatusPanel() " (onChange)=onChangeStatus()>
+                      <ng-template let-item pTemplate="item">
+                        <span>{{item.label}}</span>
+                      </ng-template>
+                    </p-multiSelect>
+                    <div class="customDiv" [@animation]="isShowCheckAllStatus">{{textShow}}</div>
+                  </div>
+                </div>
+              </div>
+              <!-- date field -->
+              <div class="col-sm-12">
+                <div class="row mb-4">
+                  <div class="col-sm-2" style="text-align: left; padding-top: 5px;">Ngày ra:</div>
+                  <div class="col-sm-10">
+                    <div class="row">
+                      <div class="col-sm-6">
+                        <div class="row">
+                          <div class="col-sm-12 ui-fluid" style="position: relative; max-width: 97%;">
+                            <p-calendar dateFormat="dd/mm/yy" placeholder="DD/MM/YYYY" [(ngModel)]="fromDate"
+                                        [showIcon]="true" [readonlyInput]="true" showButtonBar="true" [locale]="vn"
+                                        [monthNavigator]="true" [yearNavigator]="true" yearRange="2000:2030" ></p-calendar>
+                            <span *ngIf="fromDate != null" class="customIcon pi pi-times" (click)="clearFromDate()"></span>
+                            <span class="fa fa-minus" style="position: absolute; top: 11px; right: -12px; color: #848484"></span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-sm-6">
+                        <div class="row">
+                          <div class="col-sm-12 ui-fluid" style="position: relative; max-width: 97%; padding-right: 14px !important;">
+                            <p-calendar dateFormat="dd/mm/yy" placeholder="DD/MM/YYYY" [(ngModel)]="toDate" [showIcon]="true"
+                                        [readonlyInput]="true" showButtonBar="true" [locale]="vn" [monthNavigator]="true"
+                                        [yearNavigator]="true" yearRange="2000:2030"></p-calendar>
+                            <span *ngIf="toDate != null" class="customIcon pi pi-times" (click)="clearToDate()"></span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- employee field -->
+              <div class="col-sm-12">
+                <div class="row">
+                  <div class="col-sm-2" style="text-align: left; padding-top: 5px;">Người ra:</div>
+                  <div class="col-sm-10 ui-fluid" style="position: relative;">
+                    <p-autoComplete #employeeFld (completeMethod)="onSearchEmployee($event)" [suggestions]="employees" [(ngModel)]="selectedEmployee"
+                                    field="fullName" [disabled]="isDisableEmployeeFld" placeholder="VD: NV001, Nguyen Van A, ang@..."
+                                    (keypress)="onKeyUpEmployee($event)"></p-autoComplete>
+                  </div>
+                </div>
+              </div>
+
+              <!--barcode field-->
+              <div class="col-sm-12" *ngIf="isSecurity || isAdmin">
+                <div class="row mt-4">
+                  <div class="col-sm-2" style="text-align: left; padding-top: 5px;">Barcode:</div>
+                  <div class="col-sm-10 ui-fluid" style="position: relative;">
+                    <input #barcodeInput autofocus  type="text" [style]="{'width': '100%'}"  pInputText (keyup)="onFindByCode()" (blur)="clearBarcode()"
+                           value="barcode" style="font-weight: bold;" [(ngModel)]="barcode"/>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+          <div class="col-sm-5" style="margin-top: -45px;">
+            <div class="col-sm-12 ui-fluid">
+              <p-fieldset legend="Đơn vị" [style]="{'height': '220px'}">
+                <div *ngIf="employeeUnit != null; else treeUnit">
+                  <span style="font-weight: bold;">{{employeeUnit}}</span>
+                </div>
+                <ng-template #treeUnit>
+                  <p-scrollPanel [style]="{width: '100%', height: '165px'}">
+                    <p-tree [value]="unitSelectors" selectionMode="checkbox" [(selection)]="selectedUnits" (onNodeExpand)="nodeExpand($event)"
+                            class="no-border"></p-tree>
+                  </p-scrollPanel>
+                </ng-template>
+              </p-fieldset>
+            </div>
+          </div>
+        </div>
+      </p-fieldset>
+    </div>
+    <div class="col-xl-12">
+      <div class="text-center">
+        <button type="button" pButton icon="fa fa-search" label="Tìm kiếm" (click)="onSearchChecking()" style="text-align: center;"></button>
+        <button type="button" pButton icon="fa fa-refresh" label="Làm mới" (click)="onResetSearching()" style="text-align: center;"></button>
+        <button type="button" pButton icon="fa fa-file-excel-o" label="Xuất file" (click)="exportToExcel()" style="text-align: center;"></button>
+        <button *ngIf="!isSecurity" type="button" pButton icon="fa fa-plus" iconPos="left" label="Thêm"  (click)="onShowDialog()" style="text-align: center;"></button>
+        <button *ngIf="isShowApproveBtn" type="button" pButton icon="fa fa-check" iconPos="left" label="Phê duyệt" style="text-align: center;"
+                (click)="onShowConfirmApprove()"></button>
+      </div>
+    </div>
+  </div>
+  <!-- create table -->
+  <div class="row">
+    <div class="col-xl-12">
+      <!-- if has data -->
+      <p-table #myTable [value]="checkings" [lazy]="true" (onPage)="onPaginate($event)" [paginator]="true" [rows]="10" [totalRecords]="totalRecords">
+        <ng-template pTemplate="header">
+          <tr style="font-weight: bold;">
+            <th rowspan="2" style="width: 3rem; font-weight: bold;">TT</th>
+            <th *ngIf="isShowApproveChk" rowspan="2" style="width: 3rem; font-weight: bold;">
+              <p-checkbox (onChange)="checkAll($event)" [(ngModel)]="isCheckAll" binary="true"></p-checkbox>
+            </th>
+            <th rowspan="2" style="width: 6rem; font-weight: bold;">Thao tác</th>
+            <th rowspan="2" style="width: 5rem; font-weight: bold;">Mã nhân viên</th>
+            <th rowspan="2" style="width: 8rem; font-weight: bold;">Tên nhân viên</th>
+            <th rowspan="2" style="width: 7rem; font-weight: bold;">Email</th>
+            <th rowspan="2" style="width: 7rem; font-weight: bold;">Đơn vị</th>
+            <th rowspan="2" style="width: 6rem; font-weight: bold;">Ngày ra</th>
+            <th colspan="2" style="width: 8rem; font-weight: bold;">Thời gian đăng ký ra vào</th>
+            <th colspan="2" style="width: 8rem; font-weight: bold;">Thời gian ra vào thực tế</th>
+            <th rowspan="2" style="width: 8rem; font-weight: bold;">Trạng thái</th>
+          </tr>
+          <tr>
+            <th style="font-weight: bold;">Từ</th>
+            <th style="font-weight: bold;">Đến</th>
+            <th style="font-weight: bold;">Từ</th>
+            <th style="font-weight: bold;">Đến</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td [attr.colspan]="13">
+              Không có dữ liệu
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template let-ri="rowIndex" pTemplate="body" let-item>
+          <tr>
+            <td style="width: 3rem; padding: 2px 1.5px !important;">{{ri+1}}</td>
+            <td *ngIf="isShowApproveChk">
+              <p-checkbox *ngIf="item.isApprove" value="{{item.inOutRegisterId}}" [(ngModel)]="selectedCheckingIds"
+                          (onChange)="onCheckChecking(item, $event)"></p-checkbox>
+            </td>
+            <td >
+              <p-button *ngIf="item.isEdit" icon="fa fa-pencil" (onClick)="onEditChecking(item)" pTooltip="Chỉnh sửa"></p-button>
+              <p-button *ngIf="item.isMoreTime" icon="fa fa-clock-o" (onClick)="onAddMoreTimeChecking(item)" pTooltip="Gia hạn"></p-button>
+              <p-button *ngIf="item.isCopy" icon="fa fa-copy" (onClick)="onShowDetailForCopy(item)" pTooltip="Copy"></p-button>
+            </td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="item.empCode" style="width: 5rem; text-align: left !important;">
+              {{item.empCode}}
+            </td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="item.empName" style="width: 8rem; text-align: left !important;">
+              {{item.empName}}
+            </td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="item.empEmail" style="width: 7rem; text-align: left !important;">
+              {{item.empEmail}}
+            </td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="item.detailUnit" style="width: 7rem; text-align: left !important;">
+              {{item.unitName}}
+            </td>
+            <td style="width: 6rem">{{item.startTimeByPlan | date: 'dd/MM/yyyy'}}</td>
+            <td style="width: 4rem">{{item.startTimeByPlan | date: 'HH:mm'}}</td>
+            <td style="width: 4rem">{{item.endTimeByPlan | date: 'HH:mm'}}</td>
+            <td style="width: 4rem">{{item.startTimeByActual | date: 'HH:mm'}}</td>
+            <td style="width: 4rem">{{item.endTimeByActual | date: 'HH:mm'}}</td>
+
+            <td *ngIf="isSecurity && (item.status === 1 || item.status === 3); else notApprove">
+              <button *ngIf="item.status === 1 && item.isLate === 0" class="wrapText" pTextEllipsis
+                      type="button" pButton label="Cho ra" (click)="onShowCheckingForInOut(item)"
+                      style="text-align: center;"></button>
+              <button *ngIf="item.status === 3" class="wrapText" pTextEllipsis
+                      type="button" pButton label="Cho vào" (click)="onShowCheckingForInOut(item)"
+                      style="text-align: center;"></button>
+              <button *ngIf="item.status === 1 && item.isLate === 1" class="wrapText" pTextEllipsis
+                      type="button" pButton label="Cho vào" (click)="onShowCheckingForInOut(item)"
+                      style="text-align: center;"></button>
+            </td>
+
+            <ng-template #notApprove>
+              <td class="wrapText" pTextEllipsis [pTooltip]="statusLabels[item.status]" style="width: 8rem; text-align: left !important;">
+                {{statusLabels[item.status]}}
+              </td>
+            </ng-template>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="paginatorright">
+            <span style="position: absolute; right: 30px; bottom: 6px;">
+              {{startRow}} - {{rowSize}} / {{totalRecords}}
+            </span>
+        </ng-template>
+      </p-table>
+      <!-- image -->
+      <p-overlayPanel #op1>
+        <!--<img alt="{{altEmp}}" style="height: 301px;" />-->
+      </p-overlayPanel>
+    </div>
+  </div>
+  <!-- modal create checking -->
+  <p-dialog [modal]="true" [width]="1000" [(visible)]="isShowDialog">
+    <p-header>
+      Đăng ký vào ra
+    </p-header>
+    <div class="container">
+      <div class="row">
+        <div class="col-xl-12 mb-2">
+          <div class="row">
+            <div class="col-sm-8">
+              <div class="row mb-2">
+                <div class="row col-sm-12" style="margin-right:10px;">
+                  <div class="col-sm-3" style="text-align: left; padding-top: 5px;">Mã NV:</div>
+                  <div class="col-sm-9 ui-fluid">
+                    <input type="text" class="ui-inputtext ui-widget ui-state-default ui-corner-all" pInputText
+                           [value]="employeeInfo.code" disabled="true" />
+                  </div>
+                </div>
+              </div>
+              <div class="row mb-2">
+                <div class="row col-sm-12" style="margin-right:10px;">
+                  <div class="col-sm-3" style="text-align: left; padding-top: 5px;">Tên NV:</div>
+                  <div class="col-sm-9 ui-fluid">
+                    <input type="text" class="ui-inputtext ui-widget ui-state-default ui-corner-all" pInputText
+                           [value]="employeeInfo.fullName" disabled="true" />
+                  </div>
+                </div>
+              </div>
+              <div class="row mb-2">
+                <div class="row col-sm-12" style="margin-right:10px;">
+                  <div class="col-sm-3" style="text-align: left; padding-top: 5px;">Email:</div>
+                  <div class="col-sm-9 ui-fluid">
+                    <input type="text" class="ui-inputtext ui-widget ui-state-default ui-corner-all" pInputText
+                           [value]="employeeInfo.email" disabled="true" />
+                  </div>
+                </div>
+              </div>
+              <div class="row mb-2">
+                <div class="row col-sm-12" style="margin-right:10px;">
+                  <div class="col-sm-3" style="text-align: left; padding-top: 5px;">SĐT:</div>
+                  <div class="col-sm-9 ui-fluid">
+                    <input type="text" class="ui-inputtext ui-widget ui-state-default ui-corner-all" pInputText
+                           [value]="employeeInfo.phoneNumber" disabled="true" />
+                  </div>
+                </div>
+              </div>
+              <div class="row mb-2">
+                <div class="row col-sm-12" style="margin-right:10px;">
+                  <div class="col-sm-3" style="text-align: left; padding-top: 5px;">Chức vụ:</div>
+                  <div class="col-sm-9 ui-fluid">
+                    <input type="text" class="ui-inputtext ui-widget ui-state-default ui-corner-all" pInputText
+                           [value]="employeeInfo.title" disabled="true" />
+                  </div>
+                </div>
+              </div>
+              <div class="row mb-2">
+                <div class="row col-sm-12" style="margin-right:10px;">
+                  <div class="col-sm-3" style="text-align: left; padding-top: 5px;">Đơn vị:</div>
+                  <div class="col-sm-9 ui-fluid">
+                    <input type="text" class="ui-inputtext ui-widget ui-state-default ui-corner-all" pInputText
+                           [value]="employeeInfo.unitName" disabled="true" />
+                  </div>
+                </div>
+              </div>
+              <div class="row mb-2">
+                <div class="row col-sm-12" style="margin-right:10px;">
+                  <div class="col-sm-3" style="text-align: left; padding-top: 5px;">Trạng thái:</div>
+                  <div class="col-sm-9 ui-fluid">
+                    <input type="text" class="ui-inputtext ui-widget ui-state-default ui-corner-all" pInputText
+                           value="Đăng ký mới" disabled="true" style="font-weight: bold; color: red" />
+                  </div>
+                </div>
+              </div>
+              <div class="row mb-2">
+                <div class="row col-sm-12" style="margin-right:10px;">
+                  <div class="col-sm-3" style="text-align: left; padding-top: 5px;">Xin vào muộn:</div>
+                  <div class="col-sm-9 ui-fluid">
+                    <p-checkbox [(ngModel)]="isCheckedLate" binary="true"></p-checkbox>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-4 ui-fluid">
+              <img [src]="imageData" style="height: 301px;" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-12">
+          <div class="row mb-3">
+            <div class="col-sm-2" style="text-align: left; padding-top: 5px;">
+              Nơi đến<span style="color: red;">*</span>:
+            </div>
+            <div class="col-sm-10 ui-fluid" style="margin-left: -10px;">
+              <p-dropdown #createPlaceFld tabindex="1" [options]="places" optionLabel="codeName" [filter]="true" [style]="{'width': '100%'}"
+                          [(ngModel)]="selectedPlace" placeholder="Chọn nơi đến">
+              </p-dropdown>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-sm-2" style="text-align: left; padding-top: 5px;">
+              Lý do đăng ký<span style="color: red;">*</span>:
+            </div>
+            <div class="col-sm-10 ui-fluid" style="margin-left: -10px;">
+              <p-dropdown #createReasonFld tabindex="2" [options]="reasons" optionLabel="codeName" [filter]="true" [style]="{'width': '100%'}"
+                          [(ngModel)]="selectedReason" placeholder="Chọn lý do">
+              </p-dropdown>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-sm-2" style="text-align: left; padding-top: 5px;">
+              Lý do chi tiết:
+              <br>(Tối đa 255 ký tự)
+            </div>
+            <div class="col-sm-10 ui-fluid" style="margin-left: -10px;">
+              <textarea tabindex="3" (change)="onChangeCreateTrimming()" (keypress)="onKeypressCreateTrimming($event)"
+                        class="ng-tns-c20-142 ng-pristine ng-valid ui-inputtext ui-corner-all ui-state-default ui-widget ng-touched"
+                        pInputTextarea maxLength="255" [(ngModel)]="checking.reasonDetail"></textarea>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-sm-2" style="text-align: left; padding-top: 5px;">
+              Người đi cùng:
+            </div>
+            <div class="col-sm-10 ui-fluid" style="margin-left: -10px;">
+              <p-autoComplete #createWithEmployeeFld tabindex="4" [(ngModel)]="selectedWithEmployees" [suggestions]="employees" (completeMethod)="onSearchEmployee($event)"
+                              [minLength]="2" placeholder="Mã NV, Tên, Email, SĐT" field="fullName" [multiple]="true"
+                              (onSelect)="onSelectWithEmployee($event)" inputStyleClass="ui-inputtext">
+              </p-autoComplete>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-sm-2" style="text-align: left; padding-top: 5px;">
+              Thời gian đăng ký<span style="color: red;">*</span>:
+            </div>
+            <div class="col-sm-10">
+              <div class="row">
+                <div class="col-sm-3" style="margin-left: -10px;">
+                  <div class="row">
+                    <div style="position: relative;" class="col-sm-12 ui-fluid">
+                      <p-calendar #createStartTimeFld tabindex="5" dateFormat="dd/mm/yy" showTime="true" hourFormat="24" [locale]="vn" [showIcon]="true"
+                                  [(ngModel)]="checking.startTimeByPlan" [minDate]="minDate"></p-calendar>
+                      <span class="fa fa-minus" style="position: absolute; top: 12px; right: -7px; color: #848484"></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-sm-3">
+                  <div class="row">
+                    <div style="position: relative; margin-left: 2px;" class="col-sm-12 ui-fluid">
+                      <p-calendar #createEndTimeFld tabindex="6" dateFormat="dd/mm/yy" showTime="true" hourFormat="24" [locale]="vn" [showIcon]="true"
+                                  [(ngModel)]="checking.endTimeByPlan" [minDate]="minDate"></p-calendar>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-sm-2" style="text-align: left; padding-top: 5px;">
+              Người phê duyệt<span style="color: red;">*</span>:
+            </div>
+            <div class="col-sm-10 ui-fluid" style="margin-left: -10px;">
+              <p-autoComplete #createApproverFld tabindex="7" [(ngModel)]="selectedApprove" [suggestions]="employees" (completeMethod)="onSearchManagerEmployee($event)"
+                              [minLength]="2" placeholder="Mã NV, Tên, Email, SĐT" field="fullName">
+              </p-autoComplete>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-12">
+          <div style="text-align: right; margin-right: 10px;">
+            <button type="button" tabindex="8" pButton label="Gửi đăng ký" (click)="onCreateChecking()" style="text-align: center;"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </p-dialog>
+
+  <!-- modal update checking-->
+  <p-dialog [modal]="true" [width]="1000" [(visible)]="isShowUpdateDialog" (onHide)="onHideEditDialog()" [contentStyle]="isCheckingEarlyOrLate">
+    <p-header>
+      {{fieldSetTitle}}
+    </p-header>
+    <div class="container">
+      <div class="row">
+        <div class="col-xl-12 mb-2">
+          <div class="row">
+            <div class="col-sm-8">
+              <div class="row mb-2">
+                <div class="row col-sm-12" style="margin-right:10px;">
+                  <div class="col-sm-3" style="text-align: left; padding-top: 5px;">Mã NV:</div>
+                  <div class="col-sm-9 ui-fluid">
+                    <input type="text" class="ui-inputtext ui-widget ui-state-default ui-corner-all" pInputText [ngStyle]="isCheckingEarlyOrLateInput"
+                           [value]="selectedChecking.empCode" disabled="true" />
+                  </div>
+                </div>
+              </div>
+              <div class="row mb-2">
+                <div class="row col-sm-12" style="margin-right:10px;">
+                  <div class="col-sm-3" style="text-align: left; padding-top: 5px;">Tên NV:</div>
+                  <div class="col-sm-9 ui-fluid">
+                    <input type="text" class="ui-inputtext ui-widget ui-state-default ui-corner-all" pInputText [ngStyle]="isCheckingEarlyOrLateInput"
+                           [value]="selectedChecking.empName" disabled="true" />
+                  </div>
+                </div>
+              </div>
+              <div class="row mb-2">
+                <div class="row col-sm-12" style="margin-right:10px;">
+                  <div class="col-sm-3" style="text-align: left; padding-top: 5px;">Email:</div>
+                  <div class="col-sm-9 ui-fluid">
+                    <input type="text" class="ui-inputtext ui-widget ui-state-default ui-corner-all" pInputText [ngStyle]="isCheckingEarlyOrLateInput"
+                           [value]="selectedChecking.empEmail" disabled="true" />
+                  </div>
+                </div>
+              </div>
+              <div class="row mb-2">
+                <div class="row col-sm-12" style="margin-right:10px;">
+                  <div class="col-sm-3" style="text-align: left; padding-top: 5px;">SĐT:</div>
+                  <div class="col-sm-9 ui-fluid">
+                    <input type="text" class="ui-inputtext ui-widget ui-state-default ui-corner-all" pInputText [ngStyle]="isCheckingEarlyOrLateInput"
+                           [value]="selectedChecking.empPhone" disabled="true" />
+                  </div>
+                </div>
+              </div>
+              <div class="row mb-2">
+                <div class="row col-sm-12" style="margin-right:10px;">
+                  <div class="col-sm-3" style="text-align: left; padding-top: 5px;">Chức vụ:</div>
+                  <div class="col-sm-9 ui-fluid">
+                    <input type="text" class="ui-inputtext ui-widget ui-state-default ui-corner-all" pInputText [ngStyle]="isCheckingEarlyOrLateInput"
+                           [value]="selectedChecking.empTitle" disabled="true" />
+                  </div>
+                </div>
+              </div>
+              <div class="row mb-2">
+                <div class="row col-sm-12" style="margin-right:10px;">
+                  <div class="col-sm-3" style="text-align: left; padding-top: 5px;">Đơn vị:</div>
+                  <div class="col-sm-9 ui-fluid">
+                    <input type="text" class="ui-inputtext ui-widget ui-state-default ui-corner-all" pInputText [ngStyle]="isCheckingEarlyOrLateInput"
+                           [value]="selectedChecking.detailUnit" disabled="true" />
+                  </div>
+                </div>
+              </div>
+              <div class="row mb-2">
+                <div class="row col-sm-12" style="margin-right:10px;">
+                  <div class="col-sm-3" style="text-align: left; padding-top: 5px;">Trạng thái:</div>
+                  <div class="col-sm-9 ui-fluid">
+                    <input type="text" class="ui-inputtext ui-widget ui-state-default ui-corner-all" pInputText [ngStyle]="isCheckingEarlyOrLateInput"
+                           [value]="statusLabel" disabled="true" style="font-weight: bold; color: red" />
+                  </div>
+                </div>
+              </div>
+              <div class="row mb-2">
+                <div class="row col-sm-12" style="margin-right:10px;">
+                  <div class="col-sm-3" style="text-align: left; padding-top: 5px;">Xin vào muộn:</div>
+                  <div class="col-sm-9 ui-fluid">
+                    <p-checkbox [(ngModel)]="isCheckedLate" binary="true" [disabled]="!isEdit" [ngStyle]="isCheckingEarlyOrLateInput"></p-checkbox>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-4 ui-fluid">
+              <img [src]="imageData" style="height: 301px;" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-12">
+          <div class="row mb-3">
+            <div class="col-sm-2" style="text-align: left; padding-top: 5px;">
+              Nơi đến<span style="color: red;">*</span>:
+            </div>
+            <div class="col-sm-10 ui-fluid" style="margin-left: -10px;">
+              <p-dropdown #updatePlaceFld tabindex="1" [options]="places" optionLabel="codeName" [filter]="true"  [style]="isCheckingEarlyOrLateInput"
+                          [(ngModel)]="selectedPlace" placeholder="Chọn nơi đến" [disabled]="!isEdit">
+              </p-dropdown>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-sm-2" style="text-align: left; padding-top: 5px;">
+              Lý do đăng ký<span style="color: red;">*</span>:
+            </div>
+            <div class="col-sm-10 ui-fluid" style="margin-left: -10px;">
+              <p-dropdown #updateReasonFld tabindex="2" [options]="reasons" optionLabel="codeName" [filter]="true"  [style]="isCheckingEarlyOrLateInput"
+                          [(ngModel)]="selectedReason" placeholder="Chọn lý do" [disabled]="!isEdit">
+              </p-dropdown>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-sm-2" style="text-align: left; padding-top: 5px;">
+              Lý do chi tiết:
+              <br>(Tối đa 255 ký tự)
+            </div>
+            <div class="col-sm-10 ui-fluid" style="margin-left: -10px;">
+              <textarea class="ng-tns-c20-142 ng-pristine ng-valid ui-inputtext ui-corner-all ui-state-default ui-widget ng-touched"
+                        pInputTextarea maxLength="255" [(ngModel)]="editReasonDetailFld" [disabled]="!isEdit" [ngStyle]="isCheckingEarlyOrLateInput"></textarea>
+            </div>
+          </div>
+          <div *ngIf="selectedChecking.status != 3 && selectedChecking.status != 1 && selectedChecking.status != 5" class="row mb-3">
+            <div class="col-sm-2" style="text-align: left; padding-top: 5px;">
+              Người đi cùng:
+            </div>
+            <div class="col-sm-10 ui-fluid" style="margin-left: -10px;">
+              <p-autoComplete #withEmployeeFld tabindex="3" [(ngModel)]="selectedWithEmployees" [suggestions]="employees" (completeMethod)="onSearchEmployee($event)"
+                              [minLength]="2" placeholder="Mã NV, Tên, Email, SĐT" field="fullName" [multiple]="true" [inputStyle]="isCheckingEarlyOrLateInput"
+                              (onSelect)="onSelectWithEmployee($event)" [disabled]="!isEdit" inputStyleClass="ui-inputtext">
+              </p-autoComplete>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-sm-2" style="text-align: left; padding-top: 5px;">
+              Thời gian đăng ký<span style="color: red;">*</span>:
+            </div>
+            <div class="col-sm-10">
+              <div class="row">
+                <div class="col-sm-3" style="margin-left: -10px;">
+                  <div class="row">
+                    <div style="position: relative;" class="col-sm-12 ui-fluid">
+                      <p-calendar #updateStartTimeFld tabindex="4" dateFormat="dd/mm/yy" showTime="true" hourFormat="24" [locale]="vn" [showIcon]="true" [inputStyle]="isCheckingEarlyOrLateInput"
+                                  [(ngModel)]="editStartTimeByPlan" [disabled]="isDisableStartTime" [minDate]="minDate"></p-calendar>
+                      <span class="fa fa-minus" style="position: absolute; top: 12px; right: -7px; color: #848484"></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-sm-3">
+                  <div class="row">
+                    <div style="position: relative; margin-left: 2px;" class="col-sm-12 ui-fluid">
+                      <p-calendar #updateEndTimeFld tabindex="5" dateFormat="dd/mm/yy" showTime="true" hourFormat="24" [locale]="vn" [showIcon]="true" [inputStyle]="isCheckingEarlyOrLateInput"
+                                  [(ngModel)]="editEndTimeByPlan" [disabled]="!isMoreTime" [minDate]="minDate"></p-calendar>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-sm-2" style="text-align: left; padding-top: 5px;">
+              Người phê duyệt<span style="color: red;">*</span>:
+            </div>
+            <div class="col-sm-10 ui-fluid" style="margin-left: -10px;">
+              <p-autoComplete #updateApproverFld tabindex="6" [(ngModel)]="selectedApprove" [suggestions]="employees" (completeMethod)="onSearchManagerEmployee($event)" [inputStyle]="isCheckingEarlyOrLateInput"
+                              [minLength]="2" placeholder="Mã NV, Tên, Email, SĐT" field="fullName" [disabled]="!isEdit" >
+              </p-autoComplete>
+            </div>
+          </div>
+          <div *ngIf="isShowReasonOfGuard" class="row mb-3">
+            <div class="col-sm-2" style="text-align: left; padding-top: 5px;">
+              Ghi chú:
+              <br>(Tối đa 255 ký tự)
+            </div>
+            <div class="col-sm-10 ui-fluid" style="margin-left: -10px;">
+              <textarea tabindex="7" class="ng-tns-c20-142 ng-pristine ng-valid ui-inputtext ui-corner-all ui-state-default ui-widget ng-touched"
+                        pInputTextarea maxLength="255" [(ngModel)]="editReasonOfApproverFld" [disabled]="isDisableReasonOfGuard"
+                        (change)="onChangeUpdateTrimming()" (keypress)="onKeypressUpdateTrimming($event)"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-12">
+          <div style="text-align: right; margin-right: 10px;">
+            <button *ngIf="isCopy" tabindex="8" type="button" pButton label="Tạo mới" (click)="onCopy()" style="text-align: center;"></button>
+            <button *ngIf="isEdit && isShowUpdateButton" tabindex="8" type="button" pButton label="Cập nhật" (click)="onUpdateChecking()" style="text-align: center;"></button>
+            <button *ngIf="isMoreTime && !isEdit && isShowAddMoreTimeButton" tabindex="9" type="button" pButton label="Gia hạn" (click)="onUpdateAddMoreTime()" style="text-align: center;"></button>
+
+            <button *ngIf="isApprove" tabindex="10" [ngClass]=" isCheckingEarlyOrLate.color ? 'ui-button-secondary':'ui-button-danger'"  type="button" pButton label="Từ chối" (click)="onGuardApprove()" style="text-align: center;"></button>
+            <button *ngIf="isApprove" tabindex="11" type="button" pButton label="Phê duyệt" (click)="onUpdateApprove()" style="text-align: center;"></button>
+
+            <button *ngIf="isGetIn" tabindex="12" [ngClass]="isCheckingEarlyOrLate.color ? 'ui-button-secondary':'ui-button-danger'" type="button" pButton label="Từ chối" (click)="onGuardApprove()" style="text-align: center;"></button>
+            <button *ngIf="isGetIn" tabindex="13" type="button" pButton label="Cho vào" (click)="onUpdateApprove()" style="text-align: center;"></button>
+
+            <button *ngIf="isGetOut" tabindex="14" [ngClass]="isCheckingEarlyOrLate.color ? 'ui-button-secondary':'ui-button-danger'"  type="button" pButton label="Từ chối" (click)="onGuardApprove()" style="text-align: center;"></button>
+            <button *ngIf="isGetOut" tabindex="15" type="button" pButton label="Cho ra" (click)="onUpdateApprove()" style="text-align: center;"></button>
+
+            <button *ngIf="isLateOut" tabindex="16" class="ui-button-warning" type="button" pButton label="Đã quá hạn" [disabled]="true" style="text-align: center;"></button>
+            <button *ngIf="isEarlyOut" tabindex="17" class="ui-button-warning" type="button" pButton label="Chưa  tới giờ ra" [disabled]="true" style="text-align: center;"></button>
+            <button *ngIf="isEarlyDay" tabindex="17" class="ui-button-warning" type="button" pButton label="Chưa  tới ngày duyệt" [disabled]="true" style="text-align: center;"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </p-dialog>
+</div>

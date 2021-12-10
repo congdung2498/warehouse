@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt01.vt010002.dao.VT010002DAO">
+<update id="inOutRegisterUpdate" parameterType="java.util.HashMap">
+	UPDATE IN_OUT_REGISTER
+	SET
+		<!-- chinh sua ban ghi -->
+		<if test="status == 0 ">
+	<!-- 	EMPLOYEE_USER_NAME = #{employeeUserName}, -->
+		DESTINATION = #{requestParam.destination},
+		REASON_REGISTION = #{requestParam.reasonRegistion},
+		REASON_DETAIL = #{requestParam.reasonDetail},
+		START_TIME_BY_PLAN = #{requestParam.startTimeByPlan},
+		END_TIME_BY_PLAN = #{requestParam.endTimeByPlan},
+		APPROVER_USER_NAME = #{requestParam.approverUserName},
+		UPDATE_USER = #{userName},
+		UPDATE_DATE = #{timeNow},
+		<!-- them danh sach nguoi di cung -->
+		IN_OUT_EMPLOYEE_LIST = #{requestParam.inOutEmployeeList}
+		</if>
+		
+		<!-- gia han ban ghi -->
+		<if test="status == 1 or status == 3">
+		
+		LOG_TO_ROLLBACK_STATUS = STATUS,
+		LOG_TO_ROLLBACK_START_TIME_BY_PLAN = START_TIME_BY_PLAN,
+		LOG_TO_ROLLBACK_END_TIME_BY_PLAN = END_TIME_BY_PLAN,
+		START_TIME_BY_PLAN = #{requestParam.startTimeByPlan},
+		END_TIME_BY_PLAN = #{requestParam.endTimeByPlan},
+		STATUS = 5,
+		UPDATE_USER = #{userName},
+		UPDATE_DATE = #{timeNow}
+		</if>
+		
+			<!-- chinh sua ban ghi da gia han -->
+		<if test="status == 5 ">
+		START_TIME_BY_PLAN = #{requestParam.startTimeByPlan},
+		END_TIME_BY_PLAN = #{requestParam.endTimeByPlan},
+		UPDATE_USER = #{userName},
+		UPDATE_DATE = #{timeNow}
+		</if>
+		
+		WHERE	IN_OUT_REGISTER_ID = #{requestParam.inOutRegisterId}
+	
+	
+	</update>	
+	
+	<!-- checkStatusUpdate -->
+	<select id="checkStatusRecordUpdate" parameterType="com.viettel.vtnet360.vt01.vt010002.entity.VT010002EntityRqUpdate" resultType='int'>
+
+	SELECT
+		STATUS
+	FROM
+		IN_OUT_REGISTER
+	WHERE IN_OUT_REGISTER_ID = #{inOutRegisterId};
+	
+	</select>	
+	
+	<!-- findOldTimePlan -->
+	<resultMap id="resultDataFindOldTime"
+		type="com.viettel.vtnet360.vt01.vt010002.entity.VT010002EntityRqUpdate">
+		<result property="oldStartTimeByPlan" column="START_TIME_BY_PLAN" />
+		<result property="oldEndTimeByPlan" column="END_TIME_BY_PLAN" />
+	</resultMap>
+	
+	<select id="findOldTimePlan" parameterType="String" resultMap="resultDataFindOldTime">
+
+	SELECT
+		START_TIME_BY_PLAN,END_TIME_BY_PLAN
+	FROM
+		IN_OUT_REGISTER
+	WHERE IN_OUT_REGISTER_ID = #{inOutRegisterId};
+	
+	</select>	
+	
+	
+	<!-- check valid extend in out regiter -->
+	<select id="isValid" parameterType="java.util.Map" resultType="java.util.Map" >
+	
+	SELECT
+	IN_OUT_REGISTER_ID,
+	EMPLOYEE_USER_NAME,
+	DESTINATION,
+	REASON_REGISTION,
+	REASON_DETAIL,
+	START_TIME_BY_PLAN,
+	END_TIME_BY_PLAN,
+	START_TIME_BY_ACTUAL,
+	END_TIME_BY_ACTUAL,
+	APPROVER_USER_NAME,
+	STATUS,
+	LOG_TO_ROLLBACK_STATUS,
+	LOG_TO_ROLLBACK_START_TIME_BY_PLAN,
+	LOG_TO_ROLLBACK_END_TIME_BY_PLAN,
+	GUARD_OUT_USER_NAME,
+	GUARD_IN_USER_NAME,
+	REASON_OF_APPROVER,
+	REASON_OF_GUARD,
+	CREATE_USER,
+	CREATE_DATE,
+	UPDATE_USER,
+	UPDATE_DATE
+FROM
+	IN_OUT_REGISTER
+WHERE
+
+(
+	CASE  WHEN ( IN_OUT_REGISTER_ID = #{requestParam.inOutRegisterId} ) THEN 0 
+    ELSE 1
+    END  
+)
+
+AND
+
+	( EMPLOYEE_USER_NAME = #{userName} )
+	
+AND
+
+	(  ( STATUS = 1 )
+	OR ( STATUS = 3 ) OR ( STATUS = 0 )
+	OR ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 1 )
+	OR ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 3 ) 
+	)
+	
+AND ( 
+	
+	
+	   	 (
+	   
+	   	 #{requestParam.startTimeByPlan}
+	   
+	  	 BETWEEN 
+
+	   	             ( CASE  WHEN ( STATUS =1 OR STATUS = 3 OR STATUS = 0 ) THEN START_TIME_BY_PLAN 
+    	    				 WHEN ( ( ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 1 )  OR ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 3 ) ) AND START_TIME_BY_PLAN <![CDATA[<=]]> LOG_TO_ROLLBACK_START_TIME_BY_PLAN ) 
+    	    				 THEN START_TIME_BY_PLAN
+    	    				 WHEN ( ( ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 1 )  OR ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 3 ) ) AND LOG_TO_ROLLBACK_START_TIME_BY_PLAN <![CDATA[<]]> START_TIME_BY_PLAN )
+    	    				 THEN LOG_TO_ROLLBACK_START_TIME_BY_PLAN
+    						 END  
+    				 ) 
+
+	    
+	   	 AND 
+	   
+	   	            ( CASE WHEN ( STATUS =1 OR STATUS = 3 OR STATUS = 0 ) THEN END_TIME_BY_PLAN 
+    	 	  			WHEN ( ( ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 1 )  OR ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 3 ) ) AND END_TIME_BY_PLAN <![CDATA[<=]]> LOG_TO_ROLLBACK_END_TIME_BY_PLAN  ) 
+    	 	  			THEN LOG_TO_ROLLBACK_END_TIME_BY_PLAN
+    	 	  			WHEN ( ( ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 1 )  OR ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 3 ) ) AND LOG_TO_ROLLBACK_END_TIME_BY_PLAN <![CDATA[<]]> END_TIME_BY_PLAN  )
+    	 	  			THEN END_TIME_BY_PLAN
+      	 	  			END  
+      	 	        ) 
+	    
+	   	 ) 
+	
+	 OR ( 
+	 
+	 	 #{requestParam.endTimeByPlan} 
+	 	 
+	 	 BETWEEN
+	 	
+	 	( CASE  WHEN ( STATUS =1 OR STATUS = 3 OR STATUS = 0 ) THEN START_TIME_BY_PLAN 
+    	    				 WHEN ( ( ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 1 )  OR ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 3 ) ) AND START_TIME_BY_PLAN <![CDATA[<=]]> LOG_TO_ROLLBACK_START_TIME_BY_PLAN ) 
+    	    				 THEN START_TIME_BY_PLAN
+    	    				 WHEN ( ( ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 1 )  OR ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 3 ) ) AND LOG_TO_ROLLBACK_START_TIME_BY_PLAN <![CDATA[<]]> START_TIME_BY_PLAN )
+    	    				 THEN LOG_TO_ROLLBACK_START_TIME_BY_PLAN
+    						 END  
+    				 )
+	 	 
+	 	 AND 
+	 	 
+	 	  ( CASE WHEN ( STATUS =1 OR STATUS = 3 OR STATUS = 0 ) THEN END_TIME_BY_PLAN 
+    	 	  			WHEN ( ( ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 1 )  OR ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 3 ) ) AND END_TIME_BY_PLAN <![CDATA[<=]]> LOG_TO_ROLLBACK_END_TIME_BY_PLAN  ) 
+    	 	  			THEN LOG_TO_ROLLBACK_END_TIME_BY_PLAN
+    	 	  			WHEN ( ( ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 1 )  OR ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 3 ) ) AND LOG_TO_ROLLBACK_END_TIME_BY_PLAN <![CDATA[<]]> END_TIME_BY_PLAN  )
+    	 	  			THEN END_TIME_BY_PLAN
+      	 	  			END  )  
+	 	 
+	 	 
+	 	 )
+	 
+	 
+	
+	  OR ( 
+	   				( 
+	   				
+	   				 ( CASE  WHEN ( STATUS =1 OR STATUS = 3 OR STATUS = 0 ) THEN START_TIME_BY_PLAN 
+    	    				 WHEN ( ( ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 1 )  OR ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 3 ) ) AND START_TIME_BY_PLAN <![CDATA[<=]]> LOG_TO_ROLLBACK_START_TIME_BY_PLAN ) 
+    	    				 THEN START_TIME_BY_PLAN
+    	    				 WHEN ( ( ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 1 )  OR ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 3 ) ) AND LOG_TO_ROLLBACK_START_TIME_BY_PLAN <![CDATA[<]]> START_TIME_BY_PLAN )
+    	    				 THEN LOG_TO_ROLLBACK_START_TIME_BY_PLAN
+    						 END  
+    				 )
+	   				
+	   				BETWEEN #{requestParam.startTimeByPlan} AND  #{requestParam.endTimeByPlan} 
+	   				
+	   				)
+	   				
+	   				AND 
+	   				
+	   				( 
+	   				
+	   				 ( CASE WHEN ( STATUS =1 OR STATUS = 3 OR STATUS = 0 ) THEN END_TIME_BY_PLAN 
+    	 	  			WHEN ( ( ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 1 )  OR ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 3 ) ) AND END_TIME_BY_PLAN <![CDATA[<=]]> LOG_TO_ROLLBACK_END_TIME_BY_PLAN  ) 
+    	 	  			THEN LOG_TO_ROLLBACK_END_TIME_BY_PLAN
+    	 	  			WHEN ( ( ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 1 )  OR ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 3 ) ) AND LOG_TO_ROLLBACK_END_TIME_BY_PLAN <![CDATA[<]]> END_TIME_BY_PLAN  )
+    	 	  			THEN END_TIME_BY_PLAN
+      	 	  			END  )   
+	   				
+	   				BETWEEN #{requestParam.startTimeByPlan} AND #{requestParam.endTimeByPlan} 
+	   				
+	   				) 
+	   				
+	   	 ) 
+	
+	
+)
+	
+	</select>
+	
+
+</mapper>

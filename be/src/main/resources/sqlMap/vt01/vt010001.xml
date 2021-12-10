@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt01.vt010001.dao.VT010001DAO">
+<insert id="insertInOutRegister" parameterType="java.util.HashMap">
+
+
+<selectKey keyProperty="returnedId" resultType="String" order="BEFORE">
+            SELECT CONCAT( 'VTN_SR_',NEXT VALUE FOR VTN_S) as returnedId
+</selectKey>
+
+	INSERT
+	INTO
+	IN_OUT_REGISTER ( 
+	IN_OUT_REGISTER_ID,
+	EMPLOYEE_USER_NAME,
+	DESTINATION,
+	REASON_REGISTION,
+	REASON_DETAIL,
+	START_TIME_BY_PLAN,
+	END_TIME_BY_PLAN,
+	START_TIME_BY_ACTUAL,
+	END_TIME_BY_ACTUAL,
+	APPROVER_USER_NAME,
+	STATUS,
+	LOG_TO_ROLLBACK_STATUS,
+	GUARD_OUT_USER_NAME,
+	GUARD_IN_USER_NAME,
+	REASON_OF_APPROVER,
+	REASON_OF_GUARD,
+	CREATE_USER,
+	CREATE_DATE,
+	UPDATE_USER,
+	UPDATE_DATE,
+	IN_OUT_EMPLOYEE_LIST /* them danh sach nguoi di cung*/
+	)
+	VALUES( 
+	#{returnedId},/*IN_OUT_REGISTER_ID*/
+	#{userName},/*EMPLOYEE_USER_NAME*/
+	#{requestParam.destination},/*DESTINATION*/
+	#{requestParam.reasonRegistion},/*REASON_REGISTION*/
+	#{requestParam.reasonDetail},/*REASON_DETAIL*/
+	#{requestParam.startTimeByPlan},/*START_TIME_BY_PLAN*/
+	#{requestParam.endTimeByPlan},/*END_TIME_BY_PLAN*/
+	null,/*START_TIME_BY_ACTUAL*/
+	null,/*END_TIME_BY_ACTUAL*/
+	#{requestParam.approverUserName},/*APPROVER_USER_NAME*/
+	0,/*STATUS*/
+	null,/*LOG_TO_ROLLBACK_STATUS*/
+	null,/*GUARD_OUT_USER_NAME*/
+	null,/*GUARD_IN_USER_NAME*/
+	null,/*REASON_OF_APPROVER*/
+	null,/*REASON_OF_GUARD*/
+	#{userName},/*CREATE_USER*/
+	#{dateNow},/*CREATE_DATE*/
+	#{userName},/*UPDATE_USER*/
+	#{dateNow},/*UPDATE_DATE*/
+	#{requestParam.inOutEmployeeList} /* them danh sach nguoi di cung*/
+	);
+
+   <!--  <selectKey resultType="int" order="AFTER" keyProperty="returnedId">
+         SELECT (PREVIOUS VALUE FOR VTN_S) as returnedId
+    </selectKey> -->
+    
+	</insert>	
+	
+	
+	<!-- find Register Id by Data -->
+	
+	<resultMap id="resultData"
+		type="com.viettel.vtnet360.vt00.vt000000.entity.VT000000EntitySmsVsNotify">
+		
+		<result property="additionalInformation" column="IN_OUT_REGISTER_ID" />
+		
+		
+	</resultMap>
+	
+	
+
+	
+	<select id="isValid" parameterType="java.util.Map" resultType="java.util.Map" >
+	
+	SELECT
+	IN_OUT_REGISTER_ID,
+	EMPLOYEE_USER_NAME,
+	DESTINATION,
+	REASON_REGISTION,
+	REASON_DETAIL,
+	START_TIME_BY_PLAN,
+	END_TIME_BY_PLAN,
+	START_TIME_BY_ACTUAL,
+	END_TIME_BY_ACTUAL,
+	APPROVER_USER_NAME,
+	STATUS,
+	LOG_TO_ROLLBACK_STATUS,
+	LOG_TO_ROLLBACK_START_TIME_BY_PLAN,
+	LOG_TO_ROLLBACK_END_TIME_BY_PLAN,
+	GUARD_OUT_USER_NAME,
+	GUARD_IN_USER_NAME,
+	REASON_OF_APPROVER,
+	REASON_OF_GUARD,
+	CREATE_USER,
+	CREATE_DATE,
+	UPDATE_USER,
+	UPDATE_DATE
+FROM
+	IN_OUT_REGISTER
+WHERE
+
+	( EMPLOYEE_USER_NAME = #{userName} )
+	
+AND
+
+	(  ( STATUS = 1 )
+	OR ( STATUS = 3 ) OR ( STATUS = 0 )
+	OR ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 1 )
+	OR ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 3 ) 
+	)
+	
+AND ( 
+	
+	
+	   	 (
+	   
+	   	 #{requestParam.startTimeByPlan}
+	   
+	  	 BETWEEN 
+
+	   	             ( CASE  WHEN ( STATUS =1 OR STATUS = 3 OR STATUS = 0 ) THEN START_TIME_BY_PLAN 
+    	    				 WHEN ( ( ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 1 )  OR ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 3 ) ) AND START_TIME_BY_PLAN <![CDATA[<=]]>  LOG_TO_ROLLBACK_START_TIME_BY_PLAN ) 
+    	    				 THEN START_TIME_BY_PLAN
+    	    				 WHEN ( ( ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 1 )  OR ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 3 ) ) AND LOG_TO_ROLLBACK_START_TIME_BY_PLAN <![CDATA[<]]>  START_TIME_BY_PLAN )
+    	    				 THEN LOG_TO_ROLLBACK_START_TIME_BY_PLAN
+    						 END  
+    				 ) 
+
+	    
+	   	 AND 
+	   
+	   	            ( CASE WHEN ( STATUS =1 OR STATUS = 3 OR STATUS = 0 ) THEN END_TIME_BY_PLAN 
+    	 	  			WHEN ( ( ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 1 )  OR ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 3 ) ) AND END_TIME_BY_PLAN <![CDATA[<=]]>  LOG_TO_ROLLBACK_END_TIME_BY_PLAN  ) 
+    	 	  			THEN LOG_TO_ROLLBACK_END_TIME_BY_PLAN
+    	 	  			WHEN ( ( ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 1 )  OR ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 3 ) ) AND LOG_TO_ROLLBACK_END_TIME_BY_PLAN <![CDATA[<]]>  END_TIME_BY_PLAN  )
+    	 	  			THEN END_TIME_BY_PLAN
+      	 	  			END  
+      	 	        ) 
+	    
+	   	 ) 
+	
+	 OR ( 
+	 
+	 	 #{requestParam.endTimeByPlan} 
+	 	 
+	 	 BETWEEN
+	 	
+	 	( CASE  WHEN ( STATUS =1 OR STATUS = 3 OR STATUS = 0 ) THEN START_TIME_BY_PLAN 
+    	    				 WHEN ( ( ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 1 )  OR ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 3 ) ) AND START_TIME_BY_PLAN <![CDATA[<=]]>  LOG_TO_ROLLBACK_START_TIME_BY_PLAN ) 
+    	    				 THEN START_TIME_BY_PLAN
+    	    				 WHEN ( ( ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 1 )  OR ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 3 ) ) AND LOG_TO_ROLLBACK_START_TIME_BY_PLAN <![CDATA[<]]>  START_TIME_BY_PLAN )
+    	    				 THEN LOG_TO_ROLLBACK_START_TIME_BY_PLAN
+    						 END  
+    				 )
+	 	 
+	 	 AND 
+	 	 
+	 	  ( CASE WHEN ( STATUS =1 OR STATUS = 3 OR STATUS = 0 ) THEN END_TIME_BY_PLAN 
+    	 	  			WHEN ( ( ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 1 )  OR ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 3 ) ) AND END_TIME_BY_PLAN <![CDATA[<=]]>  LOG_TO_ROLLBACK_END_TIME_BY_PLAN  ) 
+    	 	  			THEN LOG_TO_ROLLBACK_END_TIME_BY_PLAN
+    	 	  			WHEN ( ( ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 1 )  OR ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 3 ) ) AND LOG_TO_ROLLBACK_END_TIME_BY_PLAN <![CDATA[<]]>  END_TIME_BY_PLAN  )
+    	 	  			THEN END_TIME_BY_PLAN
+      	 	  			END  )  
+	 	 
+	 	 
+	 	 )
+	 
+	 
+	
+	  OR ( 
+	   				( 
+	   				
+	   				 ( CASE  WHEN ( STATUS =1 OR STATUS = 3 OR STATUS = 0 ) THEN START_TIME_BY_PLAN 
+    	    				 WHEN ( ( ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 1 )  OR ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 3 ) ) AND START_TIME_BY_PLAN <![CDATA[<=]]>  LOG_TO_ROLLBACK_START_TIME_BY_PLAN ) 
+    	    				 THEN START_TIME_BY_PLAN
+    	    				 WHEN ( ( ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 1 )  OR ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 3 ) ) AND LOG_TO_ROLLBACK_START_TIME_BY_PLAN <![CDATA[<]]>  START_TIME_BY_PLAN )
+    	    				 THEN LOG_TO_ROLLBACK_START_TIME_BY_PLAN
+    						 END  
+    				 )
+	   				
+	   				BETWEEN #{requestParam.startTimeByPlan} AND  #{requestParam.endTimeByPlan} 
+	   				
+	   				)
+	   				
+	   				AND 
+	   				
+	   				( 
+	   				
+	   				 ( CASE WHEN ( STATUS =1 OR STATUS = 3 OR STATUS = 0 ) THEN END_TIME_BY_PLAN 
+    	 	  			WHEN ( ( ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 1 )  OR ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 3 ) ) AND END_TIME_BY_PLAN <![CDATA[<=]]>  LOG_TO_ROLLBACK_END_TIME_BY_PLAN  ) 
+    	 	  			THEN LOG_TO_ROLLBACK_END_TIME_BY_PLAN
+    	 	  			WHEN ( ( ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 1 )  OR ( STATUS = 5 AND LOG_TO_ROLLBACK_STATUS = 3 ) ) AND LOG_TO_ROLLBACK_END_TIME_BY_PLAN <![CDATA[<]]>  END_TIME_BY_PLAN  )
+    	 	  			THEN END_TIME_BY_PLAN
+      	 	  			END  )   
+	   				
+	   				BETWEEN #{requestParam.startTimeByPlan} AND #{requestParam.endTimeByPlan} 
+	   				
+	   				) 
+	   				
+	   	 ) 
+	
+	
+)
+
+	</select>
+
+	<!-- tuanba start-->
+	<select id="findEmployee" resultType="com.viettel.vtnet360.vt03.vt030000.entity.Employee" parameterType="com.viettel.vtnet360.vt03.vt030000.entity.Employee" >
+		SELECT
+		e.EMPLOYEE_ID AS employeeId,
+		e.USER_NAME AS userName
+		FROM QLDV_EMPLOYEE e
+		WHERE
+		1 = 1
+		<if test="userName != null &amp;&amp; userName.length &gt; 0">
+			<bind name="pattern" value="'%' + userName + '%'"/>
+			AND e.USER_NAME LIKE #{pattern}
+		</if>
+		<!-- can sua lai dk role, dang su dung like -> chua chinh xac -->
+		<if test="role != null &amp;&amp; role.length &gt; 0">
+			<bind name="pattern2" value="'%' + role + '%'"/>
+			AND e.ROLE LIKE #{pattern2}
+		</if>
+	</select>
+
+	<select id="findEmployeeByUserName" resultType="com.viettel.vtnet360.vt03.vt030000.entity.Employee" parameterType="com.viettel.vtnet360.vt03.vt030000.entity.Employee" >
+		SELECT
+		e.EMPLOYEE_ID AS employeeId,
+		e.USER_NAME AS userName
+		FROM QLDV_EMPLOYEE e
+		WHERE
+		1 = 1
+		<if test="userName != null &amp;&amp; userName.length &gt; 0">
+			AND e.USER_NAME = #{userName}
+		</if>
+		<!-- can sua lai dk role, dang su dung like -> chua chinh xac -->
+		<if test="role != null &amp;&amp; role.length &gt; 0">
+			<bind name="pattern" value="'%' + role + '%'"/>
+			AND e.ROLE LIKE #{pattern}
+		</if>
+	</select>
+
+	<select id="getSystemCodeByParams" resultType="com.viettel.vtnet360.vt01.vt010001.entity.VT010001SystemCode" parameterType="com.viettel.vtnet360.vt01.vt010001.entity.VT010001SystemCode" >
+		SELECT
+		CODE_NAME AS codeName
+		FROM M_SYSTEM_CODE
+		WHERE
+		MASTER_CLASS = #{masterClass} AND STATUS =1
+
+		<if test="codeName != null &amp;&amp; codeName.length &gt; 0">
+			<bind name="pattern" value="'%' + codeName + '%'"/>
+			AND CODE_NAME LIKE #{pattern}
+		</if>
+	</select>
+
+	<select id="countTotalRecord" resultType="java.lang.Integer" parameterType="com.viettel.vtnet360.vt01.vt010001.entity.VT010001EntityRqRegister">
+		SELECT
+			COUNT(*)
+		FROM
+			KITCHEN_SETTING ks
+		LEFT JOIN QLDV_PLACE p ON
+		ks.PLACE_ID = p.PLACE_ID
+		WHERE
+		ks.DELETE_FLAG = 0
+	</select>
+
+</mapper>

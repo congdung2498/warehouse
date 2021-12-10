@@ -1,0 +1,997 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.checking.resgister.dao.CheckingDAO">
+
+    <resultMap id="employeeAutocomplete"
+        type="com.viettel.vtnet360.vt03.vt030000.entity.Employee">
+        <result property="fullName" column="FULL_NAME" />
+        <result property="userName" column="USER_NAME" />
+    </resultMap>
+
+    <resultMap id="getSystemCode"
+        type="com.viettel.vtnet360.checking.service.entity.SystemCode">
+        <result property="masterClass" column="MASTER_CLASS" />
+        <result property="codeValue" column="CODE_VALUE" />
+        <result property="codeName" column="CODE_NAME" />
+    </resultMap>
+
+    <resultMap id="getCheckingById"
+        type="com.viettel.vtnet360.checking.service.entity.Checking">
+        <result property="inOutRegisterId" column="IN_OUT_REGISTER_ID" />
+        <result property="employeeUserName" column="EMPLOYEE_USER_NAME" />
+        <result property="destination" column="DESTINATION" />
+        <result property="reasonRegistion" column="REASON_REGISTION" />
+        <result property="reasonDetail" column="REASON_DETAIL" />
+        <result property="startTimeByPlan" column="START_TIME_BY_PLAN" />
+        <result property="endTimeByPlan" column="END_TIME_BY_PLAN" />
+        <result property="startTimeByActual" column="START_TIME_BY_ACTUAL" />
+        <result property="endTimeByActual" column="END_TIME_BY_ACTUAL" />
+        <result property="approverUserName" column="APPROVER_USER_NAME" />
+        <result property="status" column="STATUS" />
+        <result property="logToRollbackStatus" column="LOG_TO_ROLLBACK_STATUS" />
+        <result property="logToRollbackStartTimeByPlan" column="LOG_TO_ROLLBACK_START_TIME_BY_PLAN" />
+        <result property="logToRollbackEndTimeByPlan" column="LOG_TO_ROLLBACK_END_TIME_BY_PLAN" />
+        <result property="guardOutUsername" column="GUARD_OUT_USER_NAME" />
+        <result property="guardInUsername" column="GUARD_IN_USER_NAME" />
+        <result property="reasonOfApprover" column="REASON_OF_APPROVER" />
+        <result property="reasonOfGuard" column="REASON_OF_GUARD" />
+        <result property="inOutEmployeeList" column="IN_OUT_EMPLOYEE_LIST" />
+        <result property="isLate" column="IS_LATE" />
+    </resultMap>
+    
+    <select id="getPathByUsername" parameterType="java.lang.String" resultType="java.lang.String">
+        SELECT PATH
+        FROM QLDV_UNIT qu LEFT JOIN QLDV_EMPLOYEE qe ON qu.UNIT_ID = qe.UNIT_ID
+        WHERE USER_NAME = #{username};
+    </select>
+    
+    <select id="getListRemindCheckings" parameterType="java.lang.Integer" resultType="java.lang.String">
+        SELECT IN_OUT_REGISTER_ID, TIMESTAMPDIFF(MINUTE, NOW(), END_TIME_BY_PLAN), STATUS, CREATE_DATE
+        FROM IN_OUT_REGISTER
+        WHERE 
+            TIMESTAMPDIFF(MINUTE, NOW(), END_TIME_BY_PLAN) = #{minute} AND 
+            ((STATUS = 1 AND IS_LATE = 1) OR (STATUS = 3 AND IS_LATE = 0))        
+    </select>
+    
+    <select id="countChecking" parameterType="java.util.Map"
+        resultType="java.lang.Integer">
+        SELECT
+            COUNT(*)
+        FROM
+            IN_OUT_REGISTER i
+            LEFT JOIN QLDV_EMPLOYEE e ON i.EMPLOYEE_USER_NAME = e.USER_NAME
+            LEFT JOIN QLDV_EMPLOYEE ea ON i.APPROVER_USER_NAME = ea.USER_NAME
+            LEFT JOIN QLDV_UNIT u ON e.UNIT_ID = u.UNIT_ID
+            LEFT JOIN QLDV_UNIT b ON u.PARENT_UNIT_ID = b.UNIT_ID
+            LEFT JOIN QLDV_UNIT c ON b.PARENT_UNIT_ID = c.UNIT_ID
+            LEFT JOIN QLDV_UNIT d ON c.PARENT_UNIT_ID = d.UNIT_ID
+        <choose>
+            <!-- quan ly don vi -->
+            <when test="requestParam.processByRole == 'PMQT_QL'">
+                    WHERE 1 
+                    <if test="PMQT_ADMIN  == null ">
+                        AND i.APPROVER_USER_NAME = #{userName}
+                    </if>
+                    <if
+                        test="requestParam.searchForUserName != null and requestParam.searchForUserName != '' ">
+                        AND i.EMPLOYEE_USER_NAME = #{requestParam.searchForUserName}
+                    </if>
+                    <if
+                        test="requestParam.employeeUnitId != 0 and requestParam.employeeUnitId != null">
+                        AND u.PATH LIKE CONCAT('%', #{requestParam.employeeUnitId}, '%') 
+                    </if>
+                    <if
+                        test="requestParam.startTimeByPlan != null and requestParam.endTimeByPlan != null">
+                        AND (i.START_TIME_BY_PLAN BETWEEN
+                        #{requestParam.startTimeByPlan} AND #{requestParam.endTimeByPlan})
+                        AND (i.END_TIME_BY_PLAN BETWEEN
+                        #{requestParam.startTimeByPlan} AND #{requestParam.endTimeByPlan})
+                    </if>
+
+                    <if
+                        test="requestParam.startTimeByPlan != null and requestParam.endTimeByPlan == null">
+                        AND (i.START_TIME_BY_PLAN >= #{requestParam.startTimeByPlan})
+                    </if>
+
+                    <if test="requestParam.status != null">
+                        AND
+                        <foreach item="item" index="index"
+                            collection="requestParam.status" open="(" separator=" OR " close=")">
+                            <if test=" item == 0 or item == 5">
+                                ( i.STATUS = #{item}  )
+                            </if>
+
+                            <if test=" item == 1">
+                                i.STATUS = #{item}
+                            </if>
+                        </foreach>
+                    </if>
+            </when>
+
+            <!-- quan ly van phong tong hoac Chanh Van Phong -->
+            <when test="requestParam.processByRole == 'PMQT_ADMIN' or requestParam.processByRole == 'PMQT_CVP' ">
+                    WHERE 1
+                    <if
+                        test="requestParam.searchForUserName != null and requestParam.searchForUserName != '' ">
+                        AND i.EMPLOYEE_USER_NAME =
+                        #{requestParam.searchForUserName}
+                    </if>
+
+                    <if
+                        test="requestParam.employeeUnitId != 0 and requestParam.employeeUnitId != null">
+                        AND u.PATH LIKE CONCAT('%', #{requestParam.employeeUnitId}, '%') 
+                    </if>
+
+                    <if
+                        test="requestParam.startTimeByPlan != null and requestParam.endTimeByPlan != null">
+                        AND (i.START_TIME_BY_PLAN BETWEEN
+                        #{requestParam.startTimeByPlan} AND #{requestParam.endTimeByPlan})
+                        AND (i.END_TIME_BY_PLAN BETWEEN
+                        #{requestParam.startTimeByPlan} AND #{requestParam.endTimeByPlan})
+                    </if>
+
+                    <if
+                        test="requestParam.startTimeByPlan != null and requestParam.endTimeByPlan == null">
+                        AND (i.START_TIME_BY_PLAN >= #{requestParam.startTimeByPlan})
+                    </if>
+
+                    <if test="requestParam.status != null">
+                        AND
+                        <foreach item="item" index="index"
+                            collection="requestParam.status" open="(" separator=" OR " close=")">
+                            <if test=" item == 3 or item == 4 or item == 8">
+                                ( i.STATUS = #{item} )
+                            </if>
+                            
+                            <if test=" item == 0 or item == 5">
+                                ( i.STATUS = #{item} )
+                            </if>
+
+                            <if test=" item == 1">
+                                i.STATUS = #{item}
+                            </if>
+                        </foreach>
+                    </if>
+            </when>
+
+            <!-- Canh ve -->
+            <when test="requestParam.processByRole == 'PMQT_Canhve' ">
+                    WHERE 1
+                    <if
+                        test="requestParam.searchForUserName != null and requestParam.searchForUserName != '' ">
+                        AND i.EMPLOYEE_USER_NAME = #{requestParam.searchForUserName}
+                    </if>
+                    <if
+                        test="requestParam.employeeUnitId != 0 and requestParam.employeeUnitId != null">
+                        AND u.PATH LIKE CONCAT('%', #{requestParam.employeeUnitId}, '%') 
+                    </if>
+                    
+                    <if test="requestParam.security == true and requestParam.fixed == false">
+                        AND u.UNIT_ID NOT IN(
+                            SELECT  UNIT_ID
+                            FROM    QLDV_UNIT
+                            WHERE   
+                                QLDV_UNIT.`PATH` LIKE CONCAT('%', 235141, '%') OR 
+                                QLDV_UNIT.`PATH` LIKE CONCAT('%', 235222, '%') OR 
+                                QLDV_UNIT.`PATH` LIKE CONCAT('%', 235283, '%') )
+                    </if>
+                    
+                    <if
+                        test="requestParam.startTimeByPlan != null and requestParam.endTimeByPlan != null">
+                        AND (i.START_TIME_BY_PLAN BETWEEN
+                        #{requestParam.startTimeByPlan} AND #{requestParam.endTimeByPlan})
+                        AND (i.END_TIME_BY_PLAN BETWEEN
+                        #{requestParam.startTimeByPlan} AND #{requestParam.endTimeByPlan})
+                    </if>
+
+                    <if
+                        test="requestParam.startTimeByPlan != null and requestParam.endTimeByPlan == null">
+                        AND (i.START_TIME_BY_PLAN >=
+                        #{requestParam.startTimeByPlan})
+                    </if>
+
+                    <if test="requestParam.status != null">
+                        AND
+                        <foreach item="item" index="index"
+                            collection="requestParam.status" open="(" separator=" OR " close=")">
+                            <!-- canh ve chi nhin dc nhung ban ghi da duyet va co t/g con hieu luc -->
+                            <if test=" item == 1 ">
+                                ( i.STATUS = #{item} )
+                            </if>
+                            <if test=" item != 1 ">
+                                i.STATUS = #{item}
+                            </if>
+                        </foreach>
+                    </if>
+            </when>
+
+            <!-- nhan vien -->
+            <when test="requestParam.processByRole == 'PMQT_NV' ">
+                WHERE i.EMPLOYEE_USER_NAME = #{userName}
+                <if
+                    test="requestParam.startTimeByPlan != null and requestParam.endTimeByPlan != null">
+                    AND (i.START_TIME_BY_PLAN BETWEEN
+                    #{requestParam.startTimeByPlan} AND #{requestParam.endTimeByPlan})
+                    AND (i.END_TIME_BY_PLAN BETWEEN
+                    #{requestParam.startTimeByPlan} AND #{requestParam.endTimeByPlan})
+                </if>
+
+                <if
+                    test="requestParam.startTimeByPlan != null and requestParam.endTimeByPlan == null">
+                    AND (i.START_TIME_BY_PLAN >=
+                    #{requestParam.startTimeByPlan})
+                </if>
+
+                <if test="requestParam.status != null">
+                    AND
+                    <foreach item="item" index="index"
+                        collection="requestParam.status" open="(" separator=" OR " close=")">
+                        i.STATUS = #{item}
+                    </foreach>
+                </if>
+            </when>
+            <otherwise>
+                WHERE 0
+            </otherwise>
+        </choose>
+    </select>
+    
+    <select id="findListInOut" parameterType="java.util.Map"
+        resultType="com.viettel.vtnet360.checking.service.entity.Checking">
+        SELECT
+            i.IN_OUT_REGISTER_ID AS inOutRegisterId,
+            i.EMPLOYEE_USER_NAME AS employeeUserName,
+            e.EMPLOYEE_ID AS empId,
+            e.FULL_NAME AS empName,
+            e.PHONE_NUMBER AS empPhone,
+            e.CODE AS empCode,
+            e.EMAIL AS empEmail,
+            e.TITLE AS empTitle,
+            u.UNIT_NAME AS unitName,
+            CASE 
+                WHEN u.UNIT_ID = 234841 THEN IFNULL(u.UNIT_NAME, '')
+                WHEN b.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''))
+                WHEN c.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''), IFNULL(CONCAT(' / ', c.UNIT_NAME), ''))
+                ELSE CONCAT(IFNULL(b.UNIT_NAME, ''), IFNULL(CONCAT(' / ', c.UNIT_NAME), ''), IFNULL(CONCAT(' / ', d.UNIT_NAME), ''))
+            END AS detailUnit,
+            i.STATUS AS status,
+            i.START_TIME_BY_PLAN AS startTimeByPlan,
+            i.END_TIME_BY_PLAN AS endTimeByPlan,
+            i.START_TIME_BY_ACTUAL AS startTimeByActual,
+            i.END_TIME_BY_ACTUAL AS endTimeByActual,
+            i.DESTINATION AS destination,
+            i.LOG_TO_ROLLBACK_STATUS AS logToRollbackStatus,
+            ea.FULL_NAME AS approverFullName,
+            i.APPROVER_USER_NAME AS approverUserName,
+            i.IN_OUT_EMPLOYEE_LIST AS inOutEmployeeList,
+            i.REASON_REGISTION AS reasonRegistion,
+            i.REASON_DETAIL as reasonDetail,
+            i.REASON_OF_APPROVER as reasonOfApprover,
+            i.REASON_OF_GUARD as reasonOfGuard,
+            i.IS_LATE as isLate
+        FROM
+            IN_OUT_REGISTER i
+            LEFT JOIN QLDV_EMPLOYEE e ON i.EMPLOYEE_USER_NAME = e.USER_NAME
+            LEFT JOIN QLDV_EMPLOYEE ea ON i.APPROVER_USER_NAME = ea.USER_NAME
+            LEFT JOIN QLDV_UNIT u ON e.UNIT_ID = u.UNIT_ID
+            LEFT JOIN QLDV_UNIT b ON u.PARENT_UNIT_ID = b.UNIT_ID
+            LEFT JOIN QLDV_UNIT c ON b.PARENT_UNIT_ID = c.UNIT_ID
+            LEFT JOIN QLDV_UNIT d ON c.PARENT_UNIT_ID = d.UNIT_ID
+        <choose>
+            <!-- quan ly don vi -->
+            <when test="requestParam.processByRole == 'PMQT_QL'">
+                    WHERE 1 
+                    <if test="requestParam.approver != null and requestParam.approver != ''">
+                        AND i.APPROVER_USER_NAME = #{requestParam.approver}
+                    </if>
+                    <if
+                        test="requestParam.searchForUserName != null and requestParam.searchForUserName != '' ">
+                        AND i.EMPLOYEE_USER_NAME = #{requestParam.searchForUserName}
+                    </if>
+                    <if
+                        test="requestParam.employeeUnitId != 0 and requestParam.employeeUnitId != null">
+                        AND u.PATH LIKE CONCAT('%', #{requestParam.employeeUnitId}, '%') 
+                    </if>
+                    <if
+                        test="requestParam.startTimeByPlan != null and requestParam.endTimeByPlan != null">
+                        AND (i.START_TIME_BY_PLAN BETWEEN
+                        #{requestParam.startTimeByPlan} AND #{requestParam.endTimeByPlan})
+                        AND (i.END_TIME_BY_PLAN BETWEEN
+                        #{requestParam.startTimeByPlan} AND #{requestParam.endTimeByPlan})
+                    </if>
+
+                    <if
+                        test="requestParam.startTimeByPlan != null and requestParam.endTimeByPlan == null">
+                        AND (i.START_TIME_BY_PLAN >= #{requestParam.startTimeByPlan})
+                    </if>
+
+                    <if test="requestParam.status != null">
+                        AND
+                        <foreach item="item" index="index"
+                            collection="requestParam.status" open="(" separator=" OR " close=")">
+                            <if test=" item == 0 or item == 5">
+                                ( i.STATUS = #{item}  )
+                            </if>
+
+                            <if test=" item == 1">
+                                i.STATUS = #{item}
+                            </if>
+                        </foreach>
+                    </if>
+            </when>
+
+            <!-- quan ly van phong tong hoac Chanh Van Phong -->
+            <when test="requestParam.processByRole == 'PMQT_ADMIN' or requestParam.processByRole == 'PMQT_CVP' ">
+                    WHERE 1
+                    <if
+                        test="requestParam.searchForUserName != null and requestParam.searchForUserName != '' ">
+                        AND i.EMPLOYEE_USER_NAME =
+                        #{requestParam.searchForUserName}
+                    </if>
+
+                    <if
+                        test="requestParam.employeeUnitId != 0 and requestParam.employeeUnitId != null">
+                        AND u.PATH LIKE CONCAT('%', #{requestParam.employeeUnitId}, '%') 
+                    </if>
+
+                    <if
+                        test="requestParam.startTimeByPlan != null and requestParam.endTimeByPlan != null">
+                        AND (i.START_TIME_BY_PLAN BETWEEN
+                        #{requestParam.startTimeByPlan} AND #{requestParam.endTimeByPlan})
+                        AND (i.END_TIME_BY_PLAN BETWEEN
+                        #{requestParam.startTimeByPlan} AND #{requestParam.endTimeByPlan})
+                    </if>
+
+                    <if
+                        test="requestParam.startTimeByPlan != null and requestParam.endTimeByPlan == null">
+                        AND (i.START_TIME_BY_PLAN >= #{requestParam.startTimeByPlan})
+                    </if>
+
+                    <if test="requestParam.status != null">
+                        AND
+                        <foreach item="item" index="index"
+                            collection="requestParam.status" open="(" separator=" OR " close=")">
+                            
+                            <if test=" item == 3 or item == 4 or item == 8">
+                                ( i.STATUS = #{item} )
+                            </if>
+                            
+                            <if test=" item == 0 or item == 5">
+                                ( i.STATUS = #{item} )
+                            </if>
+
+                            <if test=" item == 1">
+                                i.STATUS = #{item}
+                            </if>
+                        </foreach>
+                    </if>
+            </when>
+
+            <!-- Canh ve -->
+            <when test="requestParam.processByRole == 'PMQT_Canhve' ">
+                    WHERE 1
+                    <if
+                        test="requestParam.searchForUserName != null and requestParam.searchForUserName != '' ">
+                        AND i.EMPLOYEE_USER_NAME =
+                        #{requestParam.searchForUserName}
+                    </if>
+                    <if
+                        test="requestParam.employeeUnitId != 0 and requestParam.employeeUnitId != null">
+                        AND u.PATH LIKE CONCAT('%', #{requestParam.employeeUnitId}, '%') 
+                    </if>
+                    
+                    <if test="requestParam.security == true and requestParam.fixed == false">
+                        AND u.UNIT_ID NOT IN(
+                            SELECT  UNIT_ID
+                            FROM    QLDV_UNIT
+                            WHERE   
+                                QLDV_UNIT.`PATH` LIKE CONCAT('%', 235141, '%') OR 
+                                QLDV_UNIT.`PATH` LIKE CONCAT('%', 235222, '%') OR 
+                                QLDV_UNIT.`PATH` LIKE CONCAT('%', 235283, '%') )
+                    </if>
+
+                    <if
+                        test="requestParam.startTimeByPlan != null and requestParam.endTimeByPlan != null">
+                        AND (i.START_TIME_BY_PLAN BETWEEN
+                        #{requestParam.startTimeByPlan} AND #{requestParam.endTimeByPlan})
+                        AND (i.END_TIME_BY_PLAN BETWEEN
+                        #{requestParam.startTimeByPlan} AND #{requestParam.endTimeByPlan})
+                    </if>
+
+                    <if
+                        test="requestParam.startTimeByPlan != null and requestParam.endTimeByPlan == null">
+                        AND (i.START_TIME_BY_PLAN >=
+                        #{requestParam.startTimeByPlan})
+                    </if>
+
+                    <if test="requestParam.status != null">
+                        AND
+                        <foreach item="item" index="index"
+                            collection="requestParam.status" open="(" separator=" OR " close=")">
+                            <!-- canh ve chi nhin dc nhung ban ghi da duyet va co t/g con hieu luc -->
+                            <if test=" item == 1 ">
+                                ( i.STATUS = #{item} )
+                            </if>
+                            <if test=" item != 1 ">
+                                i.STATUS = #{item}
+                            </if>
+                        </foreach>
+                    </if>
+            </when>
+
+            <!-- nhan vien -->
+            <when test="requestParam.processByRole == 'PMQT_NV' ">
+                WHERE i.EMPLOYEE_USER_NAME = #{userName}
+                <if
+                    test="requestParam.startTimeByPlan != null and requestParam.endTimeByPlan != null">
+                    AND (i.START_TIME_BY_PLAN BETWEEN
+                    #{requestParam.startTimeByPlan} AND #{requestParam.endTimeByPlan})
+                    AND (i.END_TIME_BY_PLAN BETWEEN
+                    #{requestParam.startTimeByPlan} AND #{requestParam.endTimeByPlan})
+                </if>
+
+                <if
+                    test="requestParam.startTimeByPlan != null and requestParam.endTimeByPlan == null">
+                    AND (i.START_TIME_BY_PLAN >=
+                    #{requestParam.startTimeByPlan})
+                </if>
+
+                <if test="requestParam.status != null">
+                    AND
+                    <foreach item="item" index="index"
+                        collection="requestParam.status" open="(" separator=" OR " close=")">
+                        i.STATUS = #{item}
+                    </foreach>
+                </if>
+            </when>
+            <otherwise>
+                WHERE 0
+            </otherwise>
+        </choose>
+        ORDER BY
+        FIELD(i.STATUS,0,5,1,3,4,2,6,7,8,9),i.END_TIME_BY_PLAN
+        DESC
+        LIMIT #{fromIndex},#{getSize}
+    </select>
+    
+    <select id="getUnitByUnitId"
+        parameterType="java.lang.String"
+        resultType="com.viettel.vtnet360.vt02.vt020000.entity.VT020000Unit">
+        SELECT 
+            UNIT_ID as unitId,
+            UNIT_NAME as unitName,
+            PARENT_UNIT_ID  as parentId,
+            `PATH` as `path`,
+            ORDER_NUMBER as `order`,
+            UNIT_ID as `isLeaf` 
+        FROM 
+            QLDV_UNIT
+        WHERE 
+            STATUS = 1 AND UNIT_ID = #{unitId}
+    </select>
+   
+   <select id="getEmployeeByUsername" parameterType="String" resultType="com.viettel.vtnet360.vt03.vt030000.entity.Employee">
+        SELECT
+            EMPLOYEE_ID AS employeeId,
+            FULL_NAME as fullName,
+            PHONE_NUMBER AS employeePhone
+        FROM QLDV_EMPLOYEE
+        WHERE USER_NAME = #{username}
+    </select>
+
+    <select id="getConfigMinute" resultType="Integer">
+        SELECT IFNULL((SELECT VALUE
+        FROM SYSTEM_CONFIG where MASTER_CLASS = 'CHECK_IN' AND NAME = 'SMS REMIND'), 10)
+    </select>    
+    
+    <insert id="toSmsForChecking" parameterType="java.util.HashMap">
+        INSERT INTO CAT_MESSAGE
+        (USER_ID, CONTENT, STATUS, INSERT_TIME, PHONE, SMS_TYPE, SEND_TIME, IN_OUT_REGISTER_ID, IN_TIME)
+        VALUES(#{toUserId}, #{content} , #{status} , #{insertTime}, #{phone}, #{smsType}, #{sendTime}, #{checkingId}, #{inTime})
+    </insert>   
+    
+    <update id="toUpdateSmsForChecking" parameterType="java.util.HashMap">
+        UPDATE CAT_MESSAGE
+        SET
+            STATUS = 0, IN_TIME = #{inTime}
+        WHERE  IN_OUT_REGISTER_ID = #{checkingId}
+    </update>
+    
+    <select id="getMessageByCheckingId" parameterType="String" resultType="Integer">
+        SELECT COUNT(*)
+        FROM CAT_MESSAGE
+        WHERE IN_OUT_REGISTER_ID = #{checkingId}
+    </select>
+    
+    <!-- get all list in out -->
+    <select id="getCheckings" parameterType="com.viettel.vtnet360.vt01.vt010011.entity.VT010011ListCondition"
+        resultType="com.viettel.vtnet360.checking.service.entity.Checking">
+        SELECT
+            i.IN_OUT_REGISTER_ID AS inOutRegisterId,
+            i.EMPLOYEE_USER_NAME AS employeeUserName,
+            e.EMPLOYEE_ID AS empId,
+            e.FULL_NAME AS empName,
+            e.PHONE_NUMBER AS empPhone,
+            e.CODE AS empCode,
+            e.EMAIL AS empEmail,
+            e.TITLE AS empTitle,
+            u.UNIT_NAME AS unitName,
+            CASE 
+                WHEN u.UNIT_ID = 234841 THEN IFNULL(u.UNIT_NAME, '')
+                WHEN b.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''))
+                WHEN c.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''), IFNULL(CONCAT(' / ', c.UNIT_NAME), ''))
+                ELSE CONCAT(IFNULL(b.UNIT_NAME, ''), IFNULL(CONCAT(' / ', c.UNIT_NAME), ''), IFNULL(CONCAT(' / ', d.UNIT_NAME), ''))
+            END AS detailUnit,
+            i.STATUS AS status,
+            i.START_TIME_BY_PLAN AS startTimeByPlan,
+            i.END_TIME_BY_PLAN AS endTimeByPlan,
+            i.START_TIME_BY_ACTUAL AS startTimeByActual,
+            i.END_TIME_BY_ACTUAL AS endTimeByActual,
+            i.DESTINATION AS destination,
+            i.LOG_TO_ROLLBACK_STATUS AS logToRollbackStatus,
+            ea.FULL_NAME AS approverFullName,
+            i.APPROVER_USER_NAME AS approverUserName,
+            i.IN_OUT_EMPLOYEE_LIST AS inOutEmployeeList,
+            i.REASON_REGISTION AS reasonRegistion,
+            i.REASON_DETAIL as reasonDetail,
+            i.REASON_OF_APPROVER as reasonOfApprover,
+            i.REASON_OF_GUARD as reasonOfGuard,
+            i.IS_LATE as isLate
+        FROM
+            IN_OUT_REGISTER i
+        LEFT JOIN QLDV_EMPLOYEE e ON
+            i.EMPLOYEE_USER_NAME = e.USER_NAME
+        LEFT JOIN QLDV_EMPLOYEE ea ON
+            i.APPROVER_USER_NAME = ea.USER_NAME
+        LEFT JOIN QLDV_UNIT u ON
+            e.UNIT_ID = u.UNIT_ID
+        LEFT JOIN QLDV_UNIT b ON
+            u.PARENT_UNIT_ID = b.UNIT_ID
+        LEFT JOIN QLDV_UNIT c ON
+            b.PARENT_UNIT_ID = c.UNIT_ID
+        LEFT JOIN QLDV_UNIT d ON
+            c.PARENT_UNIT_ID = d.UNIT_ID
+        <where>
+            <if test="listStatus != null and listStatus.length &gt; 0">
+                <foreach item="item" collection="listStatus" open = "AND (" separator=" OR " close = ")">
+                    i.STATUS = #{item}                  
+                </foreach>
+            </if>
+            <if test="listUnit != null and listUnit.length &gt; 0">
+                AND e.UNIT_ID IN
+                <foreach item="item1" collection="listUnit" open="(" separator=" UNION " close = ")">
+                    SELECT  UNIT_ID
+                    FROM    QLDV_UNIT
+                    WHERE   QLDV_UNIT.`PATH` LIKE CONCAT('%', #{item1}, '%')
+                </foreach>
+            </if>
+            <if test="security == true and fixed == false">
+                AND e.UNIT_ID NOT IN(
+                    SELECT  UNIT_ID
+                    FROM    QLDV_UNIT
+                    WHERE   
+                        QLDV_UNIT.`PATH` LIKE CONCAT('%', 235141, '%') OR 
+                        QLDV_UNIT.`PATH` LIKE CONCAT('%', 235222, '%') OR 
+                        QLDV_UNIT.`PATH` LIKE CONCAT('%', 235283, '%') )
+            </if>
+            <if test="startDate != null">
+                AND i.START_TIME_BY_PLAN &gt;= CAST(#{startDate} AS DATETIME)       
+            </if>
+            <if test="endDate != null">
+                AND i.START_TIME_BY_PLAN &lt;= CAST(#{endDate} AS DATETIME)         
+            </if>
+            <if test="personInfo != null and personInfo.length &gt; 0">
+            <bind name="pattern2" value="'%' + personInfo + '%'"/>
+                AND ( e.CODE LIKE #{pattern2}
+                OR e.FULL_NAME LIKE #{pattern2}
+                OR e.EMAIL LIKE #{pattern2}
+                OR e.PHONE_NUMBER LIKE #{pattern2}
+                OR e.USER_NAME LIKE #{pattern2} )
+            </if>
+            <if test="userName != null and userName.length &gt; 0">
+                AND e.USER_NAME = #{userName}
+            </if>
+            <if test="loginRole != null and loginRole == 'PMQT_NV'">
+                AND i.EMPLOYEE_USER_NAME = #{loginUserName}
+            </if>
+        </where>
+        ORDER BY i.START_TIME_BY_PLAN DESC
+        <if test="startRow != -1 and rowSize != -1">
+            LIMIT #{startRow}, #{rowSize}
+        </if>
+    </select>
+    
+    <select id="countCheckings" parameterType="com.viettel.vtnet360.vt01.vt010011.entity.VT010011ListCondition" resultType="java.lang.Integer">
+        SELECT IFNULL( (
+            SELECT COUNT(*)
+        FROM
+            IN_OUT_REGISTER i
+        LEFT JOIN QLDV_EMPLOYEE e ON
+            i.EMPLOYEE_USER_NAME = e.USER_NAME
+        LEFT JOIN QLDV_EMPLOYEE ea ON
+            i.APPROVER_USER_NAME = ea.USER_NAME
+        LEFT JOIN QLDV_UNIT u ON
+            e.UNIT_ID = u.UNIT_ID
+        <where>
+            <if test="listStatus != null and listStatus.length &gt; 0">
+                <foreach item="item" collection="listStatus" open = "AND (" separator=" OR " close = ")">
+                    i.STATUS = #{item}                  
+                </foreach>
+            </if>
+            <if test="listUnit != null and listUnit.length &gt; 0">
+                AND e.UNIT_ID IN
+                <foreach item="item1" collection="listUnit" open="(" separator=" UNION " close = ")">
+                    SELECT  UNIT_ID
+                    FROM    QLDV_UNIT
+                    WHERE   QLDV_UNIT.`PATH` LIKE CONCAT('%', #{item1}, '%')
+                </foreach>
+            </if>
+            <if test="security == true and fixed == false">
+                AND e.UNIT_ID NOT IN(
+                    SELECT  UNIT_ID
+                    FROM    QLDV_UNIT
+                    WHERE   
+                        QLDV_UNIT.`PATH` LIKE CONCAT('%', 235141, '%') OR 
+                        QLDV_UNIT.`PATH` LIKE CONCAT('%', 235222, '%') OR 
+                        QLDV_UNIT.`PATH` LIKE CONCAT('%', 235283, '%') )
+            </if>
+            <if test="startDate != null">
+                AND i.START_TIME_BY_PLAN &gt;= CAST(#{startDate} AS DATETIME)       
+            </if>
+            <if test="endDate != null">
+                AND i.START_TIME_BY_PLAN &lt;= CAST(#{endDate} AS DATETIME)         
+            </if>
+            <if test="personInfo != null and personInfo.length &gt; 0">
+            <bind name="pattern2" value="'%' + personInfo + '%'"/>
+                AND ( e.CODE LIKE #{pattern2}
+                OR e.FULL_NAME LIKE #{pattern2}
+                OR e.EMAIL LIKE #{pattern2}
+                OR e.PHONE_NUMBER LIKE #{pattern2}
+                OR e.USER_NAME LIKE #{pattern2} )
+            </if>
+            <if test="userName != null and userName.length &gt; 0">
+                AND e.USER_NAME = #{userName}
+            </if>
+            <if test="loginRole != null and loginRole == 'PMQT_NV'">
+                AND i.EMPLOYEE_USER_NAME = #{loginUserName}
+            </if>
+        </where>
+          ), 0
+        )
+    </select>
+    
+    <update id="updateMoreTime" parameterType="java.util.HashMap">
+        UPDATE IN_OUT_REGISTER
+        SET
+        
+        <if test="requestParam.status == 1 or requestParam.status == 3">
+         LOG_TO_ROLLBACK_STATUS = STATUS,
+        </if>
+        LOG_TO_ROLLBACK_START_TIME_BY_PLAN = START_TIME_BY_PLAN,
+        LOG_TO_ROLLBACK_END_TIME_BY_PLAN = END_TIME_BY_PLAN,
+        STATUS = 5,
+        END_TIME_BY_PLAN = #{requestParam.endTimeByPlan},
+        <if test="requestParam.isLate == 0">
+         START_TIME_BY_PLAN = #{requestParam.startTimeByPlan},
+        </if>
+        UPDATE_USER = #{userName},
+        UPDATE_DATE = #{timeNow}
+        
+        WHERE   IN_OUT_REGISTER_ID = #{requestParam.inOutRegisterId}
+    </update>   
+
+    <update id="updateChecking" parameterType="java.util.HashMap">
+        UPDATE IN_OUT_REGISTER
+        SET
+        <!-- chinh sua ban ghi -->
+        <if test="status == 0 ">
+            <!-- EMPLOYEE_USER_NAME = #{employeeUserName}, -->
+            DESTINATION = #{requestParam.destination},
+            REASON_REGISTION = #{requestParam.reasonRegistion},
+            REASON_DETAIL = #{requestParam.reasonDetail},
+            START_TIME_BY_PLAN = #{requestParam.startTimeByPlan},
+            END_TIME_BY_PLAN = #{requestParam.endTimeByPlan},
+            APPROVER_USER_NAME = #{requestParam.approverUserName},
+            IN_OUT_EMPLOYEE_LIST = #{requestParam.inOutEmployeeList},
+            IS_LATE = #{requestParam.isLate},
+        </if>
+
+        <!-- gia han ban ghi -->
+        <if test="status == 1 or status == 3">
+            LOG_TO_ROLLBACK_STATUS = STATUS,
+            LOG_TO_ROLLBACK_START_TIME_BY_PLAN = START_TIME_BY_PLAN,
+            LOG_TO_ROLLBACK_END_TIME_BY_PLAN = END_TIME_BY_PLAN,
+            START_TIME_BY_PLAN = #{requestParam.startTimeByPlan},
+            END_TIME_BY_PLAN = #{requestParam.endTimeByPlan},
+            STATUS = 5,
+        </if>
+        <!-- chinh sua ban ghi da gia han -->
+        <if test="status == 5 ">
+            START_TIME_BY_PLAN = #{requestParam.startTimeByPlan},
+            END_TIME_BY_PLAN = #{requestParam.endTimeByPlan},
+        </if>
+        UPDATE_USER = #{userName},
+        UPDATE_DATE = #{timeNow}
+        WHERE IN_OUT_REGISTER_ID = #{requestParam.inOutRegisterId}
+    </update>
+
+    <select id="getCheckingById" parameterType="String" resultMap="getCheckingById">
+        SELECT *
+        FROM IN_OUT_REGISTER
+        WHERE IN_OUT_REGISTER_ID = #{inOutRegisterId};
+    </select>
+
+    <!-- employee auto complete -->
+    <select id="employeeAutocomplete" parameterType="String" resultMap="employeeAutocomplete">
+        SELECT USER_NAME, CONCAT(FULL_NAME, ' - ', TITLE) AS FULL_NAME
+        FROM QLDV_EMPLOYEE LEFT JOIN QLDV_UNIT ON QLDV_EMPLOYEE.UNIT_ID = QLDV_UNIT.UNIT_ID
+        WHERE
+            QLDV_UNIT.`PATH` LIKE CONCAT('%','234841','%') AND
+            QLDV_EMPLOYEE.STATUS = 1 AND
+            (
+                CODE LIKE CONCAT("%",#{pattern},"%") OR
+                USER_NAME LIKE CONCAT("%",#{pattern},"%") OR
+                EMPLOYEE_ID LIKE CONCAT("%",#{pattern},"%") OR
+                FULL_NAME LIKE CONCAT("%",#{pattern},"%") OR
+                EMAIL LIKE CONCAT("%",#{pattern},"%") OR
+                PHONE_NUMBER LIKE CONCAT("%",#{pattern},"%")
+            )
+        ORDER BY FULL_NAME;
+    </select>
+    
+    <!-- manager employee auto complete -->
+    <select id="managerEmployeeAutocomplete" parameterType="String" resultMap="employeeAutocomplete">
+        SELECT USER_NAME, CONCAT(FULL_NAME, ' - ', TITLE) AS FULL_NAME
+        FROM QLDV_EMPLOYEE qe LEFT JOIN QLDV_UNIT qu ON qe.UNIT_ID = qu.UNIT_ID
+        WHERE
+            qu.`PATH` LIKE CONCAT('%','234841','%') AND
+            (qe.ROLE = 'PMQT_QL' OR qe.ROLE LIKE CONCAT('%','PMQT_QL,','%') OR qe.ROLE LIKE CONCAT('%',',PMQT_QL')) AND
+            qe.STATUS = 1 AND
+            (
+                CODE LIKE CONCAT("%",#{pattern},"%") OR
+                USER_NAME LIKE CONCAT("%",#{pattern},"%") OR
+                EMPLOYEE_ID LIKE CONCAT("%",#{pattern},"%") OR
+                FULL_NAME LIKE CONCAT("%",#{pattern},"%") OR
+                EMAIL LIKE CONCAT("%",#{pattern},"%") OR
+                PHONE_NUMBER LIKE CONCAT("%",#{pattern},"%")
+            )
+         ORDER BY FULL_NAME;
+    </select>
+    
+    <!-- employee auto complete -->
+    <select id="getWithEmployees" parameterType="String" resultMap="employeeAutocomplete">
+        SELECT USER_NAME, CONCAT(FULL_NAME, ' - ', TITLE) AS FULL_NAME
+        FROM QLDV_EMPLOYEE
+        WHERE USER_NAME IN 
+        <foreach item="username" collection="userNames" open="(" separator="," close = ")">
+           #{username}
+        </foreach>
+        ORDER BY FULL_NAME;
+    </select>
+
+    <!-- employee auto complete -->
+    <select id="getSystemCode" parameterType="String" resultMap="getSystemCode">
+        SELECT MASTER_CLASS, CODE_VALUE, CODE_NAME
+        FROM M_SYSTEM_CODE
+        WHERE MASTER_CLASS = #{pattern} AND STATUS = 1
+    </select>
+
+
+    <insert id="createChecking" parameterType="java.util.HashMap">
+        <selectKey keyProperty="returnedId" resultType="String" order="BEFORE">
+            SELECT CONCAT( 'VTN_SR_',NEXT VALUE FOR VTN_S) as returnedId
+        </selectKey>
+
+        INSERT INTO IN_OUT_REGISTER (
+            IN_OUT_REGISTER_ID,
+            EMPLOYEE_USER_NAME,
+            DESTINATION,
+            REASON_REGISTION,
+            REASON_DETAIL,
+            START_TIME_BY_PLAN,
+            END_TIME_BY_PLAN,
+            START_TIME_BY_ACTUAL,
+            END_TIME_BY_ACTUAL,
+            APPROVER_USER_NAME,
+            STATUS,
+            LOG_TO_ROLLBACK_STATUS,
+            GUARD_OUT_USER_NAME,
+            GUARD_IN_USER_NAME,
+            REASON_OF_APPROVER,
+            REASON_OF_GUARD,
+            IN_OUT_EMPLOYEE_LIST,/* them danh sach nguoi di cung*/
+            IS_LATE,
+            CREATE_USER,
+            CREATE_DATE,
+            UPDATE_USER,
+            UPDATE_DATE)
+        VALUES(
+            #{returnedId},/*IN_OUT_REGISTER_ID*/
+            #{userName},/*EMPLOYEE_USER_NAME*/
+            #{requestParam.destination},/*DESTINATION*/
+            #{requestParam.reasonRegistion},/*REASON_REGISTION*/
+            #{requestParam.reasonDetail},/*REASON_DETAIL*/
+            #{requestParam.startTimeByPlan},/*START_TIME_BY_PLAN*/
+            #{requestParam.endTimeByPlan},/*END_TIME_BY_PLAN*/
+            null,/*START_TIME_BY_ACTUAL*/
+            null,/*END_TIME_BY_ACTUAL*/
+            #{requestParam.approverUserName},/*APPROVER_USER_NAME*/
+            0,/*STATUS*/
+            null,/*LOG_TO_ROLLBACK_STATUS*/
+            null,/*GUARD_OUT_USER_NAME*/
+            null,/*GUARD_IN_USER_NAME*/
+            null,/*REASON_OF_APPROVER*/
+            null,/*REASON_OF_GUARD*/
+            #{requestParam.inOutEmployeeList},/* them danh sach nguoi di cung*/
+            #{requestParam.isLate},/* xin di muon*/
+            #{userName},/*CREATE_USER*/
+            #{dateNow},/*CREATE_DATE*/
+            #{userName},/*UPDATE_USER*/
+            #{dateNow}/*UPDATE_DATE*/
+        );
+    </insert>
+    
+    <insert id="createWithChecking" parameterType="java.util.HashMap">
+        <selectKey keyProperty="returnedId" resultType="String" order="BEFORE">
+            SELECT CONCAT( 'VTN_SR_',NEXT VALUE FOR VTN_S) as returnedId
+        </selectKey>
+
+        INSERT INTO IN_OUT_REGISTER (
+            IN_OUT_REGISTER_ID,
+            EMPLOYEE_USER_NAME,
+            DESTINATION,
+            REASON_REGISTION,
+            REASON_DETAIL,
+            START_TIME_BY_PLAN,
+            END_TIME_BY_PLAN,
+            START_TIME_BY_ACTUAL,
+            END_TIME_BY_ACTUAL,
+            APPROVER_USER_NAME,
+            STATUS,
+            LOG_TO_ROLLBACK_STATUS,
+            GUARD_OUT_USER_NAME,
+            GUARD_IN_USER_NAME,
+            REASON_OF_APPROVER,
+            REASON_OF_GUARD,
+            IS_LATE,
+            CREATE_USER,
+            CREATE_DATE,
+            UPDATE_USER,
+            UPDATE_DATE)
+        VALUES(
+            #{returnedId},/*IN_OUT_REGISTER_ID*/
+            #{userName},/*EMPLOYEE_USER_NAME*/
+            #{requestParam.destination},/*DESTINATION*/
+            #{requestParam.reasonRegistion},/*REASON_REGISTION*/
+            #{requestParam.reasonDetail},/*REASON_DETAIL*/
+            #{requestParam.startTimeByPlan},/*START_TIME_BY_PLAN*/
+            #{requestParam.endTimeByPlan},/*END_TIME_BY_PLAN*/
+            null,/*START_TIME_BY_ACTUAL*/
+            null,/*END_TIME_BY_ACTUAL*/
+            #{requestParam.approverUserName},/*APPROVER_USER_NAME*/
+            1,/*STATUS*/
+            null,/*LOG_TO_ROLLBACK_STATUS*/
+            null,/*GUARD_OUT_USER_NAME*/
+            null,/*GUARD_IN_USER_NAME*/
+            null,/*REASON_OF_APPROVER*/
+            null,/*REASON_OF_GUARD*/
+            #{requestParam.isLate},/* xin di muon*/
+            #{userName},/*CREATE_USER*/
+            #{dateNow},/*CREATE_DATE*/
+            #{userName},/*UPDATE_USER*/
+            #{dateNow}/*UPDATE_DATE*/
+        );
+    </insert>
+    
+    <insert id="createWithLateChecking" parameterType="java.util.HashMap">
+        <selectKey keyProperty="returnedId" resultType="String" order="BEFORE">
+            SELECT CONCAT( 'VTN_SR_',NEXT VALUE FOR VTN_S) as returnedId
+        </selectKey>
+
+        INSERT INTO IN_OUT_REGISTER (
+            IN_OUT_REGISTER_ID,
+            EMPLOYEE_USER_NAME,
+            DESTINATION,
+            REASON_REGISTION,
+            REASON_DETAIL,
+            START_TIME_BY_PLAN,
+            END_TIME_BY_PLAN,
+            START_TIME_BY_ACTUAL,
+            END_TIME_BY_ACTUAL,
+            APPROVER_USER_NAME,
+            STATUS,
+            LOG_TO_ROLLBACK_STATUS,
+            GUARD_OUT_USER_NAME,
+            GUARD_IN_USER_NAME,
+            REASON_OF_APPROVER,
+            REASON_OF_GUARD,
+            IS_LATE,
+            CREATE_USER,
+            CREATE_DATE,
+            UPDATE_USER,
+            UPDATE_DATE)
+        VALUES(
+            #{returnedId},/*IN_OUT_REGISTER_ID*/
+            #{userName},/*EMPLOYEE_USER_NAME*/
+            #{requestParam.destination},/*DESTINATION*/
+            #{requestParam.reasonRegistion},/*REASON_REGISTION*/
+            #{requestParam.reasonDetail},/*REASON_DETAIL*/
+            #{requestParam.startTimeByPlan},/*START_TIME_BY_PLAN*/
+            #{requestParam.endTimeByPlan},/*END_TIME_BY_PLAN*/
+            null,/*START_TIME_BY_ACTUAL*/
+            null,/*END_TIME_BY_ACTUAL*/
+            #{requestParam.approverUserName},/*APPROVER_USER_NAME*/
+            1,/*STATUS*/
+            null,/*LOG_TO_ROLLBACK_STATUS*/
+            null,/*GUARD_OUT_USER_NAME*/
+            null,/*GUARD_IN_USER_NAME*/
+            null,/*REASON_OF_APPROVER*/
+            null,/*REASON_OF_GUARD*/
+            1,/* xin di muon*/
+            #{userName},/*CREATE_USER*/
+            #{dateNow},/*CREATE_DATE*/
+            #{userName},/*UPDATE_USER*/
+            #{dateNow}/*UPDATE_DATE*/
+        );
+    </insert>
+    
+    <!-- find Register Id by Data -->
+    <resultMap id="resultData"
+        type="com.viettel.vtnet360.vt00.vt000000.entity.VT000000EntitySmsVsNotify">
+        <result property="additionalInformation" column="IN_OUT_REGISTER_ID" />
+    </resultMap>
+    
+    <!-- get checking by barcode -->
+    <select id="getCheckingByBarcode" parameterType="String"
+        resultType="com.viettel.vtnet360.checking.service.entity.Checking">
+        SELECT
+            i.IN_OUT_REGISTER_ID AS inOutRegisterId,
+            i.EMPLOYEE_USER_NAME AS employeeUserName,
+            e.EMPLOYEE_ID AS empId,
+            e.FULL_NAME AS empName,
+            e.PHONE_NUMBER AS empPhone,
+            e.CODE AS empCode,
+            e.EMAIL AS empEmail,
+            e.TITLE AS empTitle,
+            u.UNIT_NAME AS unitName,
+            CASE 
+                WHEN u.UNIT_ID = 234841 THEN IFNULL(u.UNIT_NAME, '')
+                WHEN b.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''))
+                WHEN c.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''), IFNULL(CONCAT(' / ', c.UNIT_NAME), ''))
+                ELSE CONCAT(IFNULL(b.UNIT_NAME, ''), IFNULL(CONCAT(' / ', c.UNIT_NAME), ''), IFNULL(CONCAT(' / ', d.UNIT_NAME), ''))
+            END AS detailUnit,
+            i.STATUS AS status,
+            i.START_TIME_BY_PLAN AS startTimeByPlan,
+            i.END_TIME_BY_PLAN AS endTimeByPlan,
+            i.START_TIME_BY_ACTUAL AS startTimeByActual,
+            i.END_TIME_BY_ACTUAL AS endTimeByActual,
+            i.DESTINATION AS destination,
+            i.LOG_TO_ROLLBACK_STATUS AS logToRollbackStatus,
+            ea.FULL_NAME AS approverFullName,
+            i.APPROVER_USER_NAME AS approverUserName,
+            i.IN_OUT_EMPLOYEE_LIST AS inOutEmployeeList,
+            i.REASON_REGISTION AS reasonRegistion,
+            i.REASON_DETAIL as reasonDetail,
+            i.REASON_OF_APPROVER as reasonOfApprover,
+            i.REASON_OF_GUARD as reasonOfGuard,
+            i.IS_LATE as isLate
+        FROM
+            IN_OUT_REGISTER i
+        LEFT JOIN QLDV_EMPLOYEE e ON
+            i.EMPLOYEE_USER_NAME = e.USER_NAME
+        LEFT JOIN QLDV_EMPLOYEE ea ON
+            i.APPROVER_USER_NAME = ea.USER_NAME
+        LEFT JOIN QLDV_UNIT u ON
+            e.UNIT_ID = u.UNIT_ID
+        LEFT JOIN QLDV_UNIT b ON
+            u.PARENT_UNIT_ID = b.UNIT_ID
+        LEFT JOIN QLDV_UNIT c ON
+            b.PARENT_UNIT_ID = c.UNIT_ID
+        LEFT JOIN QLDV_UNIT d ON
+            c.PARENT_UNIT_ID = d.UNIT_ID
+        <where>
+            i.IN_OUT_REGISTER_ID = #{barcode};
+        </where>
+       
+    </select>
+</mapper>

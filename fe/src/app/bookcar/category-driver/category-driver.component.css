@@ -1,0 +1,8 @@
+:host >>> .fix-drop-down > .ui-widget {
+    height: 35px !important;
+    top: -1px !important;
+}
+
+.custom {
+    margin-top: -30px;
+}

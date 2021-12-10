@@ -1,0 +1,155 @@
+<!-- ThangBT -->
+<div class="container">
+  <div class="container-fluid text-center mt-3">
+    <h1>Yêu cầu VPP</h1>
+  </div>
+  <div>
+    <form >
+      <div class="col-xl-12 mb-3">
+        <p-fieldset legend="Thông tin đăng ký">
+          <div class="row mb-3" style="margin-left: 20px;">
+            <!-- team car field -->
+            <div class="col-sm-6">
+              <div class="row">
+                <div class="col-sm-3" style="text-align: left; padding-top: 5px;">Đơn vị:</div>
+                <div class="col-sm-9 ui-fluid" style="margin-left: -10px; position: relative;padding-top: 5px;">
+                  <label maxlength="200"  >  unitId   </label>
+                </div>
+              </div>
+            </div>
+            <!-- driver field -->
+            <div class="col-sm-6">
+              <div class="row">
+                <div class="col-sm-3" style="text-align: left; padding-top: 5px; max-width: 95px;">
+                  Họ và tên :
+                </div>
+                <div class="col-sm-9 ui-fluid" style="margin-left: -6px; position: relative;">
+                  <label maxlength="200"  > fullName  </label>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="row">
+                <div class="col-sm-3" style="text-align: left; padding-top: 5px; max-width: 95px;">Số
+                  điện thoại:
+                </div>
+                <div class="col-sm-9 ui-fluid" style="margin-left: -6px; position: relative;">
+                  <label maxlength="200"  >  phoneNumber</label>
+                </div>
+              </div>
+            </div>
+            <!-- email field -->
+            <div class="col-sm-6">
+              <div class="row">
+                <div class="col-sm-3" style="text-align: left; padding-top: 5px; max-width: 95px;">Email:
+                </div>
+                <div class="col-sm-9 ui-fluid" style="margin-left: -6px; position: relative;">
+                  <label maxlength="200"  >  email </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- trang thai field -->
+
+            <div class="col-sm-6">
+              <div class="row">
+                <div class="col-sm-3" style="text-align: left; padding-top: 5px; max-width: 95px;">Trạng
+                  thái:
+                </div>
+                <div class="col-sm-9 ui-fluid" style="margin-left: -6px; position: relative;">
+                  <div class="col-sm-3"
+                       style="text-align: left; padding-top: 5px; max-width: 200px;color: red"> Đăng
+                    kí mới
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+            <div class="col-sm-6">
+              <div class="row">
+                <div class="col-sm-3" style="text-align: left; padding-top: 5px; max-width: 95px;">Hạn mức còn lại:
+                </div>
+                <div class="col-sm-9 ui-fluid" style="margin-left: -6px; position: relative;">
+                  <label maxlength="200"  >  price </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-sm-6">
+              <div class="row">
+                <div class="col-sm-3" style="text-align: left; padding-top: 5px; max-width: 95px;padding-bottom: 7px;">Vị trí :
+                </div>
+                <div class="col-sm-9 ui-fluid" style="margin-left: -6px; position: relative; padding-bottom: 7px;">
+                  <p-autoComplete
+                  ></p-autoComplete>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-sm-6">
+              <div class="row">
+                <div class="col-sm-3" style="text-align: left; padding-top: 5px; max-width: 95px;padding-bottom: 7px;">Văn phòng phẩm yêu cầu :
+                </div>
+                <div class="col-sm-12  ui-fluid" style="margin-left: -10px; position: relative;">
+                  <div #inputGroup >
+                    <div  class="row mb-8" *ngFor="let item of listSelectedReceiver; let i=index" style="margin-top: .5em;">
+
+                      <div class="col-sm-3">
+                        <input type="text" class="form-control" maxlength="200" [(ngModel)]="item.stationeryID" formControlName ="stationeryID">
+                      </div>
+                      <div class="col-sm-3">
+                        <input type="text" class="form-control" maxlength="200" [(ngModel)]="item.quantity" formControlName ="quantity">
+                      </div>
+                      <div class="col-sm-3">
+                        <input type="text" class="form-control" maxlength="200" [(ngModel)]="item.unitPrice" formControlName ="unitPrice">
+                      </div>
+
+                      <div class="col-sm-3">
+                        <button pButton type="button" icon="pi pi-minus" title="Xóa một textbox" (click)="removeTextbox(i)"
+                                [disabled]="listSelectedReceiver != null && listSelectedReceiver.length === 1"></button>
+                      </div>
+                    </div>
+
+
+                  </div>
+
+                </div>
+                <div class="row">
+                  <div class="col-sm-10" style="padding-top: 5px;margin-left: 5px;">
+                    <button pButton type="button" icon="pi pi-plus" title="Thêm một textbox" (click)="addTextbox()"
+                            style="margin-right: .5em ;"></button>
+                  </div>
+                  <div class="col-sm-2"></div>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="row">
+                <div class="col-sm-3" style="text-align: left; padding-top: 5px; max-width: 95px;">Ghi chú:
+                </div>
+                <div class="col-sm-9 ui-fluid" style="margin-left: -6px;">
+                  <textarea
+                            style="width: 100%; " ></textarea>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </p-fieldset>
+      </div>
+      <div class="col-xl-12">
+        <div class="text-center">
+          <!-- confirm button -->
+          <button type="button" pButton icon="fa fa-search" iconPos="left" label="Sửa"
+                  style="text-align: center; max-width: 200px;"></button>
+          <button type="button" pButton icon="fa fa-search" iconPos="left" label="Hủy"
+                  style="text-align: center; max-width: 200px;"></button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- create table -->
+

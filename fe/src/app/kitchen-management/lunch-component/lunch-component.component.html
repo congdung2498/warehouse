@@ -1,0 +1,349 @@
+<p-fieldset styleClass="mb-3" legend="Đặt lịch ăn trưa">
+  <div class="row">
+    <div class="col-xl-12">
+      <div class="row mb-3">
+        <div class="col-sm-12">
+          <div class="row">
+            <div class="col-sm-3 mb-3">Bếp:</div>
+            <div class="col-sm-9 mb-3 ui-fluid">
+              <p-dropdown #kitchenFld placeholder="Lựa chọn bếp" [options]="kitchens" optionLabel="kitchenName" [style]="{minWidth:'100%'}"
+                          [filter]="true" [(ngModel)]="selectedKitchen" emptyFilterMessage="Không có dữ liệu" [disabled]="isDisableKitchen">
+              </p-dropdown>
+            </div>
+          </div>
+          <div *ngIf="isPeriod" class="row">
+            <div class="col-sm-3 mb-3">Thứ trong tuần:</div>
+            <div class="col-sm-9 mb-3 ui-fluid">
+              <p-checkbox name="onDay" value=2 [(ngModel)]="periodDays" label="Thứ 2"></p-checkbox>
+              <p-checkbox name="onDay" value=3 [(ngModel)]="periodDays" label="Thứ 3"></p-checkbox>
+              <p-checkbox name="onDay" value=4 [(ngModel)]="periodDays" label="Thứ 4"></p-checkbox>
+              <p-checkbox name="onDay" value=5 [(ngModel)]="periodDays" label="Thứ 5"></p-checkbox>
+              <p-checkbox name="onDay" value=6 [(ngModel)]="periodDays" label="Thứ 6"></p-checkbox>
+              <p-checkbox name="onDay" value=7 [(ngModel)]="periodDays" label="Thứ 7"></p-checkbox>
+            </div>
+            <div class="col-sm-3 mb-3">Tháng:</div>
+            <div class="col-sm-9 mb-3 ui-fluid">
+              <p-multiSelect #periodMonthFld defaultLabel="Chọn tháng" [style]="{minWidth:'100%'}" optionLabel="value" [options]="configMonths"
+                             inputId="periodMonthFld" [(ngModel)]="selectedConfigMonths" maxSelectedLabels="13" [filter]="false"
+                             (onPanelShow)="onShowPeriodMonthPanel()" (onPanelHide)="onHidePeriodMonthPanel() " (onChange)="onChangePeriodMonth()">
+              </p-multiSelect>
+              <div class="customDiv" [@animation]="isShowCheckAllPeriod">{{textPeriodShow}}</div>
+            </div>
+            <div class="col-sm-3 mb-3">Năm:</div>
+            <div class="col-sm-9 mb-3 ui-fluid">
+              <input #yearEle type="number" pInputText [(ngModel)]="yearFld"/>
+            </div>
+          </div>
+
+          <div *ngIf="isCutPeriod" class="row">
+            <div class="col-sm-3 mb-3">Thứ trong tuần:</div>
+            <div class="col-sm-9 mb-3 ui-fluid">
+              <p-checkbox name="onDay" value=2 [(ngModel)]="cutPeriodDays" label="Thứ 2"></p-checkbox>
+              <p-checkbox name="onDay" value=3 [(ngModel)]="cutPeriodDays" label="Thứ 3"></p-checkbox>
+              <p-checkbox name="onDay" value=4 [(ngModel)]="cutPeriodDays" label="Thứ 4"></p-checkbox>
+              <p-checkbox name="onDay" value=5 [(ngModel)]="cutPeriodDays" label="Thứ 5"></p-checkbox>
+              <p-checkbox name="onDay" value=6 [(ngModel)]="cutPeriodDays" label="Thứ 6"></p-checkbox>
+              <p-checkbox name="onDay" value=7 [(ngModel)]="cutPeriodDays" label="Thứ 7"></p-checkbox>
+            </div>
+            <div class="col-sm-3 mb-3">Tháng:</div>
+            <div class="col-sm-9 mb-3 ui-fluid">
+              <p-multiSelect #cutPeriodMonthFld defaultLabel="Chọn tháng" [style]="{minWidth:'100%'}" optionLabel="value"
+                             [options]="configMonths" [(ngModel)]="selectedCutConfigMonths" maxSelectedLabels="13" [filter]="false"
+                             (onPanelShow)="onShowCutPeriodMonthPanel()" (onPanelHide)="onHideCutPeriodMonthPanel()" (onChange)="onChangeCutPeriodMonth()">
+
+              </p-multiSelect>
+              <div class="customDiv" [@animation]="isShowCheckAllCutPeriod">{{textCutPeriodShow}}</div>
+            </div>
+            <div class="col-sm-3 mb-3">Năm:</div>
+            <div class="col-sm-9 mb-3 ui-fluid">
+              <input #cutYearEle type="number" pInputText [(ngModel)]="cutYearFld"/>
+            </div>
+          </div>
+
+          <div *ngIf="isByDay" class="row">
+            <div class="col-sm-3 mb-3">Số suất:</div>
+            <div class="col-sm-9 mb-3 ui-fluid">
+              <div class="row">
+                <input #quantityFld type="number" min="1" max="20" class="ui-inputtext ui-widget ui-state-default ui-corner-all" pInputText
+                       [(ngModel)]="lunchQuantity"  [disabled]="isShowCloseBtn" style="margin-left: 15px; margin-right: 15px;"
+                       onKeyUp="if(this.value>20){this.value='20';}else if(this.value<0){this.value='0';}"/>
+              </div>
+            </div>
+            <div class="col-sm-3 mb-3">Ngày:</div>
+            <div class="col-sm-9 mb-3 ui-fluid">
+              <div class="row">
+                <div class="col-sm-12">
+                  <div class="row">
+                    <div class="col-sm-6">
+                      <p-calendar dateFormat="dd/mm/yy" [locale]="vn" [showIcon]="true"
+                                  [(ngModel)]="startDate"></p-calendar>
+                      <span class="fa fa-minus" style="position: absolute; top: 12px; right: -7px; color: #848484"></span>
+                    </div>
+                    <div class="col-sm-6">
+                      <p-calendar dateFormat="dd/mm/yy" [locale]="vn" [showIcon]="true" [(ngModel)]="endDate"></p-calendar>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-sm-3 mb-3"></div>
+            <div class="col-sm-9 mb-3 ui-fluid">
+              <p-radioButton name="lunchMethod" (click)="onChangeMethod()" value="isPeriod" label="Ăn định kỳ" [(ngModel)]="lunchMethodFld"></p-radioButton>
+              <p-radioButton name="lunchMethod" (click)="onChangeMethod()" value="isCutPeriod" label="Cắt ăn định kỳ" [(ngModel)]="lunchMethodFld"></p-radioButton>
+              <p-radioButton name="lunchMethod" (click)="onChangeMethod()" value="isByDay" label="Ăn theo ngày" [(ngModel)]="lunchMethodFld"></p-radioButton>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</p-fieldset>
+
+<div class="row mb-3">
+  <div class="col-xl-12">
+    <div class="text-center">
+      <button type="button" pButton icon="fa fa-search" label="Tìm kiếm" (click)="onSearchLunch()" style="text-align: center;"></button>
+      <button type="button" pButton icon="fa fa-plus" label="Đăng ký" (click)="onCreateLunch()" style="text-align: center;"></button>
+      <button type="button" pButton icon="fa fa-edit" label="Cập nhật" (click)="onShowUpdateLunch()"  style="text-align: center;"></button>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-xl-12">
+    <p-table #myTable [value]="lunches" [rows]="10" (onPage)="paginate($event)" [lazy]="true" [paginator]="true" [totalRecords]="totalRecord" [loading]="loading2">
+      <ng-template pTemplate="header" style="width:100%">
+        <tr style="font-weight: bold; text-align: center">
+          <th rowspan="2" style="width: 5%;">STT</th>
+          <th rowspan="2" style="width: 5%;">
+            <p-checkbox (onChange)="checkAll($event)" binary="true" [(ngModel)]="isCheckedAll"></p-checkbox>
+          </th>
+          <th rowspan="2" style="width: 10%;">Thao tác</th>
+          <th rowspan="2" style="width: 15%;">Ngày</th>
+          <th rowspan="2" style="width: 10%;">Số suất</th>
+          <th rowspan="2" style="width: 35%;">Bếp</th>
+          <th rowspan="2" style="width: 20%;">Trạng thái</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td [attr.colspan]="13">
+            Không có dữ liệu
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template let-ri="rowIndex" pTemplate="body" let-item>
+        <tr *ngIf="item.lunchId != null">
+          <td>{{ri + 1}}</td>
+          <td >
+            <p-checkbox *ngIf="item.isUpdatable" value="{{item.lunchId}}" [(ngModel)]="selectedLunchIds"
+                        (onChange)="onCheckLunch($event)"></p-checkbox>
+          </td>
+          <td>
+            <button type="button" pButton icon="fa fa-eye" (click)="onShowLunchDetail(item)"  pTooltip="Xem chi tiết"></button>
+            <button type="button" pButton icon="fa fa-thumbs-o-up" (click)="onShowVoting(item)" pTooltip="Đánh giá"></button>
+          </td>
+          <td style="width: 6rem">{{item.lunchDate | date: 'dd/MM/yyyy'}}</td>
+          <td>{{item.quantity}}</td>
+          <td>{{item.kitchenName}}</td>
+          <td>{{statusLabels[item.hasBooking]}}</td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="paginatorright">
+            <span style="position: absolute; right: 30px; bottom: 6px;">
+              {{startRow}} - {{rowSize}} / {{totalRecord}}
+            </span>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<!-- update one lunch modal -->
+<p-dialog [modal]="true" [width]="700" [(visible)]="isShowUpdateOneLunch" (onHide)="onHideEditOneLunch()">
+  <p-header>
+    {{updateTitle}}
+  </p-header>
+  <div class="container" >
+    <div class="row">
+      <div class="col-xl-12 mb-2">
+        <div class="row">
+          <div class="col-sm-2 mb-3" style="text-align: left; padding-top: 5px;">Ngày:</div>
+          <div class="col-sm-4 mb-3 ui-fluid">
+            <p-calendar dateFormat="dd/mm/yy" [locale]="vn" [showIcon]="true" disabled="true"
+                        [(ngModel)]="selectedLunch.lunchDate"></p-calendar>
+          </div>
+          <div class="col-sm-2 mb-3" style="text-align: left; padding-top: 5px;">Số xuất:</div>
+          <div class="col-sm-4 mb-3 ui-fluid">
+            <input type="number" min="1" max="20" class="ui-inputtext ui-widget ui-state-default ui-corner-all" pInputText
+                   [(ngModel)]="selectedLunchQuantity"  [disabled]="isShowCloseBtn"
+                   onKeyUp="if(this.value>20){this.value='20';}else if(this.value<0){this.value='0';}"/>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-sm-2 mb-3" style="text-align: left; padding-top: 5px;">Bếp:</div>
+          <div class="col-sm-4 mb-3 ui-fluid">
+            <p-dropdown placeholder="Lựa chọn bếp" [options]="kitchens" optionLabel="kitchenName" [style]="{maxWidth:'100%'}"
+                        [filter]="true" [(ngModel)]="selectedLunchKitchen" [disabled]="isShowCloseBtn">
+            </p-dropdown>
+          </div>
+          <div class="col-sm-2 mb-3" style="text-align: left; padding-top: 5px;">Đặt ăn:</div>
+          <div class="col-sm-4 mb-3 ui-fluid">
+            <p-checkbox [(ngModel)]="isSelectedLunchBooking" binary="true" [disabled]="isShowCloseBtn"></p-checkbox>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-xl-12">
+        <p-table [value]="selectedLunchMenus">
+          <ng-template pTemplate="header">
+            <tr style="font-weight: bold; text-align: center">
+              <th rowspan="2" style="width: 10%; font-weight: bold;">TT</th>
+              <th rowspan="2" style="width: 10%; font-weight: bold;">Ảnh</th>
+              <th rowspan="2" style="width: 80%; font-weight: bold;">Tên món</th>
+            </tr>
+          </ng-template>
+          <ng-template let-ri="rowIndex" pTemplate="body" let-item>
+            <tr>
+              <td >{{ri+1}}</td>
+              <td class="wrapText" pTextEllipsis >
+                <button *ngIf="item.image != null && item.image.length > 0" type="button" tabindex="8" pButton icon="fa fa-file-image-o" (click)="onShowImage(item)" style="text-align: center;"></button>
+              </td>
+              <td class="wrapText" pTextEllipsis >
+                {{item.dishName}}
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-xl-12">
+        <div style="text-align: right; margin-right: 10px;">
+          <button *ngIf="!isShowCloseBtn" type="button" tabindex="8" pButton label="Cập nhật" (click)="onUpdateOneLunch()" style="text-align: center;"></button>
+          <button *ngIf="!isShowCloseBtn"type="button" tabindex="8" pButton label="Hủy bỏ" (click)="onHideEditOneLunch()" style="text-align: center;"></button>
+          <button *ngIf="isShowCloseBtn"type="button" tabindex="8" pButton label="Đóng" (click)="onHideEditOneLunch()" style="text-align: center;"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</p-dialog>
+
+<!-- update all lunch modal -->
+<p-dialog [modal]="true" [width]="400" [(visible)]="isShowUpdateAllLunch" (onHide)="onHideEditAllLunch()">
+  <p-header>
+    Cập nhật đăng ký suất ăn
+  </p-header>
+  <div class="container" >
+    <div class="row">
+      <div class="col-xl-12 mb-2">
+        <div class="row">
+          <div class="col-sm-4 mb-3" style="text-align: left; padding-top: 5px;">Số suất:</div>
+          <div class="col-sm-8 mb-3 ui-fluid">
+            <input type="number" min="1" max="20" pInputText [(ngModel)]="updateAllLunchQuantity"
+                   onKeyUp="if(this.value>20){this.value='20';}else if(this.value<0){this.value='0';}"/>
+          </div>
+          <div class="col-sm-4 mb-3" style="text-align: left; padding-top: 5px;">Đặt ăn:</div>
+          <div class="col-sm-8 mb-3 ui-fluid">
+            <p-checkbox binary="true" [(ngModel)]="isUpdateAllLunchHasBooking"></p-checkbox>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-xl-12">
+        <div style="text-align: right; margin-right: 10px;">
+          <button type="button" tabindex="8" pButton label="Cập nhật" (click)="onUpdateAllLunch()" style="text-align: center;"></button>
+          <button type="button" tabindex="8" pButton label="Hủy" (click)="onHideEditAllLunch()" style="text-align: center;"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</p-dialog>
+
+<!-- voting -->
+<p-dialog [modal]="true" [width]="700" [(visible)]="isShowVoting" (onHide)="onHideVoting()">
+  <p-header>
+    Nhận xét bữa ăn
+  </p-header>
+  <div class="container" >
+    <div class="row">
+      <div class="col-xl-12 mb-2">
+        <div class="row">
+          <div class="col-sm-3 mb-3" style="text-align: left; padding-top: 5px;">Ngày:</div>
+          <div class="col-sm-9 mb-3 ui-fluid">
+            <p-calendar dateFormat="dd/mm/yy" [locale]="vn" [showIcon]="true" disabled="true"
+                        [(ngModel)]="votingSelectedDate"></p-calendar>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-sm-3 mb-3" ></div>
+          <div class="col-sm-9 mb-3 ui-fluid">
+            <i *ngFor="let color of starColors; let i = index" class="pi pi-star" style="font-size: 3em"
+               [style.color]="color" (click)="onCheckRating(i + 1)" ></i>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-sm-3 mb-3" style="text-align: left; padding-top: 5px;">Góp ý:</div>
+          <div class="col-sm-9 mb-3 ui-fluid">
+            <textarea tabindex="7" [rows]="5" pInputTextarea maxLength="255" [(ngModel)]="lunchCommentFld"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-xl-12">
+        <p-table [value]="selectedLunchMenus">
+          <ng-template pTemplate="header">
+            <tr style="font-weight: bold; text-align: center">
+              <th rowspan="2" style="width: 10%; font-weight: bold;">TT</th>
+              <th rowspan="2" style="width: 80%; font-weight: bold;">Tên món</th>
+            </tr>
+          </ng-template>
+          <ng-template let-ri="rowIndex" pTemplate="body" let-item>
+            <tr>
+              <td >{{ri+1}}</td>
+              <td class="wrapText" pTextEllipsis >
+                {{item.dishName}}
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-xl-12">
+        <div style="text-align: right; margin-right: 10px;">
+          <button *ngIf="isShowVotingBtn" type="button" tabindex="8" pButton label="Gửi đánh giá" (click)="onUpdateVoting()"></button>
+          <button type="button" tabindex="8" pButton label="Hủy bỏ" (click)="onHideVoting()" style="text-align: center;"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</p-dialog>
+
+<p-dialog header="Ảnh món ăn" [(visible)]="isShowImage"
+          [modal]="true"
+          [positionTop]="100"
+          (onHide)="onHideImageDialog()"
+          [closable]="true" [responsive]="true" [width]="700" [minWidth]="200" [minY]="70" [maximizable]="false"
+          [dismissableMask]="true" [baseZIndex]="10000" >
+
+  <div style="margin: auto;text-align: center;margin-top: 10px;">
+    <img style="max-height: 600px; max-width: 600px;"  *ngIf="imageData != null" src="data:image/JPEG;base64,{{imageData}}">
+  </div>
+  <div *ngIf="imageData == null " style="text-align: center; min-height: 500px; min-width: 200px;">
+    <span>Lỗi hiển thị ảnh</span>
+  </div>
+</p-dialog>

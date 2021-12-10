@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt03.vt030010.dao.VT030010DAO">
+
+	<select id="getListBCbyEmployee"
+		resultType="com.viettel.vtnet360.vt03.vt030010.entity.BookingCarByEmployees">
+		SELECT
+		b.FULL_NAME as fullName,
+		a.`TYPE` as type,
+		a.SEAT as
+		seat,
+		a.TOTAL_PASSAGE as numberEmployee,
+		a.STATUS as status,
+		a.TIME_START as timeFrom,
+		a.TIME_FINISH as timeTo,
+		b.PHONE_NUMBER as
+		phoneNumber,
+		c.UNIT_NAME as unit
+		FROM CAR_BOOKING a INNER JOIN
+		QLDV_EMPLOYEE b on
+		a.EMPLOYEE_USER_NAME=b.USER_NAME
+		INNER JOIN QLDV_UNIT
+		c on b.UNIT_ID=c.UNIT_ID ;
+	</select>
+
+	<select id="getJourney" resultType="com.viettel.vtnet360.vt03.vt030014.entity.VT030014ListCondition">
+		SELECT 	CODE_VALUE as routeType,
+		 		CODE_NAME as journey
+		 		
+		FROM M_SYSTEM_CODE 
+		where
+			MASTER_CLASS='S003';
+	</select>
+	<select id="getJourneyById" parameterType="com.viettel.vtnet360.driving.dto.SearchData"
+	 resultType="com.viettel.vtnet360.vt03.vt030014.entity.VT030014ListCondition">
+		SELECT 	CODE_VALUE as routeType,
+		 		CODE_NAME as journey
+		 		
+		FROM M_SYSTEM_CODE 
+		where
+			MASTER_CLASS='S003' 
+				<if test="searchDTO != null and searchDTO.length &gt; 0">
+			AND CODE_VALUE = #{searchDTO};
+			</if>
+	</select>
+</mapper>

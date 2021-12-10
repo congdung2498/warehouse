@@ -1,0 +1,823 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper
+	namespace="com.viettel.vtnet360.vt01.vt010000.dao.VT010000DAO">
+
+	<!-- findListInOut -->
+	<resultMap id="resultData"
+		type="com.viettel.vtnet360.vt01.vt010000.entity.VT010000EntityData">
+		
+		<result property="inOutRegisterId" column="IN_OUT_REGISTER_ID" />
+		<result property="employeeFullName" column="FULL_NAME_EMP" />
+		<result property="startTimeByPlan" column="START_TIME_BY_PLAN" />
+		<result property="status" column="STATUS" />
+		<result property="reasonDetail" column="REASON_DETAIL" />
+		<result property="approverUserName" column="FULL_NAME_APPROVER" />
+		<result property="endTimeByPlan" column="END_TIME_BY_PLAN" />
+		<result property="startTimeByActual" column="START_TIME_BY_ACTUAL" />
+		<result property="endTimeByActual" column="END_TIME_BY_ACTUAL" />
+		<result property="reasonRegistion" column="REASON_REGISTION" />
+	</resultMap>
+
+
+
+	<select id="findListInOut" parameterType="java.util.Map"
+		resultMap="resultData">
+		SELECT
+		
+		I_O.IN_OUT_REGISTER_ID,
+		I_O.EMPLOYEE_USER_NAME,
+		emp.FULL_NAME as FULL_NAME_EMP,
+		emp.UNIT_ID as UNIT_ID_EMP,
+		unit.PATH,
+		I_O.START_TIME_BY_PLAN,
+		I_O.END_TIME_BY_PLAN,
+		I_O.STATUS,
+		I_O.REASON_DETAIL,
+		I_O.APPROVER_USER_NAME,
+		I_O.START_TIME_BY_ACTUAL,
+		I_O.END_TIME_BY_ACTUAL,
+		I_O.REASON_REGISTION,
+		emp.PHONE_NUMBER,
+		emp.EMAIL,
+		emp.CODE,
+		manager.FULL_NAME as FULL_NAME_APPROVER,
+		manager.UNIT_ID as UNIT_ID_APPROVER
+		
+		FROM IN_OUT_REGISTER as I_O LEFT JOIN QLDV_EMPLOYEE as emp ON emp.USER_NAME = I_O.EMPLOYEE_USER_NAME
+									LEFT JOIN QLDV_EMPLOYEE as manager ON manager.USER_NAME = I_O.APPROVER_USER_NAME
+									LEFT JOIN QLDV_UNIT as unit ON emp.UNIT_ID = unit.UNIT_ID
+		<choose>
+			<!-- quan ly don vi -->
+			<when test="requestParam.processByRole == 'PMQT_QL'">
+					WHERE 1 
+					
+					<if test="PMQT_ADMIN  == null ">
+					
+					AND I_O.APPROVER_USER_NAME = #{userName}
+					
+					</if>
+
+					<if
+						test="requestParam.employeeUnitId != 0 and requestParam.employeeUnitId != null">
+
+					<!-- 	AND emp.UNIT_ID = #{requestParam.employeeUnitId} -->
+						 AND unit.PATH LIKE CONCAT('%', #{requestParam.employeeUnitId}, '%') 
+
+					</if>
+
+					<if
+						test="requestParam.searchForUserName != null and requestParam.searchForUserName != '' ">
+						AND I_O.EMPLOYEE_USER_NAME =
+						#{requestParam.searchForUserName}
+					</if>
+
+					<if
+						test="requestParam.startTimeByPlan != null and requestParam.endTimeByPlan != null">
+						AND (I_O.START_TIME_BY_PLAN BETWEEN
+						#{requestParam.startTimeByPlan} AND #{requestParam.endTimeByPlan})
+						AND (I_O.END_TIME_BY_PLAN BETWEEN
+						#{requestParam.startTimeByPlan} AND #{requestParam.endTimeByPlan})
+					</if>
+
+					<if
+						test="requestParam.startTimeByPlan != null and requestParam.endTimeByPlan == null">
+						AND (I_O.START_TIME_BY_PLAN >=
+						#{requestParam.startTimeByPlan})
+					</if>
+
+					<if test="requestParam.status != null">
+						AND
+						<foreach item="item" index="index"
+							collection="requestParam.status" open="(" separator=" OR "
+							close=")">
+
+							<if test=" item == 0 or item == 5">
+								( I_O.STATUS = #{item}  )
+							</if>
+
+							<if test=" item == 1">
+								I_O.STATUS = #{item}
+							</if>
+
+						</foreach>
+					</if>
+
+				
+
+			</when>
+
+			<!-- quan ly van phong tong hoac Chanh Van Phong -->
+			<when
+				test="requestParam.processByRole == 'PMQT_ADMIN' or requestParam.processByRole == 'PMQT_CVP' ">
+
+					WHERE 1
+
+
+					<if
+						test="requestParam.searchForUserName != null and requestParam.searchForUserName != '' ">
+						AND I_O.EMPLOYEE_USER_NAME =
+						#{requestParam.searchForUserName}
+					</if>
+
+					<if
+						test="requestParam.employeeUnitId != 0 and requestParam.employeeUnitId != null">
+					<!-- 	AND emp.UNIT_ID = #{requestParam.employeeUnitId} -->
+						
+						AND unit.PATH LIKE CONCAT('%', #{requestParam.employeeUnitId}, '%') 
+					</if>
+
+
+					<if
+						test="requestParam.startTimeByPlan != null and requestParam.endTimeByPlan != null">
+						AND (I_O.START_TIME_BY_PLAN BETWEEN
+						#{requestParam.startTimeByPlan} AND #{requestParam.endTimeByPlan})
+						AND (I_O.END_TIME_BY_PLAN BETWEEN
+						#{requestParam.startTimeByPlan} AND #{requestParam.endTimeByPlan})
+					</if>
+
+					<if
+						test="requestParam.startTimeByPlan != null and requestParam.endTimeByPlan == null">
+						AND (I_O.START_TIME_BY_PLAN >=
+						#{requestParam.startTimeByPlan})
+					</if>
+
+					<if test="requestParam.status != null">
+						AND
+						<foreach item="item" index="index"
+							collection="requestParam.status" open="(" separator=" OR "
+							close=")">
+
+							<if test=" item == 0 or item == 5">
+								( I_O.STATUS = #{item} )
+							</if>
+
+							<if test=" item == 1">
+								I_O.STATUS = #{item}
+							</if>
+
+						</foreach>
+					</if>
+
+
+			</when>
+
+			<!-- Canh ve -->
+			<when test="requestParam.processByRole == 'PMQT_Canhve' ">
+
+					WHERE 1
+
+					<if
+						test="requestParam.searchForUserName != null and requestParam.searchForUserName != '' ">
+						AND I_O.EMPLOYEE_USER_NAME =
+						#{requestParam.searchForUserName}
+					</if>
+
+					<if
+						test="requestParam.employeeUnitId != 0 and requestParam.employeeUnitId != null">
+					<!-- 	AND emp.UNIT_ID = #{requestParam.employeeUnitId} -->
+						
+						AND unit.PATH LIKE CONCAT('%', #{requestParam.employeeUnitId}, '%') 
+					</if>
+
+					<if
+						test="requestParam.startTimeByPlan != null and requestParam.endTimeByPlan != null">
+						AND (I_O.START_TIME_BY_PLAN BETWEEN
+						#{requestParam.startTimeByPlan} AND #{requestParam.endTimeByPlan})
+						AND (I_O.END_TIME_BY_PLAN BETWEEN
+						#{requestParam.startTimeByPlan} AND #{requestParam.endTimeByPlan})
+					</if>
+
+					<if
+						test="requestParam.startTimeByPlan != null and requestParam.endTimeByPlan == null">
+						AND (I_O.START_TIME_BY_PLAN >=
+						#{requestParam.startTimeByPlan})
+					</if>
+
+					<if test="requestParam.status != null">
+						AND
+						<foreach item="item" index="index"
+							collection="requestParam.status" open="(" separator=" OR "
+							close=")">
+							<!-- canh ve chi nhin dc nhung ban ghi da duyet va co t/g con hieu 
+								luc -->
+							<if test=" item == 1 ">
+								( I_O.STATUS = #{item} )
+							</if>
+							<if test=" item != 1 ">
+								I_O.STATUS = #{item}
+							</if>
+
+						</foreach>
+					</if>
+
+			</when>
+
+			<!-- nhan vien -->
+			<when test="requestParam.processByRole == 'PMQT_NV' ">
+				WHERE I_O.EMPLOYEE_USER_NAME = #{userName}
+
+				<if
+					test="requestParam.startTimeByPlan != null and requestParam.endTimeByPlan != null">
+					AND (I_O.START_TIME_BY_PLAN BETWEEN
+					#{requestParam.startTimeByPlan} AND #{requestParam.endTimeByPlan})
+					AND (I_O.END_TIME_BY_PLAN BETWEEN
+					#{requestParam.startTimeByPlan} AND #{requestParam.endTimeByPlan})
+				</if>
+
+				<if
+					test="requestParam.startTimeByPlan != null and requestParam.endTimeByPlan == null">
+					AND (I_O.START_TIME_BY_PLAN >=
+					#{requestParam.startTimeByPlan})
+				</if>
+
+				<if test="requestParam.status != null">
+					AND
+					<foreach item="item" index="index"
+						collection="requestParam.status" open="(" separator=" OR "
+						close=")">
+						I_O.STATUS = #{item}
+					</foreach>
+				</if>
+
+			</when>
+
+			<otherwise>
+				WHERE 0
+			</otherwise>
+
+		</choose>
+		<!-- AND I_O.STATUS IN (0,1,2,3,4,5) -->
+		ORDER BY
+		FIELD(I_O.STATUS,0,5,1,3,4,2,6,7,8,9),I_O.END_TIME_BY_PLAN
+		DESC
+		LIMIT #{fromIndex},#{getSize}
+	</select>
+	
+	
+	<!-- findListInOutGetRecord -->
+	
+	<resultMap id="resultDatafindListInOutGetRecord"
+		type="com.viettel.vtnet360.vt01.vt010000.entity.VT010000EntityDataGetRecord">
+		<result property="inOutRegisterId" column="IN_OUT_REGISTER_ID" />
+		<result property="destination" column="DESTINATION" />
+		<result property="employeeUserName" column="EMPLOYEE_USER_NAME" />
+		<result property="reasonRegistion" column="REASON_REGISTION" />
+		<result property="reasonDetail" column="REASON_DETAIL" />
+		<result property="startTimeByPlan" column="START_TIME_BY_PLAN" />
+		<result property="endTimeByPlan" column="END_TIME_BY_PLAN" />
+		<result property="status" column="STATUS" />
+		<result property="rollbackStatus" column="LOG_TO_ROLLBACK_STATUS" />
+		<result property="rollbackStartTime" column="LOG_TO_ROLLBACK_START_TIME_BY_PLAN" />
+		<result property="rollbackEndTime" column="LOG_TO_ROLLBACK_END_TIME_BY_PLAN" />
+		<result property="managerRejectReason" column="REASON_OF_APPROVER" />
+		<result property="guardRejectReason" column="REASON_OF_GUARD" />
+		<result property="isLate" column="IS_LATE" />
+		
+		
+		<result property="employeeFullName" column="FULL_NAME_EMP" />
+		<result property="employeeCode" column="CODE_EMP" />
+		<result property="employeePhone" column="PHONE_NUMBER_EMP" />
+		<result property="employeeTitle" column="TITLE_EMP" />
+		<result property="employeeUnitName" column="detailUnit" />
+		<result property="employeeEmail" column="EMAIL_EMP" />
+		
+		
+		<result property="approverUserName" column="APPROVER_USER_NAME" />
+		<result property="approverFullName" column="FULL_NAME_APPROVER" />
+		<result property="approverTitle" column="TITLE_APPROVER" />
+		
+	
+	</resultMap>
+	
+	
+	
+	<select id="findInOutGetRecord"
+	parameterType="com.viettel.vtnet360.vt01.vt010000.entity.VT010000EntityRqGetRecord"
+	resultMap="resultDatafindListInOutGetRecord">
+
+				
+				SELECT
+				CASE 
+					WHEN empUnit.UNIT_ID = 234841 THEN IFNULL(empUnit.UNIT_NAME, '')
+					WHEN b.UNIT_ID = 234841 THEN CONCAT(IFNULL(empUnit.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''))
+					WHEN c.UNIT_ID = 234841 THEN CONCAT(IFNULL(empUnit.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''), IFNULL(CONCAT(' / ', c.UNIT_NAME), ''))
+					ELSE CONCAT(IFNULL(b.UNIT_NAME, ''), IFNULL(CONCAT(' / ', c.UNIT_NAME), ''), IFNULL(CONCAT(' / ', d.UNIT_NAME), ''))
+				END AS detailUnit,
+				In_Out.IN_OUT_REGISTER_ID,
+				In_Out.DESTINATION,
+				In_Out.EMPLOYEE_USER_NAME,
+				In_Out.REASON_REGISTION,
+				In_Out.REASON_DETAIL,
+				In_Out.START_TIME_BY_PLAN,
+				In_Out.END_TIME_BY_PLAN,
+				In_Out.STATUS,
+				In_Out.LOG_TO_ROLLBACK_STATUS,
+				In_Out.LOG_TO_ROLLBACK_START_TIME_BY_PLAN,
+				In_Out.LOG_TO_ROLLBACK_END_TIME_BY_PLAN,
+				In_Out.REASON_OF_APPROVER,
+				In_Out.REASON_OF_GUARD,
+				In_Out.IS_LATE,
+				In_Out.IN_OUT_EMPLOYEE_LIST as inOutEmployeeList,
+				emp.FULL_NAME as FULL_NAME_EMP,
+				emp.CODE as CODE_EMP,
+				emp.PHONE_NUMBER as PHONE_NUMBER_EMP,
+				emp.TITLE as TITLE_EMP,
+				empUnit.UNIT_NAME as UNIT_NAME_EMP,
+				emp.EMAIL as EMAIL_EMP,
+				In_Out.APPROVER_USER_NAME,
+				approver.FULL_NAME as FULL_NAME_APPROVER,
+				approver.TITLE as TITLE_APPROVER
+				
+			FROM
+			 IN_OUT_REGISTER as In_Out
+				LEFT JOIN QLDV_EMPLOYEE as emp ON
+				emp.USER_NAME = In_Out.EMPLOYEE_USER_NAME				 
+				LEFT JOIN QLDV_UNIT as empUnit ON
+				emp.UNIT_ID = empUnit.UNIT_ID				 
+				LEFT JOIN QLDV_EMPLOYEE as approver ON
+				approver.USER_NAME = In_Out.APPROVER_USER_NAME
+			
+				
+				LEFT JOIN QLDV_UNIT b ON
+				empUnit.PARENT_UNIT_ID = b.UNIT_ID
+				LEFT JOIN QLDV_UNIT c ON
+				b.PARENT_UNIT_ID = c.UNIT_ID
+				LEFT JOIN QLDV_UNIT d ON
+				c.PARENT_UNIT_ID = d.UNIT_ID
+			WHERE IN_OUT_REGISTER_ID = #{inOutRegisterId}
+	
+	</select>
+	
+	<!-- findFullNameByUserName  -->
+	<select id="findFullNameByUserName"
+	parameterType="String" resultType="String">
+
+	SELECT
+	QLDV_EMPLOYEE.FULL_NAME
+	FROM
+	QLDV_EMPLOYEE
+	WHERE 
+	QLDV_EMPLOYEE.USER_NAME = #{userName}
+	
+	</select>	
+	
+		<!-- find Information -->
+		
+	<resultMap id="resultDataFindInformation"
+		type="com.viettel.vtnet360.vt01.vt010000.entity.VT010000EntityDataGetRecord">
+		<result property="employeeFullName" column="FULL_NAME" />
+		<result property="employeeCode" column="CODE" />
+		<result property="employeePhone" column="PHONE_NUMBER" />
+		<result property="employeeTitle" column="TITLE" />
+	</resultMap>
+		
+	<select id="findInformation"
+	parameterType="String" resultMap="resultDataFindInformation">
+
+	SELECT
+	QLDV_EMPLOYEE.FULL_NAME,
+	QLDV_EMPLOYEE.CODE,
+	QLDV_EMPLOYEE.PHONE_NUMBER,
+	QLDV_EMPLOYEE.TITLE
+	
+	FROM
+	QLDV_EMPLOYEE
+	WHERE
+	QLDV_EMPLOYEE.USER_NAME = #{userName}
+	
+	</select>	
+	
+	<!-- inOutManagerApprove  -->
+	
+	<update id="inOutManagerApprove" parameterType="com.viettel.vtnet360.vt01.vt010000.entity.VT010000EntityApForOneRd">
+	UPDATE IN_OUT_REGISTER
+	SET
+	<choose>
+
+	<when test="statusApprove == 1">
+		<if test="statusRecord == 0 or statusRecord == 1">
+			STATUS = 1,
+			REASON_OF_APPROVER = #{reasonOfApprover},
+			UPDATE_USER = #{userNow},
+			UPDATE_DATE = #{timeNow}
+	 	</if>
+	 	
+	 	<if test="statusRecord == 5">
+	 	    LOG_TO_ROLLBACK_STATUS = 1,
+			STATUS = 1,
+			REASON_OF_APPROVER = #{reasonOfApprover},
+			UPDATE_USER = #{userNow},
+			UPDATE_DATE = #{timeNow}
+	 	</if>
+	</when>
+	
+	<when test="statusApprove == 2">
+		<if test="statusRecord == 0 or statusRecord == 1">
+			STATUS = 2,
+			UPDATE_USER = #{userNow},
+			UPDATE_DATE = #{timeNow}
+			<if test="reasonOfApprover != null and reasonOfApprover != ''">
+			 ,REASON_OF_APPROVER = #{reasonOfApprover}
+			</if>
+	 	</if>
+	 	
+	 	<if test="statusRecord == 5">
+			STATUS = LOG_TO_ROLLBACK_STATUS,
+			START_TIME_BY_PLAN = LOG_TO_ROLLBACK_START_TIME_BY_PLAN,
+			END_TIME_BY_PLAN =  LOG_TO_ROLLBACK_END_TIME_BY_PLAN,
+			UPDATE_USER = #{userNow},
+			UPDATE_DATE = #{timeNow}
+			<if test="reasonOfApprover != null and reasonOfApprover != ''">
+			,REASON_OF_APPROVER = #{reasonOfApprover}<!--  -->
+			</if>
+	 	</if>
+	</when>
+	
+	<otherwise>
+	</otherwise>
+	</choose>
+	   WHERE IN_OUT_REGISTER_ID = #{inOutRegisterId}
+	</update>
+	
+	
+	<!-- inOutGruadApprove  -->
+	
+	<update id="inOutGruadApprove" parameterType="com.viettel.vtnet360.vt01.vt010000.entity.VT010000EntityApForOneRd">
+	UPDATE IN_OUT_REGISTER
+	SET
+	
+	  <choose>
+
+	<when test="statusApprove == 3">
+	   
+	   <if test="statusRecord == 0">
+            STATUS = 3,START_TIME_BY_ACTUAL = null,
+            UPDATE_USER = #{userNow},
+            UPDATE_DATE = #{timeNow}
+            <if test="guardOutUserName != null and guardOutUserName != ''">
+            ,GUARD_OUT_USER_NAME = #{guardOutUserName}
+            </if>
+            
+        </if>
+	   
+		<if test="statusRecord == 1">
+			STATUS = 3,START_TIME_BY_ACTUAL = #{timeNow},
+			UPDATE_USER = #{userNow},
+			UPDATE_DATE = #{timeNow}
+			<if test="guardOutUserName != null and guardOutUserName != ''">
+			,GUARD_OUT_USER_NAME = #{guardOutUserName}
+			</if>
+			
+	 	</if>
+	 	
+	 	<if test="statusRecord == 5 and isMoreTimeGetInApprove == 1">
+            STATUS = 3,
+            LOG_TO_ROLLBACK_STATUS = 3,
+            UPDATE_USER = #{userNow},
+            UPDATE_DATE = #{timeNow}
+            <if test="guardOutUserName != null and guardOutUserName != ''">
+            ,GUARD_OUT_USER_NAME = #{guardOutUserName}
+            </if>
+            
+        </if>
+	 	
+	 	<if test="statusRecord == 5 and isMoreTimeGetInApprove != 1">
+			STATUS = 3,
+			LOG_TO_ROLLBACK_STATUS = 3,
+			START_TIME_BY_ACTUAL = #{timeNow},
+			START_TIME_BY_PLAN = LOG_TO_ROLLBACK_START_TIME_BY_PLAN,
+			END_TIME_BY_PLAN =  LOG_TO_ROLLBACK_END_TIME_BY_PLAN,
+			UPDATE_USER = #{userNow},
+			UPDATE_DATE = #{timeNow}
+			<if test="guardOutUserName != null and guardOutUserName != ''">
+			,GUARD_OUT_USER_NAME = #{guardOutUserName}
+			</if>
+			
+	 	</if>
+	 		 	
+	</when>
+	
+	<when test="statusApprove == 6">
+	
+		<if test="statusRecord == 1 or statusRecord == 5">
+			STATUS = 6,
+			UPDATE_USER = #{userNow},
+			UPDATE_DATE = #{timeNow}
+			<if test="reasonOfGuard != null and reasonOfGuard != ''">
+			,REASON_OF_GUARD = #{reasonOfGuard}
+	 		</if>
+		</if>
+		
+	</when>
+	
+	<when test="statusApprove == 4">
+	 <!-- check qua han -->
+		<if test="statusRecord == 3 or statusRecord == 1">
+		
+			STATUS = CASE 
+			WHEN ( ( '12:00:00' <![CDATA[<=]]> TIME(#{timeNow}) AND TIME(#{timeNow}) <![CDATA[<=]]> '13:30:59' ) AND  (  '12:00:00' <![CDATA[<=]]> TIME(END_TIME_BY_PLAN) AND TIME(END_TIME_BY_PLAN) <![CDATA[<=]]> '13:30:59' ) ) THEN 4
+			WHEN ( ( '17:30:00' <![CDATA[<=]]> TIME(#{timeNow})) AND  (  '17:30:00' <![CDATA[<=]]> TIME(END_TIME_BY_PLAN) AND TIME(END_TIME_BY_PLAN) <![CDATA[<=]]> '17:30:59' ) ) THEN 4
+			WHEN ( END_TIME_BY_PLAN >= #{timeNow} ) THEN 4
+			WHEN ( END_TIME_BY_PLAN <![CDATA[<]]> #{timeNow} ) THEN 8
+			END,
+			END_TIME_BY_ACTUAL = #{timeNow},
+			UPDATE_USER = #{userNow},
+			UPDATE_DATE = #{timeNow}
+			<if test="guardInUserName != null and guardInUserName != ''">
+			,GUARD_IN_USER_NAME = #{guardInUserName}
+			</if>
+	 	</if>
+	 	
+	 	<if test="statusRecord == 5">
+			STATUS = CASE 
+			WHEN ( ( '12:00:00' <![CDATA[<=]]> TIME(#{timeNow}) AND TIME(#{timeNow}) <![CDATA[<=]]> '13:30:59' ) AND  (  '12:00:00' <![CDATA[<=]]> TIME(LOG_TO_ROLLBACK_END_TIME_BY_PLAN) AND TIME(LOG_TO_ROLLBACK_END_TIME_BY_PLAN) <![CDATA[<=]]> '13:30:59' ) ) THEN 4
+			WHEN ( LOG_TO_ROLLBACK_END_TIME_BY_PLAN >= #{timeNow} ) THEN 4
+			WHEN ( LOG_TO_ROLLBACK_END_TIME_BY_PLAN <![CDATA[<]]> #{timeNow} ) THEN 8 
+			END
+			,END_TIME_BY_ACTUAL = #{timeNow},
+			START_TIME_BY_PLAN = LOG_TO_ROLLBACK_START_TIME_BY_PLAN,
+			END_TIME_BY_PLAN =  LOG_TO_ROLLBACK_END_TIME_BY_PLAN,
+			UPDATE_USER = #{userNow},
+			UPDATE_DATE = #{timeNow}
+			<if test="guardInUserName != null and guardInUserName != ''">
+			,GUARD_IN_USER_NAME = #{guardInUserName}
+			</if>
+	 	</if>
+		
+	</when>
+	
+	<when test="statusApprove == 7">
+		<if test="statusRecord == 1 or statusRecord == 3 or statusRecord == 5">
+			STATUS = 7,
+			UPDATE_USER = #{userNow},
+			UPDATE_DATE = #{timeNow}
+		<if test="reasonOfGuard != null and reasonOfGuard != ''">
+			,REASON_OF_GUARD = #{reasonOfGuard}
+	 	</if>
+	 	</if>
+		
+	</when>
+	
+	
+	
+	<otherwise>
+		
+	</otherwise>
+	
+	</choose>
+
+	WHERE IN_OUT_REGISTER_ID = #{inOutRegisterId}
+
+	</update>
+	
+	
+<!-- checkUnitId -->	
+	<select id="checkUnitId" parameterType="com.viettel.vtnet360.vt01.vt010000.entity.VT010000EntityRqGetData" resultType='int'>
+
+	SELECT
+	UNIT_ID
+	FROM
+	QLDV_EMPLOYEE
+	WHERE USER_NAME = #{userName}
+	
+	</select>	
+	
+	
+	
+	<!-- check Log To Roll Back Status -->
+	<select id="checkLogToRollBackStatus" parameterType="String" resultType='int'>
+
+	SELECT
+		LOG_TO_ROLLBACK_STATUS
+	FROM
+		IN_OUT_REGISTER
+	WHERE IN_OUT_REGISTER_ID = #{inOutRegisterId};
+	
+	</select>
+	
+	<!-- check Log To Roll Back Status -->
+	<select id="checkSatusInOutRegisterId" parameterType="String" resultType='int'>
+
+	SELECT
+		STATUS
+	FROM
+		IN_OUT_REGISTER
+	WHERE IN_OUT_REGISTER_ID = #{inOutRegisterId};
+	
+	</select>
+	
+	
+	<!-- update Record -->
+	<update id="updateRecord" parameterType="com.viettel.vtnet360.vt01.vt010000.entity.VT010000EntityRqUpdateRecord">
+	
+	
+	UPDATE IN_OUT_REGISTER
+	
+	<if test="rollBack == true">
+		SET START_TIME_BY_PLAN = LOG_TO_ROLLBACK_START_TIME_BY_PLAN , END_TIME_BY_PLAN = LOG_TO_ROLLBACK_END_TIME_BY_PLAN , STATUS = LOG_TO_ROLLBACK_STATUS
+	</if>
+	
+	<if test="rollBack == false">
+		SET STATUS = #{status}
+	</if>
+	WHERE IN_OUT_REGISTER_ID = #{inOutRegisterId}
+	
+	</update>
+	
+	
+	
+		<!-- auto Update Record Out Date end of day -->
+	<update id="autoUpdateRecordOutDate" >
+	
+		UPDATE IN_OUT_REGISTER
+	
+		SET 
+				END_TIME_BY_ACTUAL = CASE 
+				WHEN (STATUS =3 AND TIME(END_TIME_BY_PLAN) >= '17:30:00') THEN TIMESTAMP(CURRENT_DATE(),'17:30:00')
+				WHEN (STATUS =5 AND LOG_TO_ROLLBACK_STATUS = 3  AND TIME(LOG_TO_ROLLBACK_END_TIME_BY_PLAN) >= '17:30:00') THEN TIMESTAMP(CURRENT_DATE(),'17:30:00')
+				ELSE END_TIME_BY_ACTUAL
+				END
+				,
+				STATUS = CASE 
+				WHEN (STATUS =3 AND TIME(END_TIME_BY_PLAN) >= '17:30:00') THEN 4
+				WHEN (STATUS =5 AND LOG_TO_ROLLBACK_STATUS = 3  AND TIME(LOG_TO_ROLLBACK_END_TIME_BY_PLAN) >= '17:30:00') THEN 4
+				WHEN (STATUS =3 AND TIME(END_TIME_BY_PLAN) <![CDATA[<]]> '17:30:00') THEN 9 
+				WHEN (STATUS =5 AND LOG_TO_ROLLBACK_STATUS = 3  AND TIME(LOG_TO_ROLLBACK_END_TIME_BY_PLAN) <![CDATA[<]]> '17:30:00') THEN 9
+				ELSE STATUS
+				END
+			
+		WHERE ( (STATUS = 3 ) OR (STATUS =5))  AND ( #{timeNow} > END_TIME_BY_PLAN )  ;
+	
+	</update>
+	
+	
+	<update id="autoUpdateRecordOutDateVer2" >
+	
+		UPDATE IN_OUT_REGISTER
+		SET STATUS = 9
+		WHERE (  (STATUS =0 ) OR ( STATUS =1 )OR (STATUS =5) ) AND ( #{timeNow} > END_TIME_BY_PLAN )  ;
+	
+	</update>		
+	
+	<!--  find in or out of registerINOUT BY ID CARD-->
+	
+	<resultMap type="com.viettel.vtnet360.vt01.vt010000.entity.VT010000EntityCard" id="RsIdCard">
+		<result property="inOutRegisterId"  column="IN_OUT_REGISTER_ID"/>
+		<result property="idCard"  column="CARD_ID"/>
+		<result property="status"  column="STATUS"/>
+	</resultMap>
+	
+	
+	<select id="findOutIdCard" parameterType="com.viettel.vtnet360.vt01.vt010000.entity.VT010000EntityCard" resultMap="RsIdCard">
+
+
+	SELECT
+	IN_OUT.IN_OUT_REGISTER_ID,
+	IN_OUT.STATUS,
+	IN_OUT.LOG_TO_ROLLBACK_STATUS,
+
+	IN_OUT.START_TIME_BY_PLAN,
+	IN_OUT.END_TIME_BY_PLAN,
+
+
+	IN_OUT.LOG_TO_ROLLBACK_START_TIME_BY_PLAN,
+	IN_OUT.LOG_TO_ROLLBACK_END_TIME_BY_PLAN,
+	EMP.CARD_ID
+	FROM QLDV_EMPLOYEE as EMP INNER JOIN IN_OUT_REGISTER as IN_OUT ON
+	EMP.USER_NAME = IN_OUT.EMPLOYEE_USER_NAME
+
+	WHERE ((
+	CASE
+	WHEN (
+	IN_OUT.STATUS = 3 AND ( DATEDIFF(START_TIME_BY_PLAN, CURRENT_DATE()) = 0 ) AND (
+	DATEDIFF(END_TIME_BY_PLAN, CURRENT_DATE()) = 0 )
+	) THEN 1
+
+	WHEN (
+	IN_OUT.STATUS = 5 AND IN_OUT.LOG_TO_ROLLBACK_STATUS = 3 AND (
+	DATEDIFF(LOG_TO_ROLLBACK_START_TIME_BY_PLAN, CURRENT_DATE()) = 0 ) AND (
+	DATEDIFF(LOG_TO_ROLLBACK_END_TIME_BY_PLAN, CURRENT_DATE()) = 0 )
+	) THEN 1
+
+	ELSE 0
+
+	END
+	) AND (EMP.CARD_ID = #{idCard} ))
+	LIMIT 0,1
+	
+	</select>
+	
+	
+	<select id="finInIdCard" parameterType="com.viettel.vtnet360.vt01.vt010000.entity.VT010000EntityCard" resultMap="RsIdCard">
+	SELECT
+	IN_OUT.IN_OUT_REGISTER_ID,
+	IN_OUT.STATUS,
+	IN_OUT.LOG_TO_ROLLBACK_STATUS,
+
+	IN_OUT.START_TIME_BY_PLAN,
+	IN_OUT.END_TIME_BY_PLAN,
+
+
+	IN_OUT.LOG_TO_ROLLBACK_START_TIME_BY_PLAN,
+	IN_OUT.LOG_TO_ROLLBACK_END_TIME_BY_PLAN,
+	EMP.CARD_ID,
+	0 as priority
+	FROM QLDV_EMPLOYEE as EMP INNER JOIN IN_OUT_REGISTER as IN_OUT ON
+	EMP.USER_NAME = IN_OUT.EMPLOYEE_USER_NAME
+
+	WHERE ((
+	CASE
+	WHEN (
+	IN_OUT.STATUS = 1 AND 
+	( DATEDIFF(START_TIME_BY_PLAN, CURRENT_DATE()) = 0 ) 
+	AND (DATEDIFF(END_TIME_BY_PLAN, CURRENT_DATE()) = 0 ) 
+	AND ( CURRENT_TIMESTAMP() BETWEEN START_TIME_BY_PLAN AND END_TIME_BY_PLAN )
+	) THEN 1
+
+	WHEN (
+	IN_OUT.STATUS = 5 
+	AND IN_OUT.LOG_TO_ROLLBACK_STATUS = 1 
+	AND ( DATEDIFF(LOG_TO_ROLLBACK_START_TIME_BY_PLAN, CURRENT_DATE()) = 0 ) 
+	AND ( DATEDIFF(LOG_TO_ROLLBACK_END_TIME_BY_PLAN, CURRENT_DATE()) = 0 )
+	AND ( CURRENT_TIMESTAMP() BETWEEN LOG_TO_ROLLBACK_START_TIME_BY_PLAN AND LOG_TO_ROLLBACK_END_TIME_BY_PLAN )
+	) THEN 1
+
+	ELSE 0
+
+	END
+	) AND ( CARD_ID = #{idCard} ) )
+	
+	
+	
+	UNION ALL
+	
+	
+	SELECT
+	IN_OUT.IN_OUT_REGISTER_ID,
+	IN_OUT.STATUS,
+	IN_OUT.LOG_TO_ROLLBACK_STATUS,
+
+	IN_OUT.START_TIME_BY_PLAN,
+	IN_OUT.END_TIME_BY_PLAN,
+
+
+	IN_OUT.LOG_TO_ROLLBACK_START_TIME_BY_PLAN,
+	IN_OUT.LOG_TO_ROLLBACK_END_TIME_BY_PLAN,
+	EMP.CARD_ID,
+	( CASE
+	
+	  WHEN ( IN_OUT.STATUS = 1 ) THEN (TIMESTAMPDIFF( SECOND , CURRENT_TIMESTAMP() , START_TIME_BY_PLAN))
+	  
+	  WHEN ( IN_OUT.STATUS = 5 ) THEN (TIMESTAMPDIFF( SECOND , CURRENT_TIMESTAMP(),  LOG_TO_ROLLBACK_START_TIME_BY_PLAN))
+	  
+	  ELSE
+	   -1
+	  END
+	  )as priority
+	
+	
+	FROM QLDV_EMPLOYEE as EMP INNER JOIN IN_OUT_REGISTER as IN_OUT ON
+	EMP.USER_NAME = IN_OUT.EMPLOYEE_USER_NAME
+
+	WHERE ((
+	CASE
+	
+	WHEN (
+	IN_OUT.STATUS = 1 AND 
+	( DATEDIFF(START_TIME_BY_PLAN, CURRENT_DATE()) = 0 ) 
+	AND (DATEDIFF(END_TIME_BY_PLAN, CURRENT_DATE()) = 0 ) 
+	AND ( CURRENT_TIMESTAMP() &lt; START_TIME_BY_PLAN )
+	) THEN 1
+
+	WHEN (
+	IN_OUT.STATUS = 5 
+	AND IN_OUT.LOG_TO_ROLLBACK_STATUS = 1 
+	AND ( DATEDIFF(LOG_TO_ROLLBACK_START_TIME_BY_PLAN, CURRENT_DATE()) = 0 ) 
+	AND ( DATEDIFF(LOG_TO_ROLLBACK_END_TIME_BY_PLAN, CURRENT_DATE()) = 0 )
+	AND ( CURRENT_TIMESTAMP() &lt; LOG_TO_ROLLBACK_START_TIME_BY_PLAN )
+	) THEN 1
+
+	ELSE 0
+
+	END
+	) AND ( CARD_ID = #{idCard} ) )
+	
+	ORDER BY priority ASC
+	LIMIT 0,1
+	
+	
+	</select>
+	
+	
+	<select id="findCodeEmpByInoutRegister" parameterType="String" resultType="String">
+	
+	SELECT CODE
+	FROM IN_OUT_REGISTER as in_out LEFT JOIN QLDV_EMPLOYEE as emp ON  in_out.EMPLOYEE_USER_NAME = emp.USER_NAME
+	WHERE IN_OUT_REGISTER_ID = #{inOutRegisterId}
+	
+	</select>
+	
+	
+
+</mapper>

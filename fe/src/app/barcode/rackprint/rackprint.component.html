@@ -1,0 +1,172 @@
+
+ <div id="custom-container" class="container">
+  <div class="container-fluid text-center mt-5">
+    <h1 class="text-center">IN NHÃN VỊ TRÍ</h1>
+  </div>
+  <div class="row ">
+    <div class="col-sm-12 " style="margin: auto;">
+      <form ngNoForm onsubmit="return false;">
+        <p-fieldset legend="Thông tin vị trí">
+          <div class="row">
+            <div class="col-sm-6">
+             
+              <div class="form-group row">
+                <div class="col-sm-2"></div>
+                <label class="col-sm-3 ">Kho
+                  
+                  <span style="color: red;">*</span>:
+                </label>
+                <div class="col-sm-7 ui-fluid ">
+                  <p-autoComplete  #inputTypeWarehouseDetail [(ngModel)]="typeWarehouseDetail" [suggestions]="listTypeWarehouseDetail" (completeMethod)="filterTypeWarehouseDetail($event)" [size]="200" [minLength]="1" (blur)="removeBlank()"
+                                  placeholder="--Tên kho--" [dropdown]="true" field="name" class="fix-drop-down" emptyMessage="Tên kho không tồn tại"
+                                  (onSelect)="getDriver($event)"
+                                  (onBlur)="isSelected()" >
+                                    
+                  </p-autoComplete>
+                </div>
+              </div>
+
+              <div class="form-group row">
+                <div class="col-sm-2"></div>
+                <label class="col-sm-3 ">Hàng:</label>
+                <div class="col-sm-7">
+                  <input #inputNumOfBarcode type="number"
+                    (keyup)="limitValue(inputNumOfBarcode, 1, 100)" (focusout)="setRow(inputNumOfBarcode)"
+                    pKeyFilter="pint" style="width:100%" pInputText [(ngModel)]="row"/>
+                </div>
+              </div>
+             
+            </div>
+
+            <div class="col-sm-6">
+
+              <div class="form-group row">
+                <div class="col-sm-2"></div>
+                <label class="col-sm-3 ">Kiểu vị trí:
+                </label>
+                <div class="col-sm-7 ui-fluid ">
+                  <p-autoComplete   [(ngModel)]="typeRack" [suggestions]="listTypeRack" (completeMethod)="filterTypeTinbox($event)" [size]="200" [minLength]="1" (blur)="removeBlank()"
+                                  placeholder="--Kiểu vị trí--" [dropdown]="true" class="fix-drop-down" emptyMessage="Kiểu vị trí không tồn tại"
+                                  (onSelect)="getDriverTinbox($event)"
+                                  (onBlur)="isSelected()" >
+                                    
+                  </p-autoComplete>
+                </div>
+              </div>
+
+              <div class="form-group row">
+                <div class="col-sm-2"></div>
+                <label class="col-sm-3 ">Cột:</label>
+                <div class="col-sm-7">
+                    <input #inputcolumn type="number"
+                    (keyup)="limitValue(inputcolumn, 1, 100)" (focusout)="setCol(inputcolumn)"
+                    pKeyFilter="pint" style="width:100%" pInputText [(ngModel)]="column"  />
+                </div>
+
+              </div>
+              
+            </div>
+          </div>
+        </p-fieldset>
+        <div class="row row-button">
+          <div class="col-sm-4"></div>
+          <div class="col-sm-5">
+            <p-button label="Tìm kiếm" icon="pi pi-search" (click)="handleSearch()"></p-button>
+            <p-button [disabled]="isEdit" class="ui-button-danger" icon="fa fa-print" label="In vị trí đã chọn" (click)="printAll()"></p-button>
+          </div>
+          <div class="col-sm-4"></div>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="table-container">
+  <div class="row">
+    <div class="col-sm-12">
+      <p-table [style]="{'min-width':'1000px'}" [columns]="cols" [value]="listRack" [totalRecords]="totalRecords" [paginator]="true"
+               [rows]= "10" [resizableColumns]="true" (onPage)="paginate($event)" #myTable>
+              
+        <ng-template pTemplate="colgroup" let-columns>
+          <colgroup>
+            <col *ngFor="let col of columns" [style.width]="col.width">
+          </colgroup>
+        </ng-template>
+        <ng-template pTemplate="header" let-columns>
+          <!-- <tr>
+            <th *ngFor="let col of columns" pResizableColumn style="text-align: center; font-weight: bold;">
+              {{col.header}}
+            </th>
+          </tr> -->
+          <tr style="font-weight: bold;">
+            <th style="width: 5%;text-align: center; ">STT</th>
+            <th style="width: 5%;text-align: center;"><p-checkbox binary="true" [(ngModel)]="isCheckAll" (onChange)="checkAll($event)" binary="true"></p-checkbox></th>
+            <th style="width: 5%;text-align: center; ">Thao tác</th>
+            <th style="width: 20%;text-align: center; ">Kho</th>
+            <th style="width: 10%;text-align: center; ">Hàng</th>
+            <th style="width: 10%;text-align: center; ">Cột</th>
+            <th style="width: 15%;text-align: center; ">Tên</th>
+            <th style="width: 20%;text-align: center; ">Kiểu vị trí</th>
+            <th style="width: 10%;text-align: center; ">Số lần đã in</th>
+               </tr>
+        </ng-template>
+        <ng-template let-ri="rowIndex" pTemplate="body" let-rowData let-columns="columns">
+          <tr>
+            <td>{{ri+1}}</td>
+            <td>
+                <p-checkbox name="groupname" value="{{rowData.rackId}},{{rowData.name}}" (onChange)="checkItem($event)"
+                            [(ngModel)]="listActivity"></p-checkbox>
+              </td>
+            <td>
+              <div class="row">
+                <div class="col-sm-7">
+                  <p-button icon="fa fa-print" (onClick)="doEdit(rowData)" pTooltip="In"></p-button>
+                </div>
+              </div>
+            </td>
+            <td style="text-align: left !important;">{{rowData["warehouseName"]}}</td>
+            <td style="text-align: left !important;">{{rowData["row"]}}</td>
+            <td style="text-align: left !important;">{{rowData["column"]}}</td>
+            <td style="text-align: left !important;">{{rowData["name"]}}</td>
+            <!-- <td style="text-align: left !important;">{{rowData["type"]}}</td> -->
+            <td style="text-align: left !important;" *ngIf="rowData['type']==-1;">Chưa cấu hình</td>
+            <td style="text-align: left !important;" *ngIf="rowData['type']==0;">Vị trí gần cửa</td>
+            <td style="text-align: left !important;" *ngIf="rowData['type']==2;">Vị trí</td>
+            <td style="text-align: left !important;" *ngIf="rowData['type']==3;">Không sử dụng</td>
+            <td style="text-align: left !important;" *ngIf="rowData['type']==1;">Đường đi</td>
+            <td style="text-align: right !important;">{{rowData["printTime"]}}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage" let-columns>
+          <tr>
+            <td [attr.colspan]="columns.length" style="text-align: center;">
+              Không có dữ liệu
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="paginatorright">
+          <span style="position: absolute; right: 30px; bottom: 6px;">{{totalRecords == 0 ? pageNumber : pageNumber + 1}} - {{pageNumber + pageSize > totalRecords ? totalRecords : pageNumber
+            + pageSize}} / {{totalRecords}}</span>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+  </div>
+  
+  <p-dialog [modal]="true" [width]="500" [(visible)]="isShowUpdateDialog" (onAfterHide)="close()" 
+  (onHide)="close()"  [style]="{'position':'absolute'}" [contentStyle]="{'max-height':'70vh'}">
+      <!-- (onHide)="onHideEditDialog()" [contentStyle]="isCheckingEarlyOrLate" -->
+      
+    <p-header>
+      {{fieldSetTitle}}
+    </p-header>
+    
+  <div class="col-xl-12">
+    <div style="text-align: center;">
+      <button  tabindex="8" type="button" pButton label="In cỡ nhỏ" (click)="doPrint()" style="text-align: center;"></button>
+      <button  tabindex="8" type="button" pButton label="In cỡ to" (click)="doPrintBig()" style="text-align: center;"></button>
+      <button  tabindex="8" type="button" pButton label="Đóng" (click)="close()" style="text-align: center;"></button>
+
+    </div>
+  </div>
+  </p-dialog>
+
+</div> 

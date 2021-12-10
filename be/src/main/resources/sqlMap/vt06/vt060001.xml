@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt06.vt060001.dao.VT060001DAO">
+	<select id="getListVersionDetail" resultType="com.viettel.vtnet360.vt06.vt060001.entity.VersionDetail"
+										parameterType="com.viettel.vtnet360.vt06.vt060001.entity.SearchCondition">
+		SELECT VERSION_ID as versionID, VERSION as version, VERSION_LINK as versionLink, VERSION_TYPE as versionType, VERSION_DESCRIPTION as versionDesc, CREATE_USER as createUser, CREATE_DATE as createDate
+		FROM VERSION_CONTROL
+		<where>
+			<if test="version != null">
+				AND VERSION LIKE CONCAT('%', #{version}, '%')
+			</if>
+			<if test="versionLink != null">
+				AND VERSION_LINK LIKE CONCAT('%', #{versionLink}, '%')
+			</if>
+			<if test="versionDesc != null">
+				AND VERSION_DESCRIPTION LIKE CONCAT('%', #{versionDesc}, '%')
+			</if>
+			<if test="versionType != null">
+				AND VERSION_TYPE = #{versionType}
+			</if>
+		</where>
+		ORDER BY createDate DESC
+	</select>
+	
+	<select id="getVersionDetail" resultType="com.viettel.vtnet360.vt06.vt060001.entity.VersionDetail"
+										parameterType="java.lang.String">
+		SELECT VERSION_ID as versionID, VERSION as version, VERSION_LINK as versionLink, VERSION_TYPE as versionType, VERSION_DESCRIPTION as versionDesc, CREATE_USER as createUser, CREATE_DATE as createDate
+		FROM VERSION_CONTROL
+		<where>
+				AND VERSION_TYPE = #{value}
+		</where>
+		ORDER BY createDate DESC
+		LIMIT 1
+	</select>
+	
+	<insert id="insertVersionDetail"
+		parameterType="com.viettel.vtnet360.vt06.vt060001.entity.VersionDetail">
+		INSERT INTO VERSION_CONTROL
+		(VERSION_ID, VERSION, VERSION_LINK, VERSION_TYPE, VERSION_DESCRIPTION, CREATE_USER, CREATE_DATE)
+		VALUES(CONCAT('VTN_SR_', NEXT VALUE FOR VTN_S), #{version}, #{versionLink}, #{versionType}, #{versionDesc}, #{createUser}, current_timestamp())
+	</insert>
+	
+	<update id="updateStatusOldVersion"
+		parameterType="com.viettel.vtnet360.vt06.vt060001.entity.SearchCondition">
+		UPDATE VERSION_CONTROL
+		WHERE VERSION_TYPE = #{versionType};
+	</update>
+	
+	<insert id="setUserVersionDetail"
+		parameterType="map">
+		INSERT INTO VERSION_LOG
+		(USER_NAME, VERSION_TYPE, VERSION, CREATE_USER, CREATE_DATE, UPDATE_USER, UPDATE_DATE)
+		VALUES(#{userName}, #{deviceType}, #{version}, #{userName}, NOW(), #{userName}, NOW())
+		ON DUPLICATE KEY UPDATE VERSION_TYPE = #{deviceType}, VERSION = #{version}, UPDATE_USER = #{userName}, UPDATE_DATE = NOW()
+	</insert>
+</mapper>

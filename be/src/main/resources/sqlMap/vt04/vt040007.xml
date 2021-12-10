@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt04.vt040007.dao.VT040007DAO">
+
+	<update id="executiveService" parameterType="java.util.Map">
+
+		UPDATE ISSUES_SERVICE 
+		SET
+		
+			<choose>
+			<!-- bat dau thuc hien -->
+			<when test=" requestParam.flagExecutive == 3 ">
+			
+			<if test ="requestParam.statusStart == 1">
+			
+			TIME_START_ACTUAL = CURRENT_TIMESTAMP()  ,
+								
+			REAL_TIME_TOTAL =   #{requestParam.realTimeTotal},
+			</if>
+			 
+								
+			TIME_RESUME = CURRENT_TIMESTAMP() ,
+			
+			ISSUESE_RECEIVEER = #{userName},
+			
+			UPDATE_USER = #{userName},
+			
+			UPDATE_DATE = CURRENT_TIMESTAMP(),
+			
+			STATUS = 3
+			
+			</when>
+		
+			<!-- hoan thuc hien -->
+			<when test="  requestParam.flagExecutive == 4 ">
+			
+			POSTPONE_REASON = CONCAT( '' , #{requestParam.resonPostponeExecutive} ) ,
+				
+			REAL_TIME_TOTAL = #{requestParam.realTimeTotal},
+				
+			STATUS = 4,
+				
+			UPDATE_USER = #{userName} ,
+			
+			UPDATE_DATE = CURRENT_TIMESTAMP() ,
+			
+			POSTPONE_TO_TIME = #{requestParam.datePostpone} ,
+			
+			ISSUESE_RECEIVEER = #{userName}
+			
+			
+			</when>
+		
+			<!-- can't excutive  -->
+			<when test="  requestParam.flagExecutive == 5  ">
+				
+			REASON = CONCAT( #{requestParam.resonCantExecutive},''),
+			
+			REAL_TIME_TOTAL = #{requestParam.realTimeTotal},
+				
+			STATUS = 5,
+				
+			UPDATE_USER = #{userName} ,
+			
+			UPDATE_DATE = CURRENT_TIMESTAMP() ,
+			
+			ISSUESE_RECEIVEER = #{userName}
+		
+			</when>
+		
+			<when test="  requestParam.flagExecutive == 6  ">
+			
+			REAL_TIME_TOTAL = #{requestParam.realTimeTotal},
+				
+			STATUS = 6,
+				
+			UPDATE_USER = #{userName} ,
+			
+			UPDATE_DATE = CURRENT_TIMESTAMP() ,
+			
+			ISSUESE_RECEIVEER = #{userName},
+			
+			TIME_FINISH_ACTUAL = CURRENT_TIMESTAMP()
+		
+			</when>
+			
+			<otherwise></otherwise>
+			
+			</choose>
+	
+		WHERE ISSUES_SERVICE_ID = #{requestParam.issuedServiceId}
+	</update>
+
+
+	<!-- Issuesed Service For Approve -->
+	<resultMap
+		type="com.viettel.vtnet360.vt04.vt040007.entity.VT040007EntityDataSt"
+		id="resultFindStationery">
+
+		<result property="stationeryId" column="STATIONERY_ID" />
+
+		<result property="stationeryName" column="STATIONERY_NAME" />
+
+		<result property="stationeryType" column="STATIONERY_TYPE" />
+
+		<result property="calculationUnit" column="CODE_NAME" />
+
+		<result property="stationeryStatus" column="STATUS" />
+		
+		<result property="unitPrice" column="UNIT_PRICE" />
+	</resultMap>
+
+	<select id="findStationery"
+		parameterType="com.viettel.vtnet360.vt04.vt040007.entity.VT040007EntityRqFindSt"
+		resultMap="resultFindStationery">
+
+		SELECT
+			st.STATIONERY_ID,
+			st.STATIONERY_NAME,
+			st.STATIONERY_TYPE,
+			st.STATUS,
+			st.UNIT_PRICE,
+			st.CALCULATION_UNIT ,
+			sys.CODE_NAME,
+			st.CREATE_USER,
+			st.CREATE_DATE,
+			st.UPDATE_USER,
+			st.UPDATE_DATE
+			
+		FROM
+			STATIONERY as st LEFT JOIN M_SYSTEM_CODE as sys ON st.CALCULATION_UNIT = sys.CODE_VALUE 
+			
+		WHERE
+		
+			st.STATIONERY_NAME LIKE CONCAT('%',#{pattern},'%') AND sys.MASTER_CLASS = #{masterCode} AND sys.STATUS =1
+			AND st.STATUS = 1
+			AND st.DELETE_FLAG = 0
+		ORDER BY st.STATIONERY_NAME ASC
+	<if test="getSize > 0"> 
+		LIMIT #{fromIndex},#{getSize}
+	</if>
+	
+
+
+	</select>
+	
+	<insert id="fillStationery"  parameterType="java.util.Map" >
+		
+		INSERT INTO ISSUES_SERVICE_SPENT
+		
+		(ISSUES_SERVICE_ID, STATIONERY_ID, QUANTITY, UNIT_PRICE, CREATE_USER, CREATE_DATE, UPDATE_USER, UPDATE_DATE)
+		
+		VALUES(#{requestParam.issuedServiceId} , #{stationeryId} , #{stationeryQuantity} , #{unitPrice} , #{userName}, CURRENT_TIMESTAMP() , #{userName} , CURRENT_TIMESTAMP());
+	
+	</insert>
+	
+	<insert id="savePostPoneHistory"  parameterType="java.util.Map" >
+		
+		INSERT INTO ISSUES_SERVICE_HISTORY
+		
+		(ISSUES_SERVICE_ID, POSTPONE_TO_TIME, POSTPONE_REASON, CREATE_USER, CREATE_DATE)
+		
+		VALUES(#{requestParam.issuedServiceId}, #{requestParam.datePostpone} , CONCAT('[',#{userName},']','[',CURRENT_TIMESTAMP(),']','[',#{requestParam.resonPostponeExecutive},']' ), #{userName} , CURRENT_TIMESTAMP());
+
+	
+	</insert>
+	
+	<select id="checkExisted" parameterType="java.lang.String" resultType="int">
+		SELECT count(*) FROM ISSUES_SERVICE_HISTORY WHERE ISSUES_SERVICE_ID =  #{id}
+	</select>
+	
+	<select id="findIssuesServiceHistoryByIdIss" parameterType="java.lang.String" resultType="java.lang.String">
+		SELECT POSTPONE_REASON FROM ISSUES_SERVICE_HISTORY WHERE ISSUES_SERVICE_ID =  #{id}
+	</select>
+	
+	<update id="updateHistory" parameterType="java.util.Map">
+		UPDATE ISSUES_SERVICE_HISTORY
+		SET POSTPONE_TO_TIME = #{requestParam.datePostpone},
+			POSTPONE_REASON = #{resonPostponeExecutive},
+			CREATE_USER= #{userName},
+			CREATE_DATE = now()
+		WHERE ISSUES_SERVICE_ID = #{requestParam.issuedServiceId}	
+	</update>
+	
+
+
+</mapper>

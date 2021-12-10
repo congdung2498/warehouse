@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper
+	namespace="com.viettel.vtnet360.vt02.vt020000.dao.VT020000DAO">
+
+	<select id="getLocationList"
+		parameterType="java.lang.String"
+		resultType="com.viettel.vtnet360.vt02.vt020000.entity.VT020000Unit">
+		SELECT UNIT_ID as unitId, UNIT_NAME as unitName, PARENT_UNIT_ID  as parentId, `PATH` as `path`, ORDER_NUMBER as `order` FROM QLDV_UNIT WHERE STATUS = 1
+		<if test="value != null and value != ''">
+			AND PATH LIKE #{value}
+		</if>
+	</select>
+	
+	<select id="getLocationListByID"
+		parameterType="java.lang.String"
+		resultType="com.viettel.vtnet360.vt02.vt020000.entity.VT020000Unit">
+		SELECT 
+			QLDV_UNIT.UNIT_ID as unitId,
+			QLDV_UNIT.UNIT_NAME as unitName,
+			QLDV_UNIT.PARENT_UNIT_ID  as parentId,
+			QLDV_UNIT.`PATH` as `path`,
+			QLDV_UNIT.ORDER_NUMBER as `order`,
+			c.UNIT_ID as `isLeaf` 
+		FROM QLDV_UNIT LEFT OUTER JOIN QLDV_UNIT c 
+			ON QLDV_UNIT.UNIT_ID = c.PARENT_UNIT_ID 
+		WHERE QLDV_UNIT.STATUS = 1
+		<if test="value == null or value.length == 0">
+			AND QLDV_UNIT.UNIT_ID = 234841
+		</if>
+		<if test="value != null and value.length > 0">
+			AND QLDV_UNIT.PARENT_UNIT_ID = #{value}
+		</if>
+		GROUP BY QLDV_UNIT.UNIT_ID
+		ORDER BY QLDV_UNIT.ORDER_NUMBER
+	</select>
+	
+	<select id="getKitchenList"
+		parameterType="java.lang.String"
+		resultType="com.viettel.vtnet360.vt02.vt020000.entity.VT020000Kitchen">
+		<bind name="pattern" value="'%' + _parameter + '%'" />
+		SELECT KITCHEN_ID as kitchenId, KITCHEN_NAME as label
+		FROM KITCHEN_SETTING
+		WHERE KITCHEN_NAME LIKE #{pattern}
+		ORDER BY label
+		LIMIT 50
+	</select>
+	
+	<select id="getKitchen"
+		parameterType="java.lang.String"
+		resultType="com.viettel.vtnet360.vt02.vt020000.entity.VT020000Kitchen">
+		SELECT kc.KITCHEN_SETTING_ID as kitchenId, ks.KITCHEN_NAME as label
+		FROM KITCHEN_SETTING_CHEF kc LEFT JOIN KITCHEN_SETTING ks ON kc.KITCHEN_SETTING_ID = ks.KITCHEN_ID
+		WHERE kc.CHEF_ACCOUNT = #{value}
+	</select>
+
+	<select id="findUnitPathByUnitID" parameterType="java.lang.String" resultType="java.lang.String">
+		SELECT `PATH` 
+		FROM QLDV_UNIT 
+		WHERE UNIT_ID = #{id}
+	</select>
+
+	<select id="findUnitInfoByUnitID" parameterType="java.lang.String" resultType="com.viettel.vtnet360.vt02.vt020000.entity.VT020000Unit">
+		SELECT 
+			QLDV_UNIT.UNIT_ID as unitId,
+			QLDV_UNIT.UNIT_NAME as unitName,
+			QLDV_UNIT.PARENT_UNIT_ID  as parentId,
+			QLDV_UNIT.`PATH` as `path`,
+			QLDV_UNIT.ORDER_NUMBER as `order`,
+			c.UNIT_ID as `isLeaf` 
+		FROM QLDV_UNIT LEFT OUTER JOIN QLDV_UNIT c 
+			ON QLDV_UNIT.UNIT_ID = c.PARENT_UNIT_ID
+		WHERE QLDV_UNIT.UNIT_ID = #{id}
+		GROUP BY QLDV_UNIT.UNIT_ID
+	</select>
+	
+	
+	
+
+</mapper>

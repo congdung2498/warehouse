@@ -1,0 +1,83 @@
+:host >>> .fix-drop-down > .ui-widget {
+    height: 35px !important;
+    top: -1px !important;
+}
+:host >>> .no-border > div {
+    border: none;
+    overflow: unset !important;
+    width: 100%;
+}
+:host >>> .full-width > .ui-table > .ui-table-scrollable-wrapper > .ui-table-frozen-view {
+    width: 100% !important;
+}
+:host >>> .full-width > .ui-table > .ui-table-scrollable-wrapper > .ui-table-unfrozen-view {
+    width: calc(100% - 35rem - 2px) !important;
+}
+:host >>> .full-width > .ui-table > .ui-table-scrollable-wrapper > .ui-table-unfrozen-view > .ui-table-scrollable-footer > .ui-table-scrollable-footer-box {
+    display: none;
+}
+
+:host>>>p-scrollpanel>.ui-scrollpanel {
+    margin-top: -28px !important;
+}
+
+:host>>>.no-border>div {
+    border: none;
+    overflow: unset !important;
+    width: 100%;
+}
+
+:host>>>div.ui-tree>ul.ui-tree-container {
+    overflow: unset;
+}
+
+.customDiv {
+    position: absolute;
+    width: 78% !important;
+    font-size: 15px !important;
+    top: 43px !important;
+    left: 60px !important;
+    z-index: 1000000000000 !important;
+    cursor: pointer;
+}
+
+:host>>>p-multiselect>.ui-multiselect>.ui-multiselect-label-container>label.ui-multiselect-label {
+    margin-bottom: 0px !important;
+}
+
+.customIcon {
+    position: absolute;
+    top: 9px;
+    right: 46px;
+    cursor: pointer;
+    color: #848484;
+}
+
+:host>>>p-dialog>.ui-dialog>.ui-dialog-titlebar>.ui-dialog-title{
+    color: #007ad9 !important;
+    font-size: 24px;
+    text-align: center;
+}
+
+:host>>>.iconBtn>button {
+    width: 25px !important;
+    height: 25px !important;
+}
+
+
+.customDiv {
+    position: absolute;
+    width: 78% !important;
+    font-size: 15px !important;
+    top: 43px !important;
+    left: 60px !important;
+    z-index: 1000000000000 !important;
+    cursor: pointer;
+}
+
+.table-custom {
+    border-collapse: collapse;
+}
+.table-custom, .table-custom tr td , .table-custom tr ,.table-custom th {
+    border: 1px solid #2e3035;
+}

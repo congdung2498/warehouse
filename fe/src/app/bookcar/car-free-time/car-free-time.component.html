@@ -1,0 +1,223 @@
+<div class="customContainer">
+    <div class="container-fluid text-center mt-5">
+        <h1 class="text-center">THỐNG KÊ XE RỖI</h1>
+    </div>
+
+    <div class="row ">
+        <div class="col-sm-12 " style="margin: auto;">
+
+            <p-fieldset legend="Thống kê xe rỗi">
+                <div class="row mb-3" style="margin-left: 20px;">
+                    <div class="col-sm-6">
+                        <div class="row">
+                            <div class="col-sm-4" style="text-align: left; padding-top: 5px;">
+                                Đội xe :
+                            </div>
+                            <div class="col-sm-8 ui-fluid "
+                                 style="margin-left: -34px;">
+                                <p-autoComplete [(ngModel)]="driverSquadName" [suggestions]="squadList"
+                                                (completeMethod)="loadDriveSquad($event)" [disabled]="isDisbaleLeaderCar"
+                                                field="squadName" dropdown="true" [pKeyFilter]="onlyChar"
+                                                placeholder="VD: Tòa nhà Keangnam"></p-autoComplete>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="row">
+                            <div class="col-sm-4" style="text-align: left; padding-top: 5px;">
+                                Loại xe :
+                            </div>
+                            <div class="col-sm-8 ui-fluid" style="margin-left: -34px; position: relative;">
+                                <p-dropdown #listPlanSquadF [options]="typeList" optionLabel="type" emptyFilterMessage="Không có dữ liệu"
+                                            [(ngModel)]="carType" [filter]="true" [style]="{'width': '100%'}"
+                                            placeholder="--Lựa chọn--" filter="true" [showClear]="true">
+                                </p-dropdown>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3" style="margin-left: 20px;">
+                    <div class="col-sm-6">
+                        <div class="row">
+                            <div class="col-sm-4" style="text-align: left; padding-top: 5px;">
+                                Lái xe :
+                            </div>
+                            <div class="col-sm-8 ui-fluid" style="margin-left: -34px;">
+                                <p-autoComplete #inputDriver [(ngModel)]="driver"
+                                                [suggestions]="getDriveList"
+                                                (completeMethod)="getDrive($event)"
+                                                [size]="30" [minLength]="1" placeholder="--Chọn lái xe--"
+                                                [dropdown]="true" field="fullName" [minLength]="1"
+                                                [dropdown]="true" class="fix-drop-down"
+                                                (onSelect)="driverSelect($event)"
+                                                emptyMessage="Lái xe không tồn tại, xin kiểm tra lại">
+                                </p-autoComplete>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="row">
+                            <div class="col-sm-4" style="text-align: left; padding-top: 5px;">
+                                Số chỗ :
+                            </div>
+                            <div class="col-sm-8 ui-fluid" style="margin-left: -34px; position: relative;">
+                                <p-dropdown [options]="seatList" optionLabel="seat" [(ngModel)]="seat" [filter]="true"
+                                            [style]="{'width': '100%'}" emptyFilterMessage="Không có dữ liệu"
+                                            placeholder="--Lựa chọn--" filter="true" [showClear]="true">
+                                </p-dropdown>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="row mb-3" style="margin-left: 20px;">
+                    <div class="col-sm-6">
+                        <div class="row">
+                            <div class="col-sm-4" style="text-align: left; padding-top: 5px;">
+                                Trạng thái lái xe :
+                            </div>
+                            <div class="col-sm-8 ui-fluid" style="margin-left: -34px; position: relative;">
+                                <p-multiSelect defaultLabel="-- Chọn trạng thái --" [options]="driveStatusList"
+                                               optionLabel="label" [(ngModel)]="statusDrive" ></p-multiSelect>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6" style="padding-top: 5px">
+                        <div class="row">
+                            <div class="col-sm-4" style="text-align: left; padding-top: 5px;"> Biển kiểm soát :
+                            </div>
+                            <div class="col-sm-8 ui-fluid" style="margin-left: -34px; position: relative;">
+                                <p-autoComplete [(ngModel)]="licensePlate" [suggestions]="licensePlateList"
+                                                (completeMethod)="loadLicensePlate($event)"
+                                                field="licensePlate" dropdown="true" emptyMessage="Không có dữ liệu"
+                                                [pKeyFilter]="onlyChar"></p-autoComplete>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3" style="margin-left: 20px;">
+                    <div class="col-sm-6">
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="row">
+                            <div class="col-sm-4" style="text-align: left; padding-top: 5px;">
+                                Trạng thái của xe :
+                            </div>
+                            <div class="col-sm-8 ui-fluid" style="margin-left: -34px; position: relative;">
+
+                                <p-multiSelect  defaultLabel="-- Chọn trạng thái --" [options]="carStatusList"
+                                                optionLabel="label" [(ngModel)]="statusCar"></p-multiSelect>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </p-fieldset>
+
+        </div>
+    </div>
+    <div class="row row-button">
+        <div class="col-sm-4"></div>
+        <div class="col-sm-4">
+            <p-button label="Tìm kiếm" icon="pi pi-search" (click)="processSearch()"></p-button>
+            <button pButton icon="fa fa-download" iconPos="left" label="Xuất file"
+                    (click)="exportToExcel()"></button>
+        </div>
+        <div class="col-sm-4"></div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-xl-12">
+
+            <!-- if has data -->
+
+            <p-table #dt [rows]="15" [value]="resultList" [totalRecords]="total_record"
+                     (onLazyLoad)="onLazyLoad($event)" [lazy]="true" [paginator]="true">
+                <ng-template pTemplate="header">
+                    <tr style="font-weight: bold;">
+                        <th rowspan="1" style="width: 3rem; font-weight: bold;text-align: center">STT</th>
+                        <th rowspan="3" style="width: 6rem; font-weight: bold;text-align: center">Vị trí</th>
+                        <th rowspan="3" style="width: 5rem; font-weight: bold;text-align: center">Đội xe</th>
+                        <th rowspan="3" style="width: 5rem; font-weight: bold;text-align: center">Lái xe</th>
+                        <th rowspan="3" style="width: 5rem; font-weight: bold;text-align: center">Số điện thoại</th>
+                        <th rowspan="3" style="width: 6rem; font-weight: bold;text-align: center">Đơn vị</th>
+                        <th rowspan="3" style="width: 5rem; font-weight: bold;text-align: center">Trang thái lái xe</th>
+                        <th rowspan="3" style="width: 5rem; font-weight: bold;text-align: center">Loại xe</th>
+                        <th rowspan="3" style="width: 3rem; font-weight: bold;text-align: center">Số chỗ</th>
+                        <th rowspan="3" style="width: 4rem; font-weight: bold;text-align: center">Biển kiểm soát</th>
+                        <th rowspan="3" style="width: 4rem; font-weight: bold;text-align: center">Trạng thái của xe</th>
+                    </tr>
+
+                </ng-template>
+                <ng-template let-ri="rowIndex" pTemplate="body" let-item>
+                    <tr>
+                        <td style="width: 1rem; padding: 2px 1.5px !important;">{{ri+1}}</td>
+                        <td class="wrapText" pTextEllipsis [pTooltip]="item.place"
+                            style="width: 5rem; text-align: left !important;">
+                            {{item.place}}
+                        </td>
+                        <td class="wrapText" pTextEllipsis [pTooltip]="item.squadName"
+                            style="width: 5rem; text-align: left !important;">
+                            {{item.squadName}}
+                        </td>
+                        <td class="wrapText" pTextEllipsis [pTooltip]="item.driver"
+                            style="width: 5rem; text-align: left !important;">
+                            {{item.driver}}
+                        </td>
+                        <td class="wrapText" pTextEllipsis [pTooltip]="item.phoneNumber"
+                            style="width: 9rem; text-align: left !important;">
+                            {{item.phoneNumber}}
+                        </td>
+                        <td class="wrapText" pTextEllipsis [pTooltip]="item.unit"
+                            style="width: 7rem; text-align: left !important;">
+                            {{item.unit}}
+                        </td>
+                        <td class="wrapText" pTextEllipsis [pTooltip]="driverStatusLabels[item.driverStatus]"
+                            style="width: 7rem; text-align: left !important;">
+                            {{driverStatusLabels[item.driverStatus]}}
+                        </td>
+                        <td class="wrapText" pTextEllipsis [pTooltip]="item.type"
+                            style="width: 7rem; text-align: left !important;">
+                            {{item.type}}
+                        </td>
+                        <td class="wrapText" pTextEllipsis [pTooltip]="item.seat"
+                            style="width: 7rem; text-align: left !important;">
+                            {{item.seat}}
+                        </td>
+                        <td class="wrapText" pTextEllipsis [pTooltip]="item.licensePlate"
+                            style="width: 7rem; text-align: left !important;">
+                            {{item.licensePlate}}
+                        </td>
+                        <td class="wrapText" pTextEllipsis [pTooltip]="carStatusLabels[item.carStatus]"
+                            style="width: 7rem; text-align: left !important;">
+                            {{carStatusLabels[item.carStatus]}}
+                        </td>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td [attr.colspan]="11">
+                           Không có dữ liệu
+                        </td>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="paginatorright">
+          <span style="position: absolute; right: 30px; bottom: 6px;">{{total_record == 0 ? pageNumber : pageNumber + 1}} - {{pageNumber+pageSize>total_record ? total_record : pageNumber+pageSize}}
+            / {{total_record}}</span>
+                </ng-template>
+            </p-table>
+            <!-- image -->
+
+
+        </div>
+
+    </div>
+</div>

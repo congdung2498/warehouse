@@ -1,0 +1,133 @@
+<!-- ThangBT -->
+<div class="container">
+  <div class="container-fluid text-center mt-3">
+    <h1>CẤU HÌNH NGÀY NGHỈ</h1>
+  </div>
+  <div class="row mb-3">
+    <div class="col-xl-12 mb-3">
+      <p-fieldset legend="Thông tin ngày nghỉ">
+        <div class="row">
+          <div class="col-sm-1"></div>
+          <div class="col-sm-10">
+            <div class="row mb-3" style="margin-left: 20px;">
+              <div class="col-sm-2" style="max-width: 80px;"></div>
+              <!-- date field -->
+              <div class="col-sm-6">
+                <div class="row">
+                  <div class="col-sm-3" style="text-align: left; padding-top: 5px;">
+                    Ngày<span style="color: red;">*</span>:
+                  </div>
+                  <div class="col-sm-9 ui-fluid" style="margin-left: -10px; position: relative;">
+                    <p-calendar #inputDate dateFormat="dd/mm/yy" placeholder="DD/MM/YYYY" [(ngModel)]="dayOff" [showIcon]="true"
+                      [readonlyInput]="true" [disabled]="passDayOff" showButtonBar="true" [locale]="vn" [minDate]="minDate" showOnFocus="true"></p-calendar>
+                  </div>
+                </div>
+              </div>
+              <!-- checkbox field -->
+              <div class="col-sm-4">
+                <div class="row">
+                  <div class="col-sm-1"></div>
+                  <div class="col-sm-5" style="text-align: left; padding-top: 5px; max-width: 115px;">Được nghỉ:</div>
+                  <div class="col-sm-6 ui-fluid" style="padding-top: 3px; margin-left: -6px; position: relative;">
+                    <p-checkbox [(ngModel)]="canDayOff" binary="true" [disabled]="passDayOff"></p-checkbox>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- description field -->
+            <div class="row mb-3" style="margin-left: 20px;">
+              <div class="col-sm-2" style="max-width: 80px;"></div>
+              <div class="col-sm-2" style="text-align: left; padding-top: 5px; max-width: 111px;">
+                Mô tả<span style="color: red;">*</span>:
+              </div>
+              <div class="col-sm-8 ui-fluid" style="margin-left: -10px;">
+                <textarea #inputDescription pInputTextarea [(ngModel)]="dayOffDescription" [maxLength]="50" [disabled]="passDayOff"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-1"></div>
+        </div>
+      </p-fieldset>
+    </div>
+    <div class="col-xl-12">
+      <div class="text-center">
+        <!-- save button -->
+        <button *ngIf="isSave; else isAdd" type="button" pButton icon="fa fa-save" iconPos="left" label="Lưu" (click)="saveData()"
+          style="text-align: center;"></button>
+        <ng-template #isAdd>
+          <!-- add button -->
+          <button type="button" pButton icon="fa fa-plus" iconPos="left" label="Thêm" (click)="addData()" style="text-align: center;"></button>
+        </ng-template>
+        <!-- refresh button -->
+        <button type="button" pButton icon="fa fa-refresh" iconPos="left" label="Làm mới" (click)="resetButton()" style="text-align: center;"></button>
+        <!-- copy button -->
+        <button type="button" pButton icon="fa fa-copy" iconPos="left" label="Sao chép" (click)="copyData()" style="text-align: center;"></button>
+      </div>
+    </div>
+  </div>
+  <!-- create table -->
+  <div class="row">
+    <div class="col-xl-12">
+      <div *ngIf="isEmpty; else showData" class="errorMsg">
+        <!-- if no data is reasonable -->
+        <p-table>
+          <ng-template pTemplate="header">
+            <tr style="font-weight: bold;">
+              <th style="width: 2rem; font-weight: bold;">STT</th>
+              <th style="width: 5rem; font-weight: bold;">Ngày</th>
+              <th style="width: 20rem; font-weight: bold;">Mô tả</th>
+              <th style="width: 2rem; font-weight: bold;">Nghỉ</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td [attr.colspan]="4">
+                Không có dữ liệu
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="footer"></ng-template>
+        </p-table>
+      </div>
+      <!-- if has data -->
+      <ng-template #showData>
+        <p-table #myTable [value]="listDayOff" selectionMode="single" [(selection)]="selectedDay" (onRowSelect)="onRowSelect()"
+          [lazy]="true" (onPage)="paginate($event)" [paginator]="true" [rows]="10" [totalRecords]="totalRecord"
+          [loading]="loading">
+          <ng-template pTemplate="header">
+            <tr style="font-weight: bold;">
+              <th rowspan="2" style="width: 2rem; font-weight: bold;">STT</th>
+              <th style="width: 5rem; font-weight: bold;">Ngày</th>
+              <th rowspan="2" style="width: 18rem; font-weight: bold;">Mô tả</th>
+              <th rowspan="2" style="width: 2rem; font-weight: bold;">Nghỉ</th>
+            </tr>
+            <tr>
+              <th class="ui-fluid">
+                <p-multiSelect #multiSelect [options]="years" defaultLabel="Chọn năm" [(ngModel)]="selectedYears" (onPanelShow)='onInputYear()' selectedItemsLabel="{0} năm đã chọn"
+                  maxSelectedLabels="2" (onChange)="filterYear()"></p-multiSelect>
+              </th>
+            </tr>
+          </ng-template>
+          <ng-template let-ri="rowIndex" pTemplate="body" let-item>
+            <tr [pSelectableRow]="item">
+              <td style="width: 2rem; padding: 2px 1.5px !important;">{{ri+1}}</td>
+              <td style="width: 5rem">{{item.dayOff | date: 'dd/MM/yyyy'}}</td>
+              <td [class.wrapText]="item.description != null && item.description.length > 50" pTextEllipsis [pTooltip]="item.description"
+                style="width: 18rem; text-align: left !important;">
+                {{item.description}}
+              </td>
+              <td style="width: 2rem; padding: 2px 1.5px !important;">
+                <p-checkbox [(ngModel)]="item.status" binary="true" [disabled]="true"></p-checkbox>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="paginatorright">
+            <span style="position: absolute; right: 30px; bottom: 6px;">
+              {{startRow + 1}} - {{startRow + rowSize}} / {{totalRecord}}
+            </span>
+          </ng-template>
+        </p-table>
+      </ng-template>
+    </div>
+  </div>
+</div>

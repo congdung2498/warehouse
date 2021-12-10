@@ -1,0 +1,27 @@
+p-table {
+    text-align: center;
+}
+
+:host>>>table>.ui-table-tbody>tr>td.wrapText {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+:host>>>p-autocomplete>.ui-autocomplete>.ui-autocomplete-panel {
+    max-width: inherit !important;
+    width: inherit !important;
+}
+
+:host>>>p-multiselect>.ui-multiselect>.ui-multiselect-label-container>label.ui-multiselect-label {
+    margin-bottom: 0px !important;
+}
+
+:host>>>p-multiselect>.ui-multiselect>.ui-multiselect-panel>.ui-multiselect-items-wrapper>.ui-multiselect-items>.ui-multiselect-item>label {
+    margin-bottom: 0px !important;
+}
+
+:host>>>p-paginator>.ui-paginator-bottom>.ui-paginator-pages>a {
+    margin-left: 3px !important;
+    margin-right: 3px !important;
+}

@@ -1,0 +1,1550 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.issuesService.request.dao.IssuesServiceDAO">
+	<select id="findUserInfoByUserName"
+		resultType="com.viettel.vtnet360.issuesService.entity.UserInfoEntity"
+		parameterType="java.lang.String">
+		SELECT a.FULL_NAME AS fullNameEmployee ,
+		a.PHONE_NUMBER AS phoneNumberEmployee,
+		a.EMAIL AS emailEmployee,
+		b.UNIT_ID AS unitId,
+		b.UNIT_NAME AS nameUnit
+		FROM QLDV_EMPLOYEE a JOIN QLDV_UNIT b ON a.UNIT_ID =
+		b.UNIT_ID
+		WHERE USER_NAME = #{userName}
+	</select>
+
+	<select id="findEmployeeByFullName"
+		resultType="com.viettel.vtnet360.issuesService.entity.EmployeeEntity"
+		parameterType="com.viettel.vtnet360.issuesService.entity.EmployeeEntity">
+		SELECT a.USER_NAME AS userNameEmployee,
+		a.FULL_NAME AS fullNameEmployee
+		FROM QLDV_EMPLOYEE a JOIN QLDV_UNIT b ON a.UNIT_ID = b.UNIT_ID
+		WHERE
+		a.STATUS=1
+		<if test="role != null ">
+			AND (a.ROLE = #{role}
+			<bind name="role1" value="'%,' + role + ',%'" />
+			OR a.ROLE LIKE #{role1}
+			<bind name="role2" value="'%,' + role " />
+			OR a.ROLE LIKE #{role2}
+			<bind name="role3" value=" role + ',%'" />
+			OR a.ROLE LIKE #{role3})
+		</if>
+		<if test="fullNameEmployee != null and fullNameEmployee.length &gt; 0">
+			<bind name="fullName" value="'%' + fullNameEmployee + '%'" />
+			AND a.FULL_NAME LIKE #{fullName}
+		</if>
+		AND b.PATH LIKE CONCAT('%','234841','%')
+		ORDER BY
+		a.FULL_NAME
+		LIMIT 20
+	</select>
+
+	<select id="findEmployeeByMulti"
+		resultType="com.viettel.vtnet360.issuesService.entity.EmployeeEntity"
+		parameterType="com.viettel.vtnet360.issuesService.entity.EmployeeEntity">
+		SELECT a.USER_NAME AS userNameEmployee,
+		a.FULL_NAME AS fullNameEmployee
+		FROM QLDV_EMPLOYEE a JOIN QLDV_UNIT b ON a.UNIT_ID = b.UNIT_ID
+		WHERE 1
+
+		<if test="fullNameEmployee != null and fullNameEmployee.length &gt; 0">
+			AND(
+			<bind name="searchMulti" value="'%' + fullNameEmployee + '%'" />
+			a.FULL_NAME LIKE #{searchMulti}
+			OR a.CODE LIKE #{searchMulti}
+			OR
+			a.PHONE_NUMBER LIKE #{searchMulti}
+			OR a.EMAIL LIKE #{searchMulti}
+			)
+		</if>
+		AND b.PATH LIKE CONCAT('%','234841','%')
+		ORDER BY
+		a.FULL_NAME
+		LIMIT 20
+	</select>
+
+	<!-- insert issuesService -->
+	<insert id="insertIssuesService" parameterType="java.util.Map">
+		<selectKey keyProperty="issuesServiceId" resultType="String"
+			order="BEFORE">
+			SELECT CONCAT( 'VTN_SR_',NEXT VALUE FOR VTN_S) as issuesServiceId
+		</selectKey>
+		INSERT INTO ISSUES_SERVICE (
+		ISSUES_SERVICE_ID,
+		ISSUES_USERNAME,
+		ISSUESE_LOCATION,
+		SERVICE_ID,
+		NOTE,
+		APPOVER_QLTT,
+		FLAG_QLTT,
+		APPOVER_LDDV,
+		FLAG_LDDV,
+		APPOVER_CVP,
+		FLAG_CVP,
+		STATUS,
+		ISSUESE_RECEIVEER,
+		<if test="requestParam.appoverQltt == null and requestParam.appoverLddv == null and requestParam.appoverCvp == null">
+            TIME_START_PLAN,
+            TIME_FINISH_PLAN,
+            REAL_TIME_TOTAL,
+        </if>
+		
+		TIME_START_ACTUAL,
+		TIME_FINISH_ACTUAL,
+		TIME_RESUME,
+		<if test="requestParam.appoverQltt != null or requestParam.appoverLddv != null or requestParam.appoverCvp != null">
+		REAL_TIME_TOTAL,
+		</if>
+		POSTPONE_TO_TIME,
+		POSTPONE_REASON,
+		REASON,
+		RATTING,
+		FEEDBACK,
+		CREATE_USER,
+		CREATE_DATE,
+		UPDATE_USER,
+		UPDATE_DATE )
+		VALUES( 
+		#{issuesServiceId},/*ISSUES_SERVICE_ID*/
+		#{userName},/*ISSUES_USERNAME user cua nguoi giui*/
+		#{requestParam.issueseLocation},/*ISSUESE_LOCATION*/
+		#{requestParam.serviceId},/*SERVICE_ID*/
+		#{requestParam.note},/*NOTE*/
+
+		<if test="requestParam.appoverQltt != null">
+			#{requestParam.appoverQltt},/*APPOVER_QLTT*/0,/*FLAG_QLTT*/
+		</if>
+
+		<if test="requestParam.appoverQltt == null">
+			#{requestParam.appoverQltt},/*APPOVER_QLTT*/1,/*FLAG_QLTT*/
+		</if>
+
+		<if test="requestParam.appoverLddv != null">
+			#{requestParam.appoverLddv},/*APPOVER_LDDV*/0,/*FLAG_LDDV*/
+		</if>
+
+		<if test="requestParam.appoverLddv == null">
+			#{requestParam.appoverLddv},/*APPOVER_LDDV*/1,/*FLAG_LDDV*/
+		</if>
+
+		<if test="requestParam.appoverCvp != null">
+			#{requestParam.appoverCvp},/*APPOVER_CVP*/0,/*FLAG_CVP*/
+		</if>
+
+		<if test="requestParam.appoverCvp == null">
+			#{requestParam.appoverCvp},/*APPOVER_CVP*/1,/*FLAG_CVP*/
+		</if>
+
+		<if test="requestParam.appoverQltt == null and requestParam.appoverLddv == null and requestParam.appoverCvp == null">
+			1,/*STATUS*/
+		</if>
+
+		<if test="requestParam.appoverQltt != null or requestParam.appoverLddv != null or requestParam.appoverCvp != null">
+			0,/*STATUS*/
+		</if>
+		NULL,/*ISSUESE_RECEIVEER*/
+		<if test="requestParam.appoverQltt == null and requestParam.appoverLddv == null and requestParam.appoverCvp == null">
+            #{requestParam.timeStartPlan},/*TIME_START_PLAN*/
+            #{requestParam.timeFinishPlan},/*TIME_FINISH_PLAN*/
+            0,
+        </if>
+		NULL,/*TIME_START_ACTUAL*/
+		NULL,/*TIME_FINISH_ACTUAL*/
+		NULL,/*TIME_RESUME*/
+		<if test="requestParam.appoverQltt != null or requestParam.appoverLddv != null or requestParam.appoverCvp != null">
+		NULL,/*REAL_TIME_TOTAL*/
+		</if>
+		NULL,/*POSTPONE_TO_TIME*/
+		NULL,/*POSTPONE_REASON*/
+		NULL,/*REASON*/
+		0,/*RATTING*/
+		NULL,/*FEEDBACK*/
+		#{userName},/*CREATE_USER*/
+		#{dateNow},/*CREATE_DATE*/
+		#{userName},/*UPDATE_USER*/
+		#{dateNow} /*UPDATE_DATE*/
+		);
+	</insert>
+
+	<!-- get list of places -->
+	<select id="findListPlace" parameterType="com.viettel.vtnet360.issuesService.entity.PlaceEntity"
+		resultType="com.viettel.vtnet360.issuesService.entity.PlaceEntity">
+		SELECT
+		p.PLACE_ID AS placeId,
+		p.PLACE_NAME AS placeName
+		FROM
+		QLDV_PLACE p
+		<where>
+			<if test="status != null ">
+				p.STATUS = 1
+			</if>
+			<if test="placeName != null and placeName.length &gt; 0">
+				<bind name="pattern" value="'%' + placeName + '%'" />
+				AND p.PLACE_NAME LIKE #{pattern}
+			</if>
+		</where>
+		ORDER BY
+		PLACE_NAME
+		LIMIT 20
+	</select>
+
+	<!-- get list of services -->
+	<select id="findListService"
+		parameterType="com.viettel.vtnet360.issuesService.entity.ServiceEntity"
+		resultType="com.viettel.vtnet360.issuesService.entity.ServiceEntity">
+		SELECT
+		s.SERVICE_ID AS serviceId,
+		s.SERVICE_NAME AS serviceName,
+		s.FULL_FILL_TIME AS fullFillTime
+		FROM
+		SERVICES s
+		LEFT JOIN QLDV_PLACE p
+		ON
+		s.SERVICE_LOCATION = p.PLACE_ID
+		<where>
+			<if test="status != null ">
+				( s.STATUS = 1 )
+			</if>
+			<if test="serviceName != null and serviceName.length &gt; 0">
+				<bind name="pattern" value="'%' + serviceName + '%'" />
+				AND s.SERVICE_NAME LIKE #{pattern}
+			</if>
+			<!-- get service follow place -->
+			<if test="placeId != null and placeId.length &gt; 0">
+				AND p.PLACE_ID = #{placeId}
+			</if>
+			<if test="placeName != null and placeName.length &gt; 0">
+				<bind name="pattern1" value="'%' + placeName + '%'" />
+				AND p.PLACE_NAME LIKE #{pattern1}
+			</if>
+		</where>
+		ORDER BY
+		SERVICE_NAME
+		LIMIT 20
+	</select>
+
+	<!-- get list of units -->
+	<select id="findListUnit" parameterType="com.viettel.vtnet360.issuesService.entity.UnitEntity"
+		resultType="com.viettel.vtnet360.issuesService.entity.UnitEntity">
+		SELECT
+		UNIT_ID AS unitId,
+		UNIT_NAME AS unitName
+		FROM
+		QLDV_UNIT
+
+		<where>
+			AND PATH LIKE CONCAT('%','234841','%')
+			<if test="unitName != null and unitName.length &gt; 0">
+				<bind name="pattern1" value="'%' + unitName + '%'" />
+				AND UNIT_NAME LIKE #{pattern1}
+			</if>
+		</where>
+		ORDER BY
+		UNIT_NAME
+		LIMIT 20
+	</select>
+
+	<select id="findListIssuesServiceBrowser"
+		parameterType="com.viettel.vtnet360.issuesService.entity.IssuesServiceSearch"
+		resultType="com.viettel.vtnet360.issuesService.entity.IssuesServiceEntity">
+		SELECT
+		a.ISSUES_SERVICE_ID AS issuesServiceId,
+		c.UNIT_NAME AS unitName,
+		b.FULL_NAME AS employeeFullName,
+		d.SERVICE_NAME AS serviceName,
+		a.CREATE_DATE AS createDate,
+		a.APPOVER_QLTT AS appoverQltt,
+		a.FLAG_QLTT
+		AS flagQltt,
+		a.APPOVER_LDDV AS appoverLddv,
+		a.FLAG_LDDV AS flagLddv,
+		a.APPOVER_CVP AS appoverCvp,
+		a.FLAG_CVP AS flagCvp
+
+
+
+		FROM
+		issues_service a
+		LEFT JOIN qldv_employee
+		b ON a.ISSUES_USERNAME =
+		b.USER_NAME
+		LEFT JOIN
+		qldv_unit c ON b.UNIT_ID
+		= c.UNIT_ID
+		LEFT JOIN
+		services d ON a.SERVICE_ID
+		= d.SERVICE_ID
+		<where>
+			a.STATUS=0
+			<if test="isAdmin == 0 ">
+				AND ((a.APPOVER_QLTT = #{userNameUser} AND a.FLAG_QLTT=0)
+				OR (a.APPOVER_LDDV = #{userNameUser} AND a.FLAG_QLTT=1 AND
+				a.FLAG_LDDV =0)
+				OR (a.APPOVER_CVP = #{userNameUser} AND (a.FLAG_LDDV
+				=1 OR a.FLAG_LDDV
+				IS NULL ) AND a.FLAG_QLTT=1 ) )
+			</if>
+			<if test="issueseLocation != null ">
+				AND a.ISSUESE_LOCATION = #{issueseLocation}
+			</if>
+			<if test="issuesUsername != null and issuesUsername.length &gt; 0">
+				AND a.ISSUES_USERNAME = #{issuesUsername}
+			</if>
+			<if test="fromDateConvert != null ">
+				AND a.CREATE_DATE >= #{fromDateConvert}
+			</if>
+			<if test="toDateConvert != null ">
+				AND #{toDateConvert} >= a.CREATE_DATE
+			</if>
+
+			<if test="serviceId != null and serviceId.length &gt; 0">
+				AND d.SERVICE_ID = #{serviceId}
+			</if>
+		</where>
+		ORDER BY
+		a.CREATE_DATE
+		LIMIT 15
+	</select>
+
+
+	<update id="updateApprovedIssesService"
+		parameterType="com.viettel.vtnet360.issuesService.entity.IssuesServiceEntity">
+		UPDATE
+		ISSUES_SERVICE AS a SET
+		a.FLAG_CVP =
+		CASE
+		WHEN
+		a.FLAG_LDDV != 0 AND a.FLAG_QLTT != 0 AND a.FLAG_CVP = 0 AND a.STATUS
+		= 0
+		THEN 1
+		ELSE
+		a.FLAG_CVP
+		END ,
+
+		a.FLAG_LDDV =
+		CASE
+		WHEN
+		a.FLAG_QLTT != 0 AND
+		a.FLAG_LDDV = 0 AND a.STATUS = 0
+		THEN 1
+		ELSE
+		a.FLAG_LDDV
+		END,
+
+		a.FLAG_QLTT =
+		CASE
+		WHEN a.FLAG_QLTT = 0 AND
+		a.STATUS = 0
+		THEN 1
+		ELSE
+		a.FLAG_QLTT
+		END ,
+
+		a.STATUS =
+		CASE
+		WHEN a.FLAG_CVP = 1
+		THEN 1
+		ELSE a.STATUS
+		END
+
+	</update>
+
+	<select id="findIssuesServiceById"
+		resultType="com.viettel.vtnet360.issuesService.entity.IssuesServiceEntity"
+		parameterType="com.viettel.vtnet360.issuesService.entity.IssuesServiceEntity">
+		SELECT c.UNIT_NAME AS unitName, b.FULL_NAME AS
+		issuesUserFullName,
+		b.PHONE_NUMBER AS issuesUserPhoneNumber,b.EMAIL AS
+		issuesUserEmail
+		,d.PLACE_NAME AS issueseLocationName ,e.SERVICE_NAME AS
+		serviceName,
+		e.FULL_FILL_TIME AS fullFillTime,a.NOTE AS
+		note,a.APPOVER_QLTT AS
+		appoverQltt,a.FLAG_QLTT AS flagQltt
+		,a.APPOVER_LDDV AS
+		appoverLddv,a.FLAG_LDDV AS flagLddv,a.APPOVER_CVP
+		AS
+		appoverCvp,a.FLAG_CVP AS flagCvp,
+		a.TIME_RESUME as timeResume,
+		a.REAL_TIME_TOTAL as realTimeTotal
+		from
+		ISSUES_SERVICE a
+		INNER JOIN
+		qldv_employee b ON a.ISSUES_USERNAME =
+		b.USER_NAME
+		LEFT JOIN qldv_unit c
+		ON b.UNIT_ID = c.UNIT_ID
+		INNER JOIN
+		qldv_place d ON a.ISSUESE_LOCATION =
+		d.PLACE_ID
+		INNER JOIN services e
+		ON a.SERVICE_ID = e.SERVICE_ID
+		<where>
+			ISSUES_SERVICE_ID = #{issuesServiceId}
+		</where>
+	</select>
+
+	<select id="findListIssuesServiceApprovedRequest"
+		parameterType="com.viettel.vtnet360.issuesService.entity.IssuesServiceSearch"
+		resultType="com.viettel.vtnet360.issuesService.entity.IssuesServiceEntity">
+		SELECT
+		a.ISSUES_SERVICE_ID AS issuesServiceId,
+		c.UNIT_NAME AS unitName,
+		b.FULL_NAME AS employeeFullName,
+		d.SERVICE_NAME AS serviceName,
+		d.FULL_FILL_TIME AS fullFillTime,
+		a.STATUS AS status,
+		a.NOTE AS note
+
+		FROM
+		ISSUES_SERVICE a
+		LEFT JOIN qldv_employee
+		b ON a.ISSUES_USERNAME =
+		b.USER_NAME
+		LEFT JOIN
+		qldv_unit c ON b.UNIT_ID
+		= c.UNIT_ID
+		LEFT JOIN
+		services d ON a.SERVICE_ID
+		= d.SERVICE_ID
+		LEFT JOIN
+		service_receiveer e
+		ON d.SERVICE_ID
+		=
+		e.SERVICE_ID
+		<where>
+			1=1
+			<if test="statusRequestApproved == 1">
+				<if test="userNameUser != null and userNameUser.length &gt; 0">
+					AND a.ISSUES_USERNAME = #{userNameUser}
+				</if>
+			</if>
+
+			<if test="statusRequestApproved == 2 and isAdmin == 0">
+				<if test="isAdmin == 0">
+					<if test="userNameUser != null and userNameUser.length &gt; 0">
+						AND e.SERVICE_RECEIVEER_USERNAME = #{userNameUser}
+					</if>
+				</if>
+			</if>
+
+			<if test="statusRequestApproved == 2 ">
+				AND a.status != 0 AND a.status != 2 AND a.status != 7
+			</if>
+
+			<if test="unitId != null ">
+				AND c.UNIT_ID = #{unitId}
+			</if>
+			<if test="issuesUsername != null and issuesUsername.length &gt; 0">
+				AND e.SERVICE_RECEIVEER_USERNAME = #{issuesUsername}
+			</if>
+			<if test="fromDateConvert != null ">
+				AND a.CREATE_DATE >= #{fromDateConvert}
+			</if>
+			<if test="toDateConvert != null ">
+				AND #{toDateConvert} >= a.CREATE_DATE
+			</if>
+
+			<if test="serviceId != null and serviceId.length &gt; 0">
+				AND d.SERVICE_ID = #{serviceId}
+			</if>
+
+			<if test=" listStatus!=null">
+				<if test=" listStatus.size!=0">
+					AND a.status in
+					<foreach item="sId" collection="listStatus" separator=","
+						open="(" close=")">
+						#{sId}
+					</foreach>
+				</if>
+			</if>
+
+
+		</where>
+		ORDER BY
+		a.CREATE_DATE
+		LIMIT 15
+	</select>
+
+	<update id="updateIssuedService" parameterType="java.util.Map">
+
+		UPDATE
+		ISSUES_SERVICE a,ISSUES_SERVICE_HISTORY b
+		SET
+
+		<if test="requestParam.flag == 3">
+			a.STATUS = 3,
+			a.REAL_TIME_TOTAL = 0,
+			a.TIME_RESUME =
+			#{timeNow},
+			a.UPDATE_USER = #{userName},
+			a.UPDATE_DATE = #{timeNow}
+
+		</if>
+
+		<if test="requestParam.flag == 3">
+			a.STATUS = 4,
+			a.REAL_TIME_TOTAL =
+			#{requestParam.realTimeTotal},
+			a.UPDATE_USER = #{userName},
+			a.UPDATE_DATE = #{timeNow}
+		</if>
+
+
+		<if test="requestParam.flag == 8 ">
+			a.STATUS = 8,
+			a.UPDATE_USER = #{userName},
+			a.UPDATE_DATE =
+			#{timeNow}
+
+		</if>
+
+
+		<if test="requestParam.flag == 9 ">
+			a.STATUS = 9,
+			a.USER_REASON = #{requestParam.userReason},
+			a.UPDATE_USER = #{userName},
+			a.UPDATE_DATE = #{timeNow}
+
+		</if>
+
+
+		<if test="requestParam.flag == 10">
+
+			a.RATTING = #{requestParam.ratting},
+			<if test="requestParam.feedBack != null and requestParam.feedBack != '' ">
+				a.FEEDBACK = #{requestParam.feedBack},
+			</if>
+			a.UPDATE_USER = #{userName},
+			a.UPDATE_DATE = #{timeNow}
+
+		</if>
+
+		WHERE
+
+		a.ISSUES_SERVICE_ID = #{requestParam.issuesServiceId}
+
+	</update>
+	
+	<update id="executiveService" parameterType="java.util.Map">
+
+		UPDATE ISSUES_SERVICE 
+		SET
+		
+			<choose>
+			<!-- bat dau thuc hien -->
+			<when test=" requestParam.flagExecutive == 3 ">
+			
+			<if test ="requestParam.statusStart == 1">
+			
+			TIME_START_ACTUAL = CURRENT_TIMESTAMP()  ,
+								
+			REAL_TIME_TOTAL =   #{requestParam.realTimeTotal},
+			</if>
+			 
+								
+			TIME_RESUME = CURRENT_TIMESTAMP() ,
+			
+			ISSUESE_RECEIVEER = #{userName},
+			
+			UPDATE_USER = #{userName},
+			
+			UPDATE_DATE = CURRENT_TIMESTAMP(),
+			
+			STATUS = 3
+			
+			</when>
+		
+			<!-- hoan thuc hien -->
+			<when test="  requestParam.flagExecutive == 4 ">
+			
+			POSTPONE_REASON = CONCAT( '' , #{requestParam.resonPostponeExecutive} ) ,
+				
+			REAL_TIME_TOTAL = #{requestParam.realTimeTotal},
+				
+			STATUS = 4,
+				
+			UPDATE_USER = #{userName} ,
+			
+			UPDATE_DATE = CURRENT_TIMESTAMP() ,
+			
+			POSTPONE_TO_TIME = #{requestParam.datePostpone} ,
+			
+			ISSUESE_RECEIVEER = #{userName}
+			
+			
+			</when>
+		
+			<!-- can't excutive  -->
+			<when test="  requestParam.flagExecutive == 5  ">
+				
+			REASON = CONCAT( '[',#{userName},']','[',CURRENT_TIMESTAMP() ,']',#{requestParam.resonCantExecutive},''),
+			
+			REAL_TIME_TOTAL = #{requestParam.realTimeTotal},
+				
+			STATUS = 5,
+				
+			UPDATE_USER = #{userName} ,
+			
+			UPDATE_DATE = CURRENT_TIMESTAMP() ,
+			
+			ISSUESE_RECEIVEER = #{userName}
+		
+			</when>
+		
+			<when test="  requestParam.flagExecutive == 6  ">
+			
+			REAL_TIME_TOTAL = #{requestParam.realTimeTotal},
+				
+			STATUS = 6,
+				
+			UPDATE_USER = #{userName} ,
+			
+			UPDATE_DATE = CURRENT_TIMESTAMP() ,
+			
+			ISSUESE_RECEIVEER = #{userName},
+			
+			TIME_FINISH_ACTUAL = CURRENT_TIMESTAMP()
+		
+			</when>
+			
+			<otherwise></otherwise>
+			
+			</choose>
+	
+		WHERE ISSUES_SERVICE_ID = #{requestParam.issuedServiceId};
+	</update>
+
+
+	<select id="searchStationeryName" resultType="String"
+		parameterType="String">
+		SELECT
+		s.STATIONERY_NAME as stationerName
+
+		FROM
+		stationery_items s
+
+		WHERE
+
+		s.STATIONERY_NAME '%' #{searchDTO} '%'
+		order by
+		s.STATIONERY_NAME limit 20
+	</select>
+
+
+	<select id="searchFullNameInRole" resultType="String"
+		parameterType="String">
+		SELECT
+		q.FULL_NAME as fullName
+
+		FROM qldv_employee q
+
+		WHERE
+		q.ROLE = 'PMQT_QL'
+		AND (
+		q.FULL_NAME LIKE
+		'%' #{searchDTO} '%'
+		OR
+		q.EMAIL
+		LIKE '%' #{searchDTO}
+		'%'
+		OR
+		q.PHONE_NUMBER LIKE '%' #{searchDTO} '%' )
+		order by
+		q.FULL_NAME
+		LIMIT 20
+	</select>
+
+
+
+	<select id="searchPlaceIsRole" resultType="com.viettel.vtnet360.issuesService.entity.PlaceResult"
+		parameterType="String">
+		SELECT
+		q.PLACE_ID as placeId ,
+		q.PLACE_NAME as placeName
+
+		FROM qldv_place q
+
+		WHERE
+
+		q.PLACE_NAME LIKE
+		'%' #{searchDTO} '%'
+
+		order by
+		q.PLACE_NAME LIMIT 20
+	</select>
+
+	<select id="searchUnitName" resultType="com.viettel.vtnet360.issuesService.entity.UnitResult"
+		parameterType="String">
+		SELECT
+		q.UNIT_ID as unitId ,
+		q.UNIT_NAME as unitName
+
+		FROM
+		qldv_unit q
+
+		WHERE
+
+		q.UNIT_NAME LIKE
+		'%' #{searchDTO} '%'
+
+		order by
+		q.UNIT_NAME LIMIT 20
+	</select>
+	
+	<select id="totalIssuedService" parameterType="java.util.Map"
+		resultType="java.lang.Integer">
+
+		<!-- DISTINCT slove problem 1-n . from table service merger to service_spend -->
+		SELECT
+		COUNT(*)
+		FROM
+		ISSUES_SERVICE as IS_SV
+		LEFT JOIN QLDV_EMPLOYEE as
+		EMP ON
+		IS_SV.ISSUES_USERNAME = EMP.USER_NAME
+		LEFT JOIN QLDV_UNIT as
+		EMP_UNIT ON
+		EMP.UNIT_ID = EMP_UNIT.UNIT_ID
+		LEFT JOIN SERVICES as SV ON
+		IS_SV.SERVICE_ID = SV.SERVICE_ID
+		LEFT JOIN SERVICE_RECEIVEER as
+		SV_RECEIVEER ON
+		IS_SV.SERVICE_ID = SV_RECEIVEER.SERVICE_ID
+
+		WHERE 1
+
+		<choose>
+
+			<when test="PMQT_ADMIN == 'PMQT_ADMIN' ">
+
+				<if test="requestParam.processByRole == 'PMQT_NV'">
+
+					AND ( IS_SV.ISSUES_USERNAME = #{userName} )
+
+					<!-- thoi gian -->
+
+					<if
+						test="requestParam.startTime != null and requestParam.endTime != null ">
+
+						AND (IS_SV.CREATE_DATE BETWEEN
+						#{requestParam.startTime} AND
+						#{requestParam.endTime})
+
+
+					</if>
+
+					<if
+						test="requestParam.startTime != null and requestParam.endTime == null ">
+
+						<!-- xu ly thoi gian bat dau co ket thuc khong -->
+						AND (IS_SV.CREATE_DATE >=
+						#{requestParam.startTime})
+
+					</if>
+
+
+					<if
+						test="requestParam.startTime == null and requestParam.endTime != null ">
+
+						AND (IS_SV.CREATE_DATE BETWEEN 0 AND
+						#{requestParam.endTime})
+
+
+					</if>
+
+
+
+
+				</if>
+
+				<!-- radio button receiver se all record -->
+				<if test="requestParam.processByRole == 'PMQT_HCVP'">
+
+
+					<if test="requestParam.unitId != 0  and requestParam.unitId != null">
+
+						<!-- AND EMP.UNIT_ID = #{requestParam.unitId} -->
+
+						AND EMP_UNIT.`PATH` LIKE CONCAT('%',#{requestParam.unitId}, '%')
+
+					</if>
+
+					<if test="requestParam.userNameOfRequester != null">
+
+						AND ( IS_SV.ISSUES_USERNAME =
+						#{requestParam.userNameOfRequester} )
+
+					</if>
+
+					<if test="requestParam.phoneOfRequester != null">
+
+						AND EMP.PHONE_NUMBER LIKE
+						#{requestParam.phoneOfRequester}
+
+					</if>
+
+					<if
+						test="requestParam.startTime != null and requestParam.endTime != null ">
+
+						AND (IS_SV.CREATE_DATE BETWEEN
+						#{requestParam.startTime} AND
+						#{requestParam.endTime})
+
+					</if>
+
+					<if
+						test="requestParam.startTime != null and requestParam.endTime == null ">
+
+
+						AND (IS_SV.CREATE_DATE >=
+						#{requestParam.startTime})
+
+					</if>
+
+
+					<if
+						test="requestParam.startTime == null and requestParam.endTime != null ">
+
+						AND (IS_SV.CREATE_DATE BETWEEN 0 AND
+						#{requestParam.endTime})
+
+
+					</if>
+
+
+				</if>
+			</when>
+
+			<when test="requestParam.processByRole == 'PMQT_NV'">
+
+				AND ( IS_SV.ISSUES_USERNAME = #{userName} )
+
+				<!-- thoi gian -->
+
+				<if
+					test="requestParam.startTime != null and requestParam.endTime != null ">
+
+					AND (IS_SV.CREATE_DATE BETWEEN
+					#{requestParam.startTime} AND
+					#{requestParam.endTime})
+
+
+				</if>
+
+				<if
+					test="requestParam.startTime != null and requestParam.endTime == null ">
+
+					<!-- xu ly thoi gian bat dau co ket thuc khong -->
+					AND (IS_SV.CREATE_DATE >= #{requestParam.startTime})
+
+				</if>
+
+
+				<if
+					test="requestParam.startTime == null and requestParam.endTime != null ">
+
+					AND (IS_SV.CREATE_DATE BETWEEN 0 AND
+					#{requestParam.endTime})
+
+
+				</if>
+
+			</when>
+
+
+			<when test="requestParam.processByRole == 'PMQT_HCVP'">
+
+				AND ( SV_RECEIVEER.SERVICE_RECEIVEER_USERNAME = #{userName} AND
+				(IS_SV.STATUS =1 OR IS_SV.STATUS =3
+				OR IS_SV.STATUS = 4 OR
+				IS_SV.STATUS = 5 OR IS_SV.STATUS = 6 OR
+				IS_SV.STATUS = 9 OR
+				IS_SV.STATUS = 8 ) )
+
+				<if test="requestParam.unitId != 0  and requestParam.unitId != null">
+
+					<!-- AND EMP.UNIT_ID = #{requestParam.unitId} -->
+
+					AND EMP_UNIT.`PATH` LIKE CONCAT('%',#{requestParam.unitId}, '%')
+
+				</if>
+
+				<if test="requestParam.userNameOfRequester != null">
+
+					AND ( IS_SV.ISSUES_USERNAME =
+					#{requestParam.userNameOfRequester} )
+
+				</if>
+
+				<if test="requestParam.phoneOfRequester != null">
+
+					AND EMP.PHONE_NUMBER LIKE
+					#{requestParam.phoneOfRequester}
+
+				</if>
+
+				<if
+					test="requestParam.startTime != null and requestParam.endTime != null ">
+
+					AND (IS_SV.CREATE_DATE BETWEEN
+					#{requestParam.startTime} AND
+					#{requestParam.endTime})
+
+				</if>
+
+				<if
+					test="requestParam.startTime != null and requestParam.endTime == null ">
+
+					<!-- xu ly thoi gian bat dau co ket thuc khong -->
+					AND (IS_SV.CREATE_DATE >=
+					#{requestParam.startTime})
+
+				</if>
+
+
+				<if
+					test="requestParam.startTime == null and requestParam.endTime != null ">
+
+					AND (IS_SV.CREATE_DATE BETWEEN 0 AND
+					#{requestParam.endTime})
+
+
+				</if>
+
+
+			</when>
+
+
+			<otherwise></otherwise>
+
+
+		</choose>
+
+
+		<if test="requestParam.idService != null">
+
+			AND ( IS_SV.SERVICE_ID = #{requestParam.idService} )
+
+		</if>
+
+
+
+
+		<if test="requestParam.status != null">
+			AND
+			<foreach item="item" index="index" collection="requestParam.status"
+				open="(" separator=" OR " close=")">
+				IS_SV.STATUS = #{item}
+			</foreach>
+		</if>
+
+	</select>
+
+
+	<select id="totalIssuesedServiceForApprove" parameterType="java.util.Map"
+		resultType="java.lang.Integer">
+
+		SELECT
+
+		COUNT (*)
+		FROM
+		(
+
+
+		SELECT
+
+		IS_SV.ISSUES_SERVICE_ID,
+		IS_SV.ISSUES_USERNAME,
+		IS_SV.ISSUESE_LOCATION,
+		IS_SV.TIME_START_PLAN,
+		IS_SV.TIME_FINISH_PLAN,
+		IS_SV.STATUS,
+		IS_SV.SERVICE_ID,
+		IS_SV.CREATE_DATE,
+		IS_SV.APPOVER_QLTT,
+		IS_SV.FLAG_QLTT,
+		IS_SV.APPOVER_LDDV,
+		IS_SV.FLAG_LDDV,
+		IS_SV.APPOVER_CVP,
+		IS_SV.FLAG_CVP,
+		IS_SV.NOTE,
+		SV.SERVICE_NAME,
+		EMP.FULL_NAME,
+		EMP.UNIT_ID,
+		EMP_UNIT.UNIT_NAME,
+		EMP_UNIT.`PATH`
+
+
+
+
+		FROM(
+		(
+		( ISSUES_SERVICE as IS_SV
+		LEFT
+		JOIN QLDV_EMPLOYEE as EMP ON IS_SV.ISSUES_USERNAME =EMP.USER_NAME )
+		LEFT JOIN QLDV_UNIT as EMP_UNIT ON EMP.UNIT_ID = EMP_UNIT.UNIT_ID )
+		LEFT JOIN SERVICES as SV ON IS_SV.SERVICE_ID = SV.SERVICE_ID )
+
+		) AS
+		FINAL_ISSUED_SERVICE
+
+		WHERE 1
+		AND
+
+		( STATUS = 0 )
+
+		<if test="PMQT_ADMIN == null ">
+
+			AND
+			( CASE
+			WHEN ( APPOVER_QLTT = #{userName} AND FLAG_QLTT =
+			0 ) THEN (1)
+			WHEN ( APPOVER_LDDV = #{userName} AND FLAG_QLTT = 1 AND
+			FLAG_LDDV = 0 )
+			THEN (1)
+			WHEN ( APPOVER_CVP = #{userName} AND FLAG_QLTT
+			= 1 AND FLAG_LDDV = 1 AND
+			FLAG_CVP = 0 ) THEN (1)
+			ELSE 0
+			END
+			)
+
+		</if>
+
+
+
+		<if test="requestParam.unitId != 0  and requestParam.unitId != null">
+
+			<!-- AND FINAL_ISSUED_SERVICE.UNIT_ID = #{requestParam.unitId} -->
+			AND FINAL_ISSUED_SERVICE.`PATH` LIKE
+			CONCAT('%',#{requestParam.unitId}, '%')
+
+		</if>
+
+		<if test="requestParam.userNameOfRequester != null">
+
+			AND FINAL_ISSUED_SERVICE.ISSUES_USERNAME =
+			#{requestParam.userNameOfRequester}
+
+		</if>
+
+		<if test="requestParam.phoneOfRequester != null">
+
+			AND FINAL_ISSUED_SERVICE.PHONE_NUMBER LIKE
+			#{requestParam.phoneOfRequester}
+
+		</if>
+
+		<if test="requestParam.idService != null">
+
+			AND FINAL_ISSUED_SERVICE.SERVICE_ID =
+			#{requestParam.idService}
+
+		</if>
+
+		<if test="requestParam.startTime != null and requestParam.endTime != null ">
+
+			AND (FINAL_ISSUED_SERVICE.CREATE_DATE BETWEEN
+			#{requestParam.startTime}
+			AND #{requestParam.endTime})
+
+
+		</if>
+
+		<if test="requestParam.startTime != null and requestParam.endTime == null ">
+
+			<!-- xu ly thoi gian bat dau co ket thuc khong -->
+			AND (FINAL_ISSUED_SERVICE.CREATE_DATE >= #{requestParam.startTime})
+
+		</if>
+
+
+		<if test="requestParam.startTime == null and requestParam.endTime != null ">
+
+			AND (FINAL_ISSUED_SERVICE.CREATE_DATE BETWEEN 0 AND
+			#{requestParam.endTime})
+
+		</if>
+
+	</select>
+
+
+	<select id="findListIssuesService"
+		parameterType="com.viettel.vtnet360.issuesService.entity.IssuesServiceSearch"
+		resultType="com.viettel.vtnet360.issuesService.entity.IssuesServiceEntity">
+		SELECT
+		iss.CREATE_DATE as createDate,
+		iss.ISSUES_USERNAME as issuesUsername,
+		iss.ISSUES_SERVICE_ID AS issueServiceId,
+		eRequest.FULL_NAME As fullName,
+		eRequest.PHONE_NUMBER AS phoneNumber,
+		eRequest.EMAIL AS email,
+		p.PLACE_ID AS issueseLocation,
+		p.PLACE_NAME AS issueseLocationName,
+		s.SERVICE_NAME AS serviceName,
+		iss.APPOVER_QLTT AS userNameQLTT,
+		iss.FLAG_QLTT AS flagQLTT,
+		iss.APPOVER_LDDV AS userNameLDDV,
+		iss.FLAG_LDDV AS flagLDVV,
+		iss.APPOVER_CVP AS userNameCVP,
+		iss.FLAG_CVP AS flagCVP,
+		ROUND(( UNIX_TIMESTAMP(iss.TIME_FINISH_PLAN) - UNIX_TIMESTAMP(iss.TIME_START_PLAN))/ 3600, 2 ) AS timePlan,
+		iss.TIME_START_PLAN AS startDatePlan,
+		iss.TIME_FINISH_PLAN AS endDatePlan,
+		iss.TIME_RESUME AS timeResume,
+		ROUND(iss.REAL_TIME_TOTAL/ 3600, 2) AS timeReal, iss.REAL_TIME_TOTAL as timeRealBysecond, s.FULL_FILL_TIME as fullFillTime,
+		iss.TIME_START_ACTUAL AS startDateReal,
+		iss.TIME_FINISH_ACTUAL AS endDateReal,
+		u.UNIT_NAME AS unitName,
+		CASE WHEN u.UNIT_ID = 234841 THEN IFNULL(u.UNIT_NAME, '')
+				WHEN b.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''))
+				WHEN c.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''), IFNULL(CONCAT(' / ', c.UNIT_NAME), ''))
+				ELSE CONCAT(IFNULL(b.UNIT_NAME, ''), IFNULL(CONCAT(' / ', c.UNIT_NAME), ''), IFNULL(CONCAT(' / ', d.UNIT_NAME), '')) END AS detailUnit, 
+		eRequest.FULL_NAME AS empName,
+		eRequest.PHONE_NUMBER AS empPhone,
+		eReceiveG.receiName,
+		eReceiveG.userNameRecei,
+		iss.STATUS AS status,
+		iss.NOTE AS note,
+		iss.REASON_REFUSE AS reasonRefuse,
+		iss.REASON AS reason,
+		iss.POSTPONE_REASON AS postponeReason,
+		iss.POSTPONE_TO_TIME AS postponeToTime,
+		iss.USER_REASON AS userReason,
+		iss.RATTING AS rating,
+		iss.FEEDBACK AS feedback,
+		iss.RATING_TO_USER AS rattingToUser,
+		iss.FEEDBACK_TO_USER AS feedBackToUser,
+		iss.DETAIL_SIGN_VOFFICE_ID AS detailSignVofficeId,
+		iss.SYNTHETIC_SIGN_VOFFICE_ID AS syntheticSignVofficeId,
+		a.STATIONERY_ID AS stationeryID,
+		vffs.STATUS AS statusSynthetic,
+		vffd.STATUS AS statusDetail
+		FROM
+		ISSUES_SERVICE iss
+		LEFT JOIN SERVICES s ON iss.SERVICE_ID = s.SERVICE_ID
+		LEFT JOIN QLDV_PLACE p ON iss.ISSUESE_LOCATION = p.PLACE_ID
+
+		<!-- LEFT JOIN QLDV_EMPLOYEE as QLTT ON iss.APPOVER_QLTT = QLTT.USER_NAME 
+			LEFT JOIN QLDV_EMPLOYEE as LDDV ON iss.APPOVER_LDDV = LDDV.USER_NAME LEFT 
+			JOIN QLDV_EMPLOYEE as CVP ON iss.APPOVER_CVP = CVP.USER_NAME -->
+
+		LEFT JOIN (SELECT GROUP_CONCAT( sr.SERVICE_RECEIVEER_USERNAME) AS userNameRecei, 
+					GROUP_CONCAT( eReceive.FULL_NAME) AS receiName, sr.SERVICE_ID
+					FROM SERVICE_RECEIVEER sr INNER JOIN QLDV_EMPLOYEE eReceive ON sr.SERVICE_RECEIVEER_USERNAME = eReceive.USER_NAME
+					GROUP BY sr.SERVICE_ID) AS eReceiveG ON s.SERVICE_ID = eReceiveG.SERVICE_ID
+		LEFT JOIN QLDV_EMPLOYEE eRequest ON iss.ISSUES_USERNAME = eRequest.USER_NAME
+		<!-- LEFT JOIN QLDV_EMPLOYEE eReceive ON -->
+		<!-- sr.SERVICE_RECEIVEER_USERNAME = eReceive.USER_NAME -->
+
+		LEFT JOIN QLDV_UNIT u ON eRequest.UNIT_ID = u.UNIT_ID
+		LEFT JOIN QLDV_UNIT b ON u.PARENT_UNIT_ID = b.UNIT_ID
+		LEFT JOIN QLDV_UNIT c ON b.PARENT_UNIT_ID = c.UNIT_ID
+		LEFT JOIN QLDV_UNIT d ON c.PARENT_UNIT_ID = d.UNIT_ID
+		LEFT JOIN SIGN_VOFFICE vffs ON iss.SYNTHETIC_SIGN_VOFFICE_ID = vffs.SIGN_VOFFICE_ID
+		LEFT JOIN SIGN_VOFFICE vffd ON iss.DETAIL_SIGN_VOFFICE_ID = vffd.SIGN_VOFFICE_ID
+		<if test="isStationary == true">
+			INNER JOIN ISSUES_SERVICE_SPENT AS isss ON iss.ISSUES_SERVICE_ID = isss.ISSUES_SERVICE_ID
+		</if>
+		LEFT JOIN (SELECT a.ISSUES_SERVICE_ID, a.STATIONERY_ID FROM ISSUES_SERVICE_SPENT a GROUP BY a.ISSUES_SERVICE_ID) AS a ON iss.ISSUES_SERVICE_ID = a.ISSUES_SERVICE_ID
+		<where>
+			<if test="placeId != null and placeId.length &gt; 0">
+				AND iss.ISSUESE_LOCATION = #{placeId}
+			</if>
+			<if test="placeName != null and placeName.length &gt; 0">
+				<bind name="pattern" value="'%' + placeName + '%'" />
+				AND p.PLACE_NAME LIKE #{pattern}
+			</if>
+			<if test="listStatus != null">
+				<foreach item="item" collection="listStatus" open="AND ("
+					separator=" OR " close=")">
+					iss.STATUS = #{item}
+				</foreach>
+			</if>
+			<if test="serviceId != null and serviceId.length &gt; 0">
+				AND s.SERVICE_ID = #{serviceId}
+			</if>
+			<if test="serviceName != null and serviceName.length &gt; 0">
+				<bind name="pattern1" value="'%' + serviceName + '%'" />
+				AND s.SERVICE_NAME LIKE #{pattern1}
+			</if>
+			<if test="receiverUserName != null and receiverUserName.length &gt; 0">
+				AND iss.SERVICE_ID IN (SELECT SERVICE_ID FROM
+				SERVICE_RECEIVEER WHERE SERVICE_RECEIVEER_USERNAME =
+				#{receiverUserName})
+			</if>
+			<if test="receiverName != null and receiverName.length &gt; 0">
+				<bind name="pattern2" value="'%' + receiverName + '%'" />
+				AND iss.SERVICE_ID IN (SELECT SERVICE_ID FROM SERVICE_RECEIVEER sr
+				INNER JOIN QLDV_EMPLOYEE eReceive ON sr.SERVICE_RECEIVEER_USERNAME = eReceive.USER_NAME
+				WHERE eReceive.FULL_NAME LIKE #{pattern2} AND eReceive.STATUS = 1)
+			</if>
+			<if test=" listUnitId != null and listUnitId.length &gt; 0">
+				AND eRequest.UNIT_ID IN
+				<foreach item="item1" collection="listUnitId" open="("
+					separator=" UNION " close=")">
+					SELECT UNIT_ID
+					FROM QLDV_UNIT
+					WHERE QLDV_UNIT.`PATH` LIKE CONCAT('%', #{item1}, '%')
+				</foreach>
+			</if>
+			<if test="startDate != null">
+				AND CASE WHEN iss.TIME_START_PLAN IS NOT NULL THEN iss.TIME_START_PLAN &gt;= CAST(#{startDate} AS DATETIME) ELSE iss.CREATE_DATE &gt;= CAST(#{startDate} AS DATETIME) END
+			</if>
+			<if test="endDate != null">
+				AND CASE WHEN iss.TIME_START_PLAN IS NOT NULL THEN iss.TIME_START_PLAN &lt;= CAST(#{endDate} AS DATETIME) ELSE iss.CREATE_DATE &lt;= CAST(#{endDate} AS DATETIME) END
+			</if>
+			<if test="loginRole == 'PMQT_HC_DV' || loginRole == 'PMQT_QL'|| loginRole == 'PMQT_CVP'">
+				<bind name="pattern3" value="'%' + unitId + '%'" />
+				AND u.PATH LIKE #{pattern3}
+			</if>
+			<if test="loginRole == null ">
+				AND ( iss.ISSUES_USERNAME = #{loginUserName} OR
+						( CASE WHEN ( APPOVER_QLTT = #{loginUserName} AND FLAG_QLTT = 0 ) THEN (1)
+								WHEN ( APPOVER_LDDV = #{loginUserName} AND FLAG_QLTT = 1 AND FLAG_LDDV = 0 ) THEN (1)
+								WHEN ( APPOVER_CVP = #{loginUserName} AND FLAG_QLTT = 1 AND FLAG_LDDV = 1 AND FLAG_CVP = 0 ) THEN (1) ELSE 0 END )
+					OR ( s.SERVICE_ID IN (SELECT SERVICE_ID FROM SERVICE_RECEIVEER WHERE SERVICE_RECEIVEER_USERNAME = #{loginUserName})))
+			</if>
+			<if test="listStatusDetail != null">
+				<if test ="isStatusDetail == 1">
+					<foreach item="item" collection="listStatusDetail" open="AND ( iss.DETAIL_SIGN_VOFFICE_ID IS NULL OR "
+						separator=" OR " close=")">
+						vffd.STATUS = #{item}
+					</foreach>
+				</if>
+				<if test ="isStatusDetail != 1">
+					<foreach item="item" collection="listStatusDetail" open="AND( "
+						separator=" OR " close=")">
+						vffd.STATUS = #{item}
+					</foreach>
+				</if>
+			</if>
+			<if test="listStatusSynthetic != null">
+				<if test ="isStatusSynthetic == 1">
+					<foreach item="item" collection="listStatusSynthetic" open="AND ( iss.SYNTHETIC_SIGN_VOFFICE_ID IS NULL OR "
+						separator=" OR " close=")">
+						vffs.STATUS = #{item}
+					</foreach>
+				</if>
+				<if test ="isStatusSynthetic != 1">
+					<foreach item="item" collection="listStatusSynthetic" open="AND ( "
+						separator=" OR " close=")">
+						vffs.STATUS = #{item}
+					</foreach>
+				</if>
+			</if>
+		</where>
+		<if test="isStationary == true">
+			GROUP BY isss.ISSUES_SERVICE_ID
+		</if>
+		ORDER BY
+		iss.TIME_START_PLAN DESC,
+		s.SERVICE_NAME ,
+		empName,
+		detailUnit
+		<if test="startRow != -1 &amp;&amp; rowSize != -1">
+			LIMIT #{startRow}, #{rowSize}
+		</if>
+	</select>
+
+	<select id="totalIssuseService"
+		parameterType="com.viettel.vtnet360.issuesService.entity.IssuesServiceSearch"
+		resultType="int">
+		SELECT
+		<if test="isStationary == true">
+			COUNT(DISTINCT isss.ISSUES_SERVICE_ID)
+		</if>
+		<if test="isStationary == false">
+			COUNT(*)
+		</if>
+		FROM
+		ISSUES_SERVICE iss
+		LEFT JOIN SERVICES s ON iss.SERVICE_ID = s.SERVICE_ID
+		LEFT JOIN QLDV_PLACE p ON iss.ISSUESE_LOCATION = p.PLACE_ID
+
+		<!-- LEFT JOIN QLDV_EMPLOYEE as QLTT ON iss.APPOVER_QLTT = QLTT.USER_NAME 
+			LEFT JOIN QLDV_EMPLOYEE as LDDV ON iss.APPOVER_LDDV = LDDV.USER_NAME LEFT 
+			JOIN QLDV_EMPLOYEE as CVP ON iss.APPOVER_CVP = CVP.USER_NAME -->
+
+		LEFT JOIN (SELECT GROUP_CONCAT( sr.SERVICE_RECEIVEER_USERNAME) AS userNameRecei, 
+					GROUP_CONCAT( eReceive.FULL_NAME) AS receiName, sr.SERVICE_ID
+					FROM SERVICE_RECEIVEER sr INNER JOIN QLDV_EMPLOYEE eReceive ON sr.SERVICE_RECEIVEER_USERNAME = eReceive.USER_NAME
+					GROUP BY sr.SERVICE_ID) AS eReceiveG ON s.SERVICE_ID = eReceiveG.SERVICE_ID
+		LEFT JOIN QLDV_EMPLOYEE eRequest ON iss.ISSUES_USERNAME = eRequest.USER_NAME
+		<!-- LEFT JOIN QLDV_EMPLOYEE eReceive ON -->
+		<!-- sr.SERVICE_RECEIVEER_USERNAME = eReceive.USER_NAME -->
+
+		LEFT JOIN QLDV_UNIT u ON eRequest.UNIT_ID = u.UNIT_ID
+		LEFT JOIN QLDV_UNIT b ON u.PARENT_UNIT_ID = b.UNIT_ID
+		LEFT JOIN QLDV_UNIT c ON b.PARENT_UNIT_ID = c.UNIT_ID
+		LEFT JOIN QLDV_UNIT d ON c.PARENT_UNIT_ID = d.UNIT_ID
+		LEFT JOIN SIGN_VOFFICE vffs ON iss.SYNTHETIC_SIGN_VOFFICE_ID = vffs.SIGN_VOFFICE_ID
+		LEFT JOIN SIGN_VOFFICE vffd ON iss.DETAIL_SIGN_VOFFICE_ID = vffd.SIGN_VOFFICE_ID
+		<if test="isStationary == true">
+			INNER JOIN ISSUES_SERVICE_SPENT AS isss ON iss.ISSUES_SERVICE_ID = isss.ISSUES_SERVICE_ID
+		</if>
+		LEFT JOIN (SELECT a.ISSUES_SERVICE_ID, a.STATIONERY_ID FROM ISSUES_SERVICE_SPENT a GROUP BY a.ISSUES_SERVICE_ID) AS a ON iss.ISSUES_SERVICE_ID = a.ISSUES_SERVICE_ID
+		<where>
+			<if test="placeId != null and placeId.length &gt; 0">
+				AND iss.ISSUESE_LOCATION = #{placeId}
+			</if>
+			<if test="placeName != null and placeName.length &gt; 0">
+				<bind name="pattern" value="'%' + placeName + '%'" />
+				AND p.PLACE_NAME LIKE #{pattern}
+			</if>
+			<if test="listStatus != null">
+				<foreach item="item" collection="listStatus" open="AND ("
+					separator=" OR " close=")">
+					iss.STATUS = #{item}
+				</foreach>
+			</if>
+			<if test="serviceId != null and serviceId.length &gt; 0">
+				AND s.SERVICE_ID = #{serviceId}
+			</if>
+			<if test="serviceName != null and serviceName.length &gt; 0">
+				<bind name="pattern1" value="'%' + serviceName + '%'" />
+				AND s.SERVICE_NAME LIKE #{pattern1}
+			</if>
+			<if test="receiverUserName != null and receiverUserName.length &gt; 0">
+				AND iss.SERVICE_ID IN (SELECT SERVICE_ID FROM
+				SERVICE_RECEIVEER WHERE SERVICE_RECEIVEER_USERNAME =
+				#{receiverUserName})
+			</if>
+			<if test="receiverName != null and receiverName.length &gt; 0">
+				<bind name="pattern2" value="'%' + receiverName + '%'" />
+				AND iss.SERVICE_ID IN (SELECT SERVICE_ID FROM SERVICE_RECEIVEER sr
+				INNER JOIN QLDV_EMPLOYEE eReceive ON sr.SERVICE_RECEIVEER_USERNAME = eReceive.USER_NAME
+				WHERE eReceive.FULL_NAME LIKE #{pattern2} AND eReceive.STATUS = 1)
+			</if>
+			<if test=" listUnitId != null and listUnitId.length &gt; 0">
+				AND eRequest.UNIT_ID IN
+				<foreach item="item1" collection="listUnitId" open="("
+					separator=" UNION " close=")">
+					SELECT UNIT_ID
+					FROM QLDV_UNIT
+					WHERE QLDV_UNIT.`PATH` LIKE CONCAT('%', #{item1}, '%')
+				</foreach>
+			</if>
+			<if test="startDate != null">
+				AND CASE WHEN iss.TIME_START_PLAN IS NOT NULL THEN iss.TIME_START_PLAN &gt;= CAST(#{startDate} AS DATETIME) ELSE iss.CREATE_DATE &gt;= CAST(#{startDate} AS DATETIME) END
+			</if>
+			<if test="endDate != null">
+				AND CASE WHEN iss.TIME_START_PLAN IS NOT NULL THEN iss.TIME_START_PLAN &lt;= CAST(#{endDate} AS DATETIME) ELSE iss.CREATE_DATE &lt;= CAST(#{endDate} AS DATETIME) END
+			</if>
+			<if test="loginRole == 'PMQT_HC_DV' || loginRole == 'PMQT_QL'|| loginRole == 'PMQT_CVP'">
+				<bind name="pattern3" value="'%' + unitId + '%'" />
+				AND u.PATH LIKE #{pattern3}
+			</if>
+			<if test="loginRole == null ">
+				AND ( iss.ISSUES_USERNAME = #{loginUserName} OR
+						( CASE WHEN ( APPOVER_QLTT = #{loginUserName} AND FLAG_QLTT = 0 ) THEN (1)
+								WHEN ( APPOVER_LDDV = #{loginUserName} AND FLAG_QLTT = 1 AND FLAG_LDDV = 0 ) THEN (1)
+								WHEN ( APPOVER_CVP = #{loginUserName} AND FLAG_QLTT = 1 AND FLAG_LDDV = 1 AND FLAG_CVP = 0 ) THEN (1) ELSE 0 END )
+					OR ( s.SERVICE_ID IN (SELECT SERVICE_ID FROM SERVICE_RECEIVEER WHERE SERVICE_RECEIVEER_USERNAME = #{loginUserName})))
+			</if>
+			<if test="listStatusDetail != null">
+				<if test ="isStatusDetail == 1">
+					<foreach item="item" collection="listStatusDetail" open="AND ( iss.DETAIL_SIGN_VOFFICE_ID IS NULL OR "
+						separator=" OR " close=")">
+						vffd.STATUS = #{item}
+					</foreach>
+				</if>
+				<if test ="isStatusDetail != 1">
+					<foreach item="item" collection="listStatusDetail" open="AND( "
+						separator=" OR " close=")">
+						vffd.STATUS = #{item}
+					</foreach>
+				</if>
+			</if>
+			<if test="listStatusSynthetic != null">
+				<if test ="isStatusSynthetic == 1">
+					<foreach item="item" collection="listStatusSynthetic" open="AND ( iss.SYNTHETIC_SIGN_VOFFICE_ID IS NULL OR "
+						separator=" OR " close=")">
+						vffs.STATUS = #{item}
+					</foreach>
+				</if>
+				<if test ="isStatusSynthetic != 1">
+					<foreach item="item" collection="listStatusSynthetic" open="AND ( "
+						separator=" OR " close=")">
+						vffs.STATUS = #{item}
+					</foreach>
+				</if>
+			</if>
+		</where>
+	</select>
+
+<select id="checkExitsIssuesService"
+		parameterType="java.lang.String"
+		resultType="com.viettel.vtnet360.issuesService.entity.IssuesServiceEntity">
+		SELECT  
+		
+		iss.ISSUES_SERVICE_ID AS issueServiceId
+
+		FROM ISSUES_SERVICE iss
+		
+		<where>
+			 iss.ISSUES_USERNAME = #{userName} AND iss.STATUS = 6
+		</where>
+	</select>
+
+	<select id="findListIssuesServiceHistoryByIdService"
+		parameterType="com.viettel.vtnet360.issuesService.entity.IssuesServiceSearch"
+		resultType="com.viettel.vtnet360.issuesService.entity.IssuesServiceEntity">
+		SELECT iss.ISSUES_SERVICE_ID AS
+		issueServiceId, 
+		s.SERVICE_NAME AS serviceName,
+		iss.STATUS AS status,
+		iss.NOTE AS note,
+		issSta.stationery_name_all AS stationeryName,
+		iss.TIME_RECEIVE AS timeReceive
+		FROM ISSUES_SERVICE iss
+		LEFT JOIN SERVICES s ON iss.SERVICE_ID = s.SERVICE_ID
+		LEFT JOIN (SELECT GROUP_CONCAT(sta.STATIONERY_NAME) AS stationery_name_all ,
+					isss.ISSUES_SERVICE_ID
+					FROM ISSUES_SERVICE_SPENT isss
+					LEFT JOIN STATIONERY sta ON isss.STATIONERY_ID = sta.STATIONERY_ID
+					GROUP BY isss.ISSUES_SERVICE_ID) AS issSta ON iss.ISSUES_SERVICE_ID = issSta.ISSUES_SERVICE_ID
+		<where>
+			iss.SERVICE_ID = #{serviceId} AND iss.ISSUES_USERNAME = #{issuesUsername}
+		</where>
+		ORDER BY iss.CREATE_DATE DESC;
+		<!-- <if test="startRow != -1 &amp;&amp; rowSize != -1"> LIMIT #{startRow}, 
+			#{rowSize} </if> -->
+	</select>
+	
+<!-- 	<insert id="insertIssuesStationeryItems" parameterType="com.viettel.vtnet360.issuesService.entity.IssuesStationeryItemsToInsert">
+		INSERT INTO ISSUES_STATIONERY_ITEMS
+					(	
+						ISSUES_STATIONERY_ITEM_ID,
+						ISSUES_STATIONERY_ID, 
+						STATIONERY_ID,
+						TOTAL_REQUEST,
+						UNIT_PRICE,
+						STATUS, 
+						CREATE_USER, 
+						CREATE_DATE,
+						UPDATE_USER,
+						UPDATE_DATE,
+						STATIONERY_NAME,
+						CALCULATION_UNIT
+					)
+		VALUES	
+				<foreach collection="listStationery" item="item" index="index" separator=",">
+					(
+						CONCAT('VTN_SR_', NEXT VALUE FOR VTN_S),
+						#{issuesStationeryID}, 
+						#{item.stationeryId},
+						#{item.quantity}, 
+						(SELECT si.UNIT_PRICE FROM STATIONERY_ITEMS si WHERE si.STATIONERY_ID = #{item.stationeryId}), 
+						#{status},
+						#{createUser}, 
+						NOW(),
+						#{createUser}, 
+						NOW(),
+						#{item.stationeryName}, 
+						(SELECT i.CALCULATION_UNIT FROM STATIONERY_ITEMS i WHERE i.STATIONERY_ID = #{item.stationeryId})
+					)
+  				</foreach>
+	</insert> -->
+	
+   <!--  <insert id="insertIssuesStationery" parameterType="com.viettel.vtnet360.vt05.vt050000.entity.VT050000IssuesStationery">
+		INSERT INTO ISSUES_STATIONERY
+					(	
+						EMPLOYEE_USERNAME, 
+						ISSUE_LOCATION, 
+						NOTE, 
+						REQUEST_DATE,
+						STATUS,
+						CREATE_USER, 
+						CREATE_DATE,
+						UPDATE_USER,
+						UPDATE_DATE
+					)
+		VALUES	(
+					CONCAT('VTN_SR_', NEXT VALUE FOR VTN_S), 
+					#{employeeUserName}, 
+					#{issueLocation}, 
+					#{note}, 
+					NOW(), 
+					1,
+					#{createUser}, 
+					NOW(),
+					#{createUser}, 
+					NOW()
+				)
+	</insert>
+ -->
+
+	<select id="findListIssuesServiceHistoryForMobile"
+		parameterType="com.viettel.vtnet360.vt04.vt040002.entity.VT040002HistoryService"
+		resultType="com.viettel.vtnet360.vt04.vt040002.entity.VT040002HistoryService">
+		SELECT  
+		s.SERVICE_NAME AS serviceName,
+		iss.STATUS AS status,
+		iss.NOTE AS note,
+		issSta.stationery_name_all AS stationeryName,
+		iss.TIME_RECEIVE AS timeReceive
+		FROM ISSUES_SERVICE iss
+		LEFT JOIN SERVICES s ON iss.SERVICE_ID = s.SERVICE_ID
+		LEFT JOIN (SELECT GROUP_CONCAT(sta.STATIONERY_NAME) AS stationery_name_all ,
+					isss.ISSUES_SERVICE_ID
+					FROM ISSUES_SERVICE_SPENT isss
+					LEFT JOIN STATIONERY sta ON isss.STATIONERY_ID = sta.STATIONERY_ID
+					GROUP BY isss.ISSUES_SERVICE_ID) AS issSta ON iss.ISSUES_SERVICE_ID = issSta.ISSUES_SERVICE_ID
+		<where>
+			iss.SERVICE_ID = #{serviceId}  
+			AND iss.ISSUES_USERNAME = #{userName}
+		</where>
+			ORDER BY iss.CREATE_DATE DESC;
+	</select>
+	
+	<select id="findDayOff" resultType="java.util.Date" parameterType="java.util.Date">
+		SELECT DAY_OFF 
+		FROM DAY_OFF_SETTING 
+		WHERE STATUS = 1
+				AND DAY_OFF >= #{date}
+	</select>
+	
+		<select id="findMSystemCodeByCodeName"
+		parameterType="com.viettel.vtnet360.issuesService.entity.MSystemCodeEntity"
+		resultType="com.viettel.vtnet360.issuesService.entity.MSystemCodeEntity">
+		SELECT
+		m.MASTER_CLASS AS masterClass,
+		m.CODE_VALUE AS codeValue,
+		m.CODE_NAME AS codeName
+		FROM
+		M_SYSTEM_CODE m
+		<where>
+			m.CODE_NAME = #{codeName}
+			AND m.STATUS =1
+			AND m.MASTER_CLASS = #{masterClass}
+		</where>
+	</select>
+	
+	<select id="getUnitListByID"
+		parameterType="java.lang.String"
+		resultType="com.viettel.vtnet360.issuesService.entity.UnitEntity">
+		SELECT 
+			a.UNIT_ID as unitId,
+			a.UNIT_NAME as unitName,
+			a.PARENT_UNIT_ID  as parentId,
+			a.`PATH` as `path`,
+			a.ORDER_NUMBER as `order`,
+			QLDV_UNIT.UNIT_ID as `isLeaf` 
+		FROM QLDV_UNIT  
+			JOIN QLDV_UNIT a ON QLDV_UNIT.PARENT_UNIT_ID = a.UNIT_ID 
+			
+		WHERE QLDV_UNIT.STATUS = 1
+		<if test="value == null or value.length == 0">
+			AND QLDV_UNIT.UNIT_ID = 234841
+		</if>
+		<if test="value != null and value.length > 0">
+			AND QLDV_UNIT.UNIT_ID = #{value}
+		</if>
+		GROUP BY QLDV_UNIT.UNIT_ID
+		ORDER BY QLDV_UNIT.ORDER_NUMBER
+	</select>
+</mapper>

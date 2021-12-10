@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt02.vt020003.dao.VT020003DAO">
+	
+	<select id="findListChef" resultType="com.viettel.vtnet360.vt02.vt020003.entity.VT020003Chef" parameterType="java.lang.String">
+		SELECT USER_NAME as chefUserName, 
+			   FULL_NAME as chefName, 
+			   PHONE_NUMBER as chefPhone 
+		FROM QLDV_EMPLOYEE
+		WHERE `ROLE` LIKE #{role}
+			AND FULL_NAME LIKE #{query}
+			AND USER_NAME NOT IN 
+			(SELECT
+				b.CHEF_ACCOUNT
+			FROM
+				KITCHEN_SETTING a
+				JOIN KITCHEN_SETTING_CHEF b ON a.KITCHEN_ID = b.KITCHEN_SETTING_ID
+			WHERE	
+				a.DELETE_FLAG = 0
+				<if test="kitchenId != null">
+				 	AND a.KITCHEN_ID != #{kitchenId}
+			 	</if>
+			)
+		ORDER BY
+			FULL_NAME
+		LIMIT 50
+	</select>
+	
+	<select id="findListChef2" resultType="com.viettel.vtnet360.vt02.vt020003.entity.VT020003Chef" parameterType="java.lang.String">
+		SELECT USER_NAME as chefUserName, 
+			   FULL_NAME as chefName, 
+			   PHONE_NUMBER as chefPhone 
+		FROM QLDV_EMPLOYEE
+		WHERE STATUS = 1 AND `ROLE` LIKE #{role} 
+		
+		<if test="query != null and query.length > 0">
+             AND FULL_NAME LIKE #{query}
+        </if>
+		ORDER BY FULL_NAME
+		LIMIT 0, 50
+	</select>
+
+	<select id="findListKitchenInfo" resultType="com.viettel.vtnet360.vt02.vt020003.entity.VT020003KitchenInfo"
+		parameterType="com.viettel.vtnet360.vt02.vt020003.entity.VT020003Condition">
+		SELECT
+			ks.KITCHEN_ID as kitchenID,
+			ks.KITCHEN_NAME as kitchenName,
+			ks.PLACE_ID as placeID,
+			p.PLACE_NAME as placeName,
+			ksc.CHEF_NAME as chefName,
+			ksc.CHEF_ACCOUNT as chefUserName,
+			ksc.CHEF_PHONE as chefPhone,
+			ksc.IS_EMPLOYEE as isEmployee,
+			ks.NOTE as note,
+			ks.PRICE as price,
+			ks.STATUS as status
+		FROM
+			KITCHEN_SETTING ks
+		LEFT JOIN (
+			SELECT
+				KITCHEN_SETTING_ID KITCHEN_SETTING_ID,
+				GROUP_CONCAT(CHEF_NAME) CHEF_NAME,
+				GROUP_CONCAT(CHEF_ACCOUNT) CHEF_ACCOUNT,
+				GROUP_CONCAT(CHEF_PHONE) CHEF_PHONE,
+				GROUP_CONCAT(IS_EMPLOYEE) IS_EMPLOYEE
+			FROM
+				KITCHEN_SETTING_CHEF
+			GROUP BY
+				KITCHEN_SETTING_ID
+		) ksc ON ks.KITCHEN_ID = ksc.KITCHEN_SETTING_ID	
+		LEFT JOIN QLDV_PLACE p ON
+			ks.PLACE_ID = p.PLACE_ID
+		WHERE
+			ks.DELETE_FLAG = 0
+		ORDER BY
+			LENGTH(ks.KITCHEN_NAME),
+			ks.KITCHEN_NAME
+		<if test="startRow != -1 and rowSize != -1">
+			LIMIT #{startRow}, #{rowSize}
+		</if>
+	</select>
+
+	<select id="countTotalRecord" resultType="java.lang.Integer" parameterType="com.viettel.vtnet360.vt02.vt020003.entity.VT020003Condition">
+		SELECT
+			COUNT(*)
+		FROM
+			KITCHEN_SETTING ks
+			LEFT JOIN (
+				SELECT
+					*
+				FROM
+					KITCHEN_SETTING_CHEF
+				GROUP BY
+					KITCHEN_SETTING_ID
+					) ksc ON ks.KITCHEN_ID = ksc.KITCHEN_SETTING_ID
+			LEFT JOIN QLDV_PLACE p ON ks.PLACE_ID = p.PLACE_ID
+		WHERE
+			ks.DELETE_FLAG = 0
+	</select>
+	
+	<insert id="insertKitchen" parameterType="com.viettel.vtnet360.vt02.vt020003.entity.VT020003KitchenInfo">
+		INSERT INTO KITCHEN_SETTING
+			(	KITCHEN_ID, 
+				KITCHEN_NAME, 
+				PLACE_ID, 
+				CHEF_NAME, 
+				CHEF_ACCOUNT, 
+				CHEF_PHONE, 
+				NOTE, 
+				PRICE, 
+				STATUS, 
+				DELETE_FLAG,
+				CREATE_USER, 
+				CREATE_DATE, 
+				UPDATE_USER, 
+				UPDATE_DATE)
+		VALUES(	CONCAT('VTN_SR_', NEXT VALUE FOR VTN_S), 
+				#{kitchenName},
+				#{placeID}, 
+				#{chefName}, 
+				#{chefUserName}, 
+				#{chefPhone}, 
+				#{note}, 
+				#{price}, 
+				#{status}, 
+				#{deleteFG},
+				#{createUser},
+				NOW(), 
+				#{createUser}, 
+				NOW())
+	</insert>
+	
+	<update id="updateKitchen" parameterType="com.viettel.vtnet360.vt02.vt020003.entity.VT020003KitchenInfo">
+		UPDATE KITCHEN_SETTING
+		SET KITCHEN_NAME = #{kitchenName}, 
+			PLACE_ID = #{placeID}, 
+			NOTE = #{note}, 
+			PRICE = #{price}, 
+			STATUS = #{status}, 
+			UPDATE_USER = #{updateUser}, 
+			UPDATE_DATE = NOW()
+		WHERE KITCHEN_ID = #{kitchenID}
+	</update>
+	
+	<update id="deleteKitchen" parameterType="com.viettel.vtnet360.vt02.vt020003.entity.VT020003KitchenInfo">
+		UPDATE KITCHEN_SETTING
+		SET DELETE_FLAG = #{deleteFG},
+			UPDATE_USER = #{updateUser}, 
+			UPDATE_DATE = NOW()
+		WHERE KITCHEN_ID = #{kitchenID}
+	</update>
+	
+	<select id="checkUserNameExist" parameterType="com.viettel.vtnet360.vt02.vt020003.entity.VT020003KitchenInfo" resultType="java.lang.Integer">
+		SELECT COUNT(*) 
+			FROM KITCHEN_SETTING 
+			WHERE CHEF_ACCOUNT = #{chefUserName}
+				<if test="kitchenID != null">
+				 	AND KITCHEN_ID != #{kitchenID}
+			 	</if>
+			 	AND DELETE_FLAG = #{deleteFG}
+	</select>
+	
+	<select id="checPlaceIdExist" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+		SELECT COUNT(*) 
+		FROM QLDV_PLACE 
+		WHERE PLACE_ID = #{placeID}
+	</select>
+	
+	<select id="checkKitchenNameExist" parameterType="com.viettel.vtnet360.vt02.vt020003.entity.VT020003KitchenInfo" 
+				resultType="java.lang.Integer">
+		SELECT COUNT(*) 
+		FROM KITCHEN_SETTING 
+		WHERE 	PLACE_ID = #{placeID}
+				AND KITCHEN_NAME = #{kitchenName} 
+				<if test="kitchenID != null">
+				 	AND KITCHEN_ID != #{kitchenID}
+			 	</if>
+			 	AND DELETE_FLAG = #{deleteFG}
+	</select>
+	
+	<update id="updatePriceInLunchCalendar" parameterType="com.viettel.vtnet360.vt02.vt020003.entity.VT020003InfoToUpdatePriceInLunch">
+		UPDATE LUNCH_CALENDAR
+		SET PRICE = #{price}
+		WHERE KITCHEN_ID = #{kitchenID}
+				AND DATE(LUNCH_DATE) > DATE(#{lunchDate} )
+	</update>
+	
+	<delete id="deleteLunchDate" parameterType="java.lang.String">
+		DELETE FROM LUNCH_CALENDAR
+		WHERE DATE(LUNCH_DATE) > DATE(ADDDATE(NOW(), INTERVAL 1 DAY))
+				AND KITCHEN_ID = #{kitchenID}
+	</delete>
+	
+	<select id="findListPhoneNumberReceiveSms" parameterType="java.lang.String" resultType="java.lang.String">
+		SELECT PHONE_NUMBER
+		FROM KITCHEN_PHONE_GET_SMS
+		WHERE KITCHEN_ID = #{id}	
+	</select>
+	
+	<delete id="deletePhoneNumberReceiveSms" parameterType="java.lang.String">
+		DELETE FROM KITCHEN_PHONE_GET_SMS 
+		WHERE KITCHEN_ID = #{id}
+	</delete>
+	
+	<insert id="insertPhoneNumberReceiveSms" parameterType="com.viettel.vtnet360.vt02.vt020003.entity.VT020003InfoToInsertPhoneNumberReceiveSms">
+		INSERT INTO KITCHEN_PHONE_GET_SMS
+			(
+				KITCHEN_ID, 
+				PHONE_NUMBER, 
+				CREATE_USER, 
+				CREATE_DATE, 
+				UPDATE_USER, 
+				UPDATE_DATE
+			)
+		VALUES 
+			<foreach collection="listPhoneNumber" item="item" index="index" separator=",">
+					(
+						#{kitchenID}, 
+						#{item}, 
+						#{userName}, 
+						NOW(), 
+						#{userName}, 
+						NOW()
+					)
+ 			</foreach>
+	</insert>
+	
+	<select id="findKitchenIDJustAddNew" parameterType="java.lang.String" resultType="java.lang.String">
+		SELECT KITCHEN_ID
+		FROM KITCHEN_SETTING
+		WHERE CREATE_USER = #{userName}
+		ORDER BY CREATE_DATE DESC
+		LIMIT 0, 1
+	</select>
+	
+	<select id="checkConditionBeforeUpdateKitchen" parameterType="com.viettel.vtnet360.vt02.vt020003.entity.VT020003InfoToCheckConditionBeforeUpdateKitchen"
+							resultType="java.lang.Integer">
+		SELECT COUNT(*) 
+		FROM KITCHEN_SETTING
+		WHERE KITCHEN_ID = #{kitchenID}
+			AND DELETE_FLAG = #{deleteFG}
+	</select>
+	
+	<delete id="deleteChef" parameterType="java.lang.String">
+		DELETE
+		FROM
+			KITCHEN_SETTING_CHEF
+		WHERE
+			KITCHEN_SETTING_ID = #{id}
+	</delete>
+	
+	<select id="checkUserNameExist2" parameterType="com.viettel.vtnet360.vt02.vt020003.entity.VT020003KitchenInfo" resultType="java.lang.Integer">
+		SELECT COUNT(*) 
+		From
+			KITCHEN_SETTING a
+			JOIN KITCHEN_SETTING_CHEF b ON a.KITCHEN_ID = b.KITCHEN_SETTING_ID
+			WHERE b.CHEF_ACCOUNT = #{chefUserName}
+				<if test="kitchenID != null">
+				 	AND a.KITCHEN_ID != #{kitchenID}
+			 	</if>
+			 	AND a.DELETE_FLAG = #{deleteFG}
+	</select>
+	
+	<insert id="insertChef" parameterType="com.viettel.vtnet360.vt02.vt020003.entity.VT020003KitchenInfo">
+		INSERT
+		INTO
+		KITCHEN_SETTING_CHEF ( KITCHEN_SETTING_ID,
+		CHEF_NAME,
+		CHEF_ACCOUNT,
+		CHEF_PHONE,
+		IS_EMPLOYEE )
+		VALUES
+		<if
+			test="lstChef != null">
+			<foreach item="item" collection="lstChef"
+				separator=",">
+				( #{kitchenID},
+				#{item.chefName},
+				#{item.chefUserName},
+				#{item.chefPhone},
+				#{item.isEmployee})
+			</foreach>
+		</if>
+	</insert>
+	
+</mapper>

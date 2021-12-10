@@ -1,0 +1,305 @@
+<!-- ThangBT -->
+<div class="container">
+    <div class="container-fluid text-center mt-3">
+        <h1>Chi tiết đăng kí </h1>
+    </div>
+    <div>
+        <form id="formSearch" [formGroup]="formSearch">
+            <div class="col-xl-12 mb-3">
+                <p-fieldset legend="Thông tin đăng ký">
+                    <div class="row mb-3" style="margin-left: 20px;">
+                        <!-- team car field -->
+                        <div class="col-sm-12">
+                            <div class="row">
+                                <div class="col-sm-3" style="text-align: left; padding-top: 10px;">Đơn vị:</div>
+                                <div class="col-sm-9 ui-fluid" style="margin-left: -10px; position: relative;padding-top: 10px;">
+                                    <label maxlength="200"  > {{unitId}}</label>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- driver field -->
+                        <div class="col-sm-12">
+                            <div class="row">
+                                <div class="col-sm-3" style="text-align: left; padding-top: 10px;">
+                                    Người sử dụng:
+                                </div>
+                                <div class="col-sm-9 ui-fluid" style="margin-left: -6px;padding-top: 10px; ">
+                                    <label maxlength="200"  > {{fullNameUnit}}</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="row">
+                                <div class="col-sm-3" style="text-align: left; padding-top: 10px;">Số
+                                    điện thoại:
+                                </div>
+                                <div class="col-sm-9 ui-fluid" style="margin-left: -6px;padding-top: 10px; ">
+                                    <label maxlength="200"  > {{phoneNumber}}</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="row">
+                                <div class="col-sm-3" style="text-align: left; padding-top: 10px; ">Trạng
+                                    thái:
+                                </div>
+                                <div class="col-sm-9 ui-fluid" style="margin-left: -6px; ">
+                                    <div class="col-sm-3"
+                                         style="text-align: left; padding-top: 5px; max-width: 200px;color: red"> Đăng
+                                        kí mới
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--==============================================-->
+                        <div class="col-sm-6">
+                            <div class="row">
+                                <div class="col-sm-4" style="text-align: left; padding-top: 10px;">Thời gian bắt đầu
+                                </div>
+                                <div class="col-sm-8 ui-fluid" style="margin-left: -6px; position: relative; padding-top: 10px; max-width: 100%;">
+                                    <p-calendar #transferDateFromF dateFormat="dd/mm/yy"
+                                                placeholder="DD/MM/YYYY"
+                                                [(ngModel)]="dateStart" [showIcon]="true"
+                                                [readonlyInput]="true" showButtonBar="true"
+                                                [locale]="vn" showTime="true"
+                                                [monthNavigator]="true"
+                                                [yearNavigator]="true"
+                                                yearRange="2000:2030"
+                                                [ngModelOptions]="{standalone: true}"
+                                    ></p-calendar>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="row">
+                                <div class="col-sm-4" style="text-align: left; padding-top: 5px; padding-bottom: 7px;">Thời gian kết thúc
+                                </div>
+                                <div class="col-sm-8 ui-fluid" style="margin-left: -6px; padding-bottom: 7px; max-width: 100%;">
+                                    <p-calendar #transferDateToF dateFormat="dd/mm/yy"
+                                                placeholder="DD/MM/YYYY" showTime="true"
+                                                [(ngModel)]="dateEnd" [showIcon]="true"
+                                                [readonlyInput]="true" showButtonBar="true"
+                                                [locale]="vn" [monthNavigator]="true"
+                                                [yearNavigator]="true" yearRange="2000:2030"
+                                                [ngModelOptions]="{standalone: true}"
+                                    ></p-calendar>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+
+
+                        <!--==================================================-->
+                        <div class="col-sm-6">
+                            <div class="row">
+                                <div class="col-sm-4" style="text-align: left; padding-top: 10px; padding-bottom: 7px;">Đội
+                                    xe:
+                                </div>
+                                <div class="col-sm-8 ui-fluid" style="margin-left: -6px; position: relative; padding-top: 10px; max-width: 100%;">
+                                    <p-dropdown #listPlanSquadF [options]="squadList" formControlName="driverSquadName" [style]="{'width': '100%'}" optionLabel="squadName"
+                                                placeholder="--Lựa chọn--" filter="true">
+                                    </p-dropdown>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="row">
+                                <div class="col-sm-4" style="text-align: left;  padding-top: 10px;">Loại
+                                    hành trình:
+                                </div>
+                                <div class="col-sm-8 ui-fluid" style="margin-left: -6px; position: relative; padding-top: 10px;">
+                                    <p-dropdown [options]="routeWayList" formControlName="journey" [style]="{'width': '100%'}" optionLabel="journey"
+                                                placeholder="--Lựa chọn--"
+                                                filter="true">
+                                    </p-dropdown>
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                        <div class="col-sm-6">
+                            <div class="row">
+                                <div class="col-sm-4" style="text-align: left;  padding-top: 10px; padding-bottom: 7px;">Loại
+                                    xe:
+                                </div>
+                                <div class="col-sm-8 ui-fluid" style="margin-left: -6px; padding-top: 10px;">
+                                    <p-dropdown [options]="typeList" formControlName="type" placeholder="--Lựa chọn--" [style]="{'width': '100%'}" optionLabel="type"
+                                                filter="true">
+                                    </p-dropdown>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="row">
+                                <div class="col-sm-4" style="text-align: left; padding-top: 10px; ">Số
+                                    chỗ:
+                                </div>
+                                <div class="col-sm-8 ui-fluid" style="margin-left: -6px; padding-top: 10px;">
+                                    <p-dropdown [options]="seatList" formControlName="seat"  placeholder="--Lựa chọn--" [style]="{'width': '100%'}" optionLabel="seat"
+                                                filter="true">
+                                    </p-dropdown>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="row">
+                                <div class="col-sm-4" style="text-align: left;  padding-top: 10px;">Điểm
+                                    khởi hành:
+                                </div>
+                                <div class="col-sm-8 ui-fluid" style="margin-left: -6px; position: relative;  padding-top: 10px;">
+                                    <p-autoComplete [suggestions]="placeStartList" [style]="{'width': '100%'}"
+                                                    (completeMethod)="getPlaceStart($event)" field="placeName"
+                                                    formControlName="startPlace"></p-autoComplete>
+
+                                    <!--<input type="text"  class="form-control" maxlength="200" formControlName="startPlace"  >-->
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="row">
+                                <div class="col-sm-4" style="text-align: left; padding-top: 10px;">Điểm
+                                    đến:
+                                </div>
+                                <div class="col-sm-8 ui-fluid" style="margin-left: -6px; position: relative;  padding-top: 10px;">
+                                    <input type="text" class="form-control" maxlength="200" [style]="{'width': '100%'}"
+                                           formControlName="targetPlace">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="row">
+                                <div class="col-sm-12" style="text-align: left; padding-top: 10px;">Tuyến
+                                    đường:
+                                </div>
+                                <div class="col-sm-12 ui-fluid" style="margin-left: -6px; position: relative; padding-top: 10px;">
+                                    <input type="text" class="form-control" maxlength="200" formControlName="routeWay" [style]="{'width': '100%'}">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="row mb-3" style="margin-left: 20px;">
+                        <b>Thông tin sử dụng</b>
+                    </div>
+                    <!-- booker field -->
+                    <div class="row mb-3" style="margin-left: 20px;">
+                        <div class="col-sm-6">
+                            <div class="row">
+                                <div class="col-sm-4" >Số
+                                    người đi:
+                                </div>
+                                <div class="col-sm-8 ui-fluid"  style="text-align: left; padding-top: 10px; " >
+                                    <input type="text" class="form-control" maxlength="200" [style]="{'width': '100%'}"
+                                           formControlName="totalPartner">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-12">
+                            <div class="row">
+                                <div class="col-sm-12" >Nhân
+                                    sự tham gia:
+                                </div>
+                                <div class="col-sm-12 ui-fluid"  style="text-align: left; padding-top: 10px; " >
+                                    <textarea class="form-control" maxlength="200" [style]="{'width': '100%'} "
+                                              formControlName="listPartner"></textarea>
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-12"></div>
+                        <div class="col-sm-12">
+                            <div class="row">
+                                <div class="col-sm-12" style="text-align: left; padding-top: 10px; ">Lý do
+                                    sử dụng:
+                                </div>
+                                <div class="col-sm-12 ui-fluid" style="margin-left: -6px; position: relative; padding-top: 10px;">
+                                    <textarea class="form-control" maxlength="200" formControlName="reason" [style]="{'width': '100%'}"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="row mb-3" style="margin-left: 20px;">
+                        <b>Người phê duyệt</b>
+                    </div>
+                    <div class="row mb-3" style="margin-left: 20px;">
+
+                        <!-- type car -->
+                        <div class="col-sm-6">
+
+                            <div class="row">
+
+                                <div class="col-sm-4" style="text-align: left; padding-top: 5px; ">Quản
+                                    lí trực tiếp:
+                                </div>
+                                <div class="col-sm-8 ui-fluid" style="margin-left: -6px;">
+                                    <p-autoComplete  [suggestions]="documentList" [style]="{'width': '100%'}"
+                                                    (completeMethod)="getManager($event)" field="fullName"
+                                                    placeholder="Quản lí trực tiếp"
+                                                    formControlName="qlttName"></p-autoComplete>
+
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="row">
+
+                                <div class="col-sm-4" style="text-align: left; padding-top: 5px; ">Quản
+                                    lí đơn vị:
+                                </div>
+                                <div class="col-sm-8 ui-fluid" style="margin-left: -6px;">
+                                    <p-autoComplete [suggestions]="lddvNameList" [style]="{'width': '100%'}"
+                                                    placeholder="Quản lí đơn vị"
+                                                    (completeMethod)="getManagerUnit($event)" field="fullName"
+                                                     formControlName="lddvName"></p-autoComplete>
+
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="row">
+
+                                <div class="col-sm-4" style="text-align: left;  padding-top: 10px;">Chánh văn phòng:
+                                </div>
+                                <div class="col-sm-8 ui-fluid" style="margin-left: -6px; padding-top: 10px;">
+                                    <p-autoComplete [suggestions]="cvpNameList" [style]="{'width': '100%'}"
+                                                    placeholder="Chánh văn phòng"
+                                                    (completeMethod)="getManagerChief($event)" field="fullName"
+                                                    formControlName="cvpName"></p-autoComplete>
+
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </p-fieldset>
+            </div>
+            <div class="col-xl-12">
+                <div class="text-center">
+                    <!-- confirm button -->
+                    <button type="button" pButton icon="fa fa-search" iconPos="left" label="Gửi yêu cầu" (click)="save()"
+                            style="text-align: center; max-width: 200px;"></button>
+
+                    <button type="button" pButton icon="fa fa-search" iconPos="left" label="Đóng" (click)="return()"
+                            style="text-align: center; max-width: 200px;"></button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- create table -->
+

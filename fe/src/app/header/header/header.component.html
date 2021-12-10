@@ -1,0 +1,104 @@
+
+<div *ngIf="isLogged()" class="float-left left fixed-top" (mouseover)="hoverLeft(true)" (mouseleave)="hoverLeft(false)"
+  [ngClass]="{'leftHoverWidth': hover }">
+  <div class="item" routerLink="/">
+    <i class="fa fa-bars"></i> Trang chủ
+  </div>
+  <div class="menuContent">
+    <!-- module 1 - quan ly ra vao -->
+    <div *ngIf="isPermission('/check-in-out')" class="item module" (click)="moduleClick('module1')">
+      <i class="fa fa-male"></i>Quản lý ra vào
+    </div>
+    <div class="collapse submenu" [ngClass]="{ 'show': menu[1] }">
+      <div *ngIf="isPermission('/check-in-out/checking')" class="item" routerLink="/check-in-out/checking">Quản lý ra vào</div>
+      <div *ngIf="isPermission('/check-in-out/addCarId')" class="item" routerLink="/check-in-out/addCarId">Thêm mã thẻ</div>
+    </div>
+    <!-- module 2 - quan ly an trua -->
+    <div *ngIf="isPermission('/kitchenManager')" class="item module" (click)="moduleClick('module2')">
+      <i class="fa fa-calendar"></i>Quản lý suất ăn
+    </div>
+    <div class="collapse submenu" [ngClass]="{ 'show': menu[2] }">
+      <div *ngIf="isPermission('/kitchenManager/report-by-kitchen')" class="item" routerLink="/kitchenManager/report-by-kitchen">Thống kê đặt cơm theo đơn vị</div>
+      <div *ngIf="isPermission('/kitchenManager/report-by-employee')" class="item" routerLink="/kitchenManager/report-by-employee">Thống kê đặt cơm theo nhân viên</div>
+      <div *ngIf="isPermission('/kitchenManager/kitchen-config')" class="item" routerLink="/kitchenManager/kitchen-config">Cấu hình bếp</div>
+      <div *ngIf="isPermission('/kitchenManager/dish-config')" class="item" routerLink="/kitchenManager/dish-config">Cấu hình món ăn</div>
+      <div *ngIf="isPermission('/kitchenManager/menu-config')" class="item" routerLink="/kitchenManager/menu-config">Danh sách menu</div>
+      <div *ngIf="isPermission('/kitchenManager/dayoff-config')" class="item" routerLink="/kitchenManager/dayoff-config">Cấu hình ngày nghỉ</div>
+      <div *ngIf="isPermission('/kitchenManager/abbreviations-config')" class="item" routerLink="/kitchenManager/abbreviations-config">Cấu hình tên viết tắt</div>
+    </div>
+    <!-- module 3 - quan ly dat xe -->
+    <div *ngIf="isPermission('/book-car')" class="item module" (click)="moduleClick('module3')">
+      <i class="fa fa-bus"></i>Quản lý đặt xe
+    </div>
+    <div class="collapse submenu" [ngClass]="{ 'show': menu[3] }">
+      <div *ngIf="isPermission('/book-car/addTeamCar')" class="item" routerLink="/book-car/addTeamCar">Thêm đội xe</div>
+      <div *ngIf="isPermission('/book-car/addCategoryCar')" class=" item" routerLink="/book-car/addCategoryCar">Thêm mới danh mục xe</div>
+      <div *ngIf="isPermission('/book-car/addCategoryDriver')" class=" item" routerLink="/book-car/addCategoryDriver">Thêm mới danh mục lái xe</div>
+      <div *ngIf="isPermission('/book-car/reportBookCar')" class="item " routerLink="/book-car/reportBookCar">Thống kê đặt xe</div>
+      <div *ngIf="isPermission('/book-car/carFreeTimes')" class="item " routerLink="/book-car/carFreeTimes">Thống kê xe rỗi </div>
+
+    </div>
+    <!-- module 4 - quan ly dich vu van phong -->
+    <div *ngIf="isPermission('/service-management')" class="item module " (click)="moduleClick( 'module4') ">
+      <i class="fa fa-indent "></i>Hỗ trợ văn phòng
+    </div>
+    <div class="collapse submenu" [ngClass]="{ 'show': menu[4] }">
+      <div *ngIf="isPermission('/service-management/ServiceMenu')" class="item" routerLink="/service-management/ServiceMenu">Dịch Vụ IT Văn Phòng</div>
+      <div *ngIf="isPermission('/service-management/StationeryMenu')" class="item" routerLink="/service-management/StationeryMenu">Danh mục vật tư thiết bị</div>
+      <div *ngIf="isPermission('/service-management/ServiceStatistics')" class="item" routerLink="/service-management/ServiceStatistics">Thống kê yêu cầu dịch vụ</div>
+      <div *ngIf="isPermission('/service-management/SignVoffice')" class="item" routerLink="/service-management/SignVoffice">Báo cáo VTTB theo tháng</div>
+    </div>
+
+    <!-- module 5 - quan ly VPP -->
+    <div *ngIf="isPermission('/stationery')" class="item module" (click)="moduleClick('module5')">
+      <i class="fa fa-indent"></i>Quản lý văn phòng phẩm </div>
+    <div *ngIf="isPermission('/stationery')" class="collapse submenu " [ngClass]="{ 'show': menu[5] } ">
+      <div *ngIf="isPermission('/stationeryManagement')" class="item" routerLink="/stationery/stationeryManagement">Danh mục văn phòng phẩm</div>
+      <div *ngIf="isPermission('/receiver')" class="item " routerLink="/stationery/receiver">Danh mục người tiếp nhận</div>
+      <div *ngIf="isPermission('/reportStationery')" class="item " routerLink="/stationery/reportStationery">Thống kê yêu cầu văn phòng phẩm</div>
+      <div *ngIf="isPermission('/addStationery')" class="item " routerLink="/stationery/addStationery">Định mức văn phòng phẩm</div>
+    </div>
+
+    
+    <!-- module setting - setting place-->
+    <div *ngIf="checkPermission('/warehouse')" class="item module" (click)="moduleClick('module6')">
+      <i class="fa fa-indent"></i>Quản Lý Tài Liệu
+    </div>
+    <div *ngIf="checkPermission('/warehouse')" class="collapse submenu low-submenu" [ngClass]="{ 'show': menu[6] } ">
+      <div *ngIf="checkPermission('/warehouseManagement')" class="item" routerLink="/warehouse/warehouse-management">Quản Lý Kho</div>
+      <div *ngIf="checkPermission('/warehouseReport')" class="item" routerLink="/warehouse/warehouse-report">Báo cáo hiện trạng Kho</div>
+      <div *ngIf="checkPermission('/warehouseReport')" class="item" routerLink="/warehouse/document-report">Báo cáo lưu trữ tài liệu</div>
+      <div *ngIf="checkPermission('/warehouseReport')" class="item " routerLink="/barcode/barcode">Tạo mã vạch</div>
+      <div *ngIf="checkPermission('/warehouseReport')" class="item " routerLink="/barcode/tinbox">In nhãn thùng</div>
+      <div *ngIf="checkPermission('/warehouseReport')" class="item " routerLink="/barcode/rackprint">In nhãn vị trí</div>
+      <div *ngIf="checkPermission('/warehouseGroup')" class="item " routerLink="/folder/folder-search">Cập nhật hồ sơ</div>
+      <div *ngIf="isPermission('/uploadProject')" class="item " routerLink="/warehouse/project-upload">Tải tài liệu dự án</div>
+      <div *ngIf="isPermission('/uploadOfficialDispatch')" class="item " routerLink="/warehouse/official-dispatch">Tải tài liệu công văn</div>
+      <div *ngIf="isPermission('/uploadProject')" class="item " routerLink="/warehouse/folder-project-upload">Tải tài liệu vào buộc hồ sơ dự án</div>
+      <!-- <div *ngIf="checkPermission('/warehouseReport')" class="item " routerLink="/warehouse/voucher-upload">Tải tài liệu chứng từ</div> -->
+      <div *ngIf="isPermission('/uploadOfficialDispatch')" class="item " routerLink="/warehouse/folder-official-dispatch-upload">Tải tài liệu vào buộc hồ sơ công văn</div>
+      <div *ngIf="isPermission('/uploadVoucher')" class="item " routerLink="/warehouse/folder-voucher-upload">Tải tài liệu vào buộc hồ sơ chứng từ</div>
+      <div *ngIf="isPermission('/uploadVoucher')" class="item " routerLink="/warehouse/folder-retail-project-upload">Tải tài liệu vào buộc hồ sơ dự án (nhỏ lẻ)</div>
+      <div *ngIf="checkPermission('/warehouseReport')" class="item " routerLink="/warehouse/document-box-search">Tra cứu tài liệu</div>
+    </div>
+    <!-- module setting - setting place-->
+    <div *ngIf="isPermission('/setting')" class="item module" (click)="moduleClick('module7')">
+      <i class="fa fa-cogs"></i>Cấu hình
+    </div>
+    <div *ngIf="isPermission('/place-config')" class="collapse submenu " [ngClass]="{ 'show': menu[7] } ">
+      <div *ngIf="isPermission('/place-config')" class="item" routerLink="/setting/place-config">Cấu hình vị trí</div>
+      <div *ngIf="isPermission('/version-config')" class="item" routerLink="/setting/version-config">Cấu hình phiên bản mobile</div>
+	  <div *ngIf="isPermission('/param-config')" class="item" routerLink="/setting/param-config">Cấu hình tham số</div>
+    </div>
+
+
+    <!-- profile -->
+    <div *ngIf="isLogged()" class="item module" (click)="moduleClick('module8')">
+      <i class="fa fa-user"></i>{{userInfor.fullName}}
+    </div>
+    <div *ngIf="isLogged()" class="collapse submenu" [ngClass]="{ 'show': menu[8] }">
+      <div *ngIf="checkPermission('/doimatkhau')" class="item" routerLink="/login/doimatkhau">Thay đổi mật khẩu</div>
+      <div class="item" (click)="logOut();">Đăng xuất</div>
+    </div>
+  </div>
+</div>

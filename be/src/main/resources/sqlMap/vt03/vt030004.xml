@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt03.vt030004.dao.VT030004DAO">
+	<insert id="insertCarDrive" parameterType="com.viettel.vtnet360.vt03.vt030004.entity.DriveCar">
+		INSERT INTO
+		DRIVE_CAR
+		(DRIVE_SQUAD_ID, EMPLOYEE_USER_NAME, CAR_ID,
+		PROCESS_STATUS,
+		CREATE_USER, CREATE_DATE, UPDATE_USER, UPDATE_DATE)
+		VALUES(#{squadId},
+		#{userName},#{carId}, #{processStatus},
+		#{createUser}, #{createDate},
+		NULL, NULL);
+	</insert>
+
+	<select id="getCarId" parameterType="com.viettel.vtnet360.vt03.vt030004.entity.DriveCar"
+		resultType="com.viettel.vtnet360.vt03.vt030004.entity.Car">
+		SELECT CAR_ID as carId
+		FROM
+		DRIVE_CAR where
+		EMPLOYEE_USER_NAME=#{userName};
+	</select>
+
+	<select id="findMatchedCar" parameterType="com.viettel.vtnet360.vt03.vt030004.entity.DriveCar"
+		resultType="com.viettel.vtnet360.vt03.vt030004.entity.Car">
+		select DRIVE_SQUAD_ID as squadId,
+		EMPLOYEE_USER_NAME as
+		userName,
+		CAR_ID as carId,
+		PROCESS_STATUS as processStatus
+
+		from DRIVE_CAR
+		where EMPLOYEE_USER_NAME=#{userName} and DRIVE_SQUAD_ID=#{squadId}
+		LIMIT 50
+	</select>
+
+
+	<delete id="deleteMatchedCar" parameterType="com.viettel.vtnet360.vt03.vt030004.entity.DriveCar">
+		delete from
+		DRIVE_CAR where EMPLOYEE_USER_NAME=#{userName}
+	</delete>
+
+
+	<select id="findSuggestCar" parameterType="com.viettel.vtnet360.vt03.vt030004.entity.DriveCar"
+		resultType="com.viettel.vtnet360.vt03.vt030002.entity.Cars">
+		select CAR_ID as carId, LICENSE_PLATE as licensePlate,
+		`TYPE` as type,
+		SEAT as seat from CARS where
+		DRIVE_SQUAD_ID=#{squadId};
+
+		<if test="licensePlate !=null">
+			AND
+			<bind name="pattern" value="'%' 
+			+ licensePlate + '%'" />
+			LICENSE_PLATE like #{pattern}
+		</if>
+	</select>
+
+</mapper>

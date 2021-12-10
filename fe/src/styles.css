@@ -1,0 +1,97 @@
+/* You can add global styles to this file, and also import other style files */
+
+body {
+    position: unset !important;
+}
+
+h1 {
+    color: #007ad9 !important;
+}
+
+legend {
+    color: #007ad9 !important;
+}
+
+.row-button {
+    padding: 20px;
+    margin: auto;
+    text-align: center;
+}
+
+td {
+    text-align: center !important;
+}
+
+.ui-tooltip {
+    max-width: 58.5em !important;
+}
+
+body>.ui-tooltip>.ui-tooltip-text {
+    white-space: pre-wrap !important;
+    overflow-wrap: break-word !important;
+}
+
+p-autocomplete>.ui-autocomplete>.ui-autocomplete-panel {
+    max-width: inherit !important;
+    width: inherit !important;
+}
+
+p-autocomplete>.ui-autocomplete>.ui-autocomplete-dropdown {
+    height: 35px;
+}
+
+p-autocomplete>.ui-autocomplete>input::placeholder {
+    color: #d4d0d0;
+}
+
+body input::placeholder {
+    color: #d4d0d0;
+}
+
+body .ui-inputgroup>input {
+    border: 1px solid #a6a6a6 !important;
+    border-right: 0px !important;
+}
+
+.wrapText {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ui-toast-center {
+    z-index: 50001 !important;
+}
+.ui-treenode-label {
+    padding-right: 30px !important;
+}
+/* .ui-widget-overlay {
+    z-index: 50000 !important;
+} */
+
+.issuesDialog div .ui-widget-content{
+    max-height: 75vh;
+    overflow: scroll;
+}
+
+@media only screen and (max-width: 500px){
+    .col-sm-12, .table-container {
+        margin-left: 8px !important;
+        margin-right: 18px !important;
+    }
+
+    .table-container{
+        padding-right: 26px;
+    }
+
+    th, td{
+        padding: 3px !important;
+        word-wrap: break-word;
+    }
+}
+
+@media only screen and (max-width: 768px){
+    .container{
+        padding-left: 30px !important;
+    }
+}

@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt05.vt050013.dao.VT050013DAO">
+
+	<select id="findData" resultType="com.viettel.vtnet360.vt05.vt050013.entity.VT050013DataDetail"
+							parameterType="com.viettel.vtnet360.vt05.vt050013.entity.VT050013InfoToFindDataDetail">
+		SELECT ist.ISSUE_LOCATION as placeID,
+				qp.PLACE_NAME as placeName,
+				ist.NOTE as message,
+				ist.STATUS as statusRecord,
+				ist.RATING as rating,
+				ist.FEEDBACK as feedback,
+				isi.STATIONERY_ID as stationeryID,
+				isi.STATIONERY_NAME as stationeryName,
+				isi.TOTAL_REQUEST as quantity,
+				isi.TOTAL_FULFILL as totalFulFill,
+				isi.UNIT_PRICE as unitPrice,
+				isi.CALCULATION_UNIT as calculationUnit,
+				isi.STATUS as status,
+				(
+					SELECT CONCAT(IFNULL(isa.LD_REASON_REJECT, ''), IFNULL(isa.VPTCT_REASON_REJECT, '')) 
+					FROM ISSUES_STATIONERY_APPROVED isa
+					WHERE isa.ISSUES_STATIONERY_APPROVED_ID = isi.ISSUES_STATIONERY_APPROVED_ID
+				) as reasonReject,
+				(
+					SELECT isa.VPTCT_REASON
+					FROM ISSUES_STATIONERY_APPROVED isa
+					WHERE isa.ISSUES_STATIONERY_APPROVED_ID = isi.ISSUES_STATIONERY_APPROVED_ID
+				) as reasonPause
+		FROM ISSUES_STATIONERY_ITEMS isi 
+				JOIN ISSUES_STATIONERY ist ON ist.ISSUE_STATIONERY_ID = isi.ISSUES_STATIONERY_ID
+				JOIN QLDV_PLACE qp ON qp.PLACE_ID = ist.ISSUE_LOCATION
+				
+		WHERE isi.ISSUES_STATIONERY_ID = #{issuesStationeryID}
+			<!--	AND msc.MASTER_CLASS = #{masterClass} -->
+	</select>
+	<!--  ratting -->
+	<select id="checkConditionRating" resultType="java.lang.Integer"
+										parameterType="com.viettel.vtnet360.vt05.vt050013.entity.VT050013InfoToCheckConditionRating">
+		SELECT COUNT(*)
+		FROM ISSUES_STATIONERY
+		WHERE ISSUE_STATIONERY_ID = #{issueStationeryID}
+				AND RATING IS NULL
+				AND STATUS IN 
+					<foreach collection="listStatus" item="item" index="index" open="(" separator="," close=")">
+						#{item}
+					</foreach>
+	</select>
+	
+	<update id="rating" parameterType="com.viettel.vtnet360.vt05.vt050013.entity.VT050013ParamToRating">
+		UPDATE ISSUES_STATIONERY
+		SET RATING = #{rating}, 
+			FEEDBACK = #{feedback}, 
+			UPDATE_USER = #{updateUser}, 
+			UPDATE_DATE = NOW()
+		WHERE ISSUE_STATIONERY_ID = #{requestID}
+	</update>
+	<!--  -->
+	
+	<!--  ratting VPTCT -->
+	<select id="checkConditionRatingVPTCT" resultType="java.lang.Integer"
+										parameterType="com.viettel.vtnet360.vt05.vt050013.entity.VT050013InfoToCheckConditionRatingVPTCT">
+		SELECT COUNT(*)
+		FROM  ISSUES_STATIONERY_APPROVED
+		WHERE ISSUES_STATIONERY_APPROVED_ID = #{issuesStationeryApprovedId}
+				AND RATING_TO_VPTCT IS NULL
+				AND STATUS IN 
+					<foreach collection="listStatus" item="item" index="index" open="(" separator="," close=")">
+						#{item}
+					</foreach>
+	</select>
+	
+	<update id="ratingVPTCT" parameterType="com.viettel.vtnet360.vt05.vt050013.entity.VT050013ParamToRatingVPTCT">
+		UPDATE ISSUES_STATIONERY_APPROVED
+		SET RATING_TO_VPTCT  = #{rating}, 
+			FEEDBACK_TO_VPTCT  = #{feedback}, 
+			UPDATE_USER = #{updateUser}, 
+			UPDATE_DATE = NOW()
+		WHERE ISSUES_STATIONERY_APPROVED_ID = #{requestId}
+	</update>
+	
+	<!--  -->
+	<!--  ratting VPTCT -->
+	<select id="checkConditionRatingHCDV" resultType="java.lang.Integer"
+										parameterType="com.viettel.vtnet360.vt05.vt050013.entity.VT050013InfoToCheckConditionRatingVPTCT">
+		SELECT COUNT(*)
+		FROM  ISSUES_STATIONERY_APPROVED
+		WHERE ISSUES_STATIONERY_APPROVED_ID = #{issuesStationeryApprovedId}
+				AND RATING_TO_HCDV IS NULL
+				AND STATUS IN 
+					<foreach collection="listStatus" item="item" index="index" open="(" separator="," close=")">
+						#{item}
+					</foreach>
+	</select>
+	
+	<update id="ratingHCDV" parameterType="com.viettel.vtnet360.vt05.vt050013.entity.VT050013ParamToRatingVPTCT">
+		UPDATE ISSUES_STATIONERY_APPROVED
+		SET RATING_TO_HCDV  = #{rating}, 
+			FEEDBACK_TO_HCDV  = #{feedback}, 
+			UPDATE_USER = #{updateUser}, 
+			UPDATE_DATE = NOW()
+		WHERE ISSUES_STATIONERY_APPROVED_ID = #{requestId}
+	</update>
+	<!--  -->
+	
+	
+	<select id="checkConditionCancelRequest" resultType="java.lang.Integer"
+						parameterType="com.viettel.vtnet360.vt05.vt050013.entity.VT050013InfoToCancelRequest">
+		SELECT COUNT(*)
+		FROM ISSUES_STATIONERY_ITEMS 
+		WHERE STATUS != #{status}
+				AND ISSUES_STATIONERY_ID = #{issueStationeryID}
+	</select>
+	
+	<update id="cancelIssueStationery" parameterType="com.viettel.vtnet360.vt05.vt050013.entity.VT050013InfoToCancelRequest">
+		UPDATE ISSUES_STATIONERY
+		SET STATUS = #{status}, 
+			UPDATE_USER = #{updateUser}, 
+			UPDATE_DATE = NOW()
+		WHERE ISSUE_STATIONERY_ID = #{issueStationeryID}
+	</update>
+	
+	<update id="cancelIssueStationeryItem" parameterType="com.viettel.vtnet360.vt05.vt050013.entity.VT050013InfoToCancelRequest">
+		UPDATE ISSUES_STATIONERY_ITEMS
+		SET STATUS = #{status}, 
+			UPDATE_USER = #{updateUser}, 
+			UPDATE_DATE = NOW()
+		WHERE ISSUES_STATIONERY_ID = #{issueStationeryID}
+	</update>
+	
+	<delete id="deleteIssueStationeryItem" parameterType="java.lang.String">
+		DELETE FROM ISSUES_STATIONERY_ITEMS
+		WHERE ISSUES_STATIONERY_ID = #{id}
+	</delete>
+	
+	<update id="updateIssuesStationery" parameterType="com.viettel.vtnet360.vt05.vt050013.entity.VT050013InfoToEditRequest">
+		UPDATE ISSUES_STATIONERY
+		SET ISSUE_LOCATION = #{placeID}, 
+			NOTE = #{note}, 
+			UPDATE_USER = #{updateUser}, 
+			UPDATE_DATE = NOW()
+		WHERE ISSUE_STATIONERY_ID = #{requestID} 
+	</update>
+	
+	<select id="findTotalMoneyUseInThisRequest" resultType="java.lang.Double" parameterType="java.lang.String">
+		SELECT IFNULL(SUM(TOTAL_REQUEST * UNIT_PRICE), 0) as total
+		FROM ISSUES_STATIONERY_ITEMS 
+		WHERE ISSUES_STATIONERY_ID = #{id}
+	</select>
+	
+	<select id="checkConditionBeforeDeleteItem" resultType="java.lang.Integer" parameterType="com.viettel.vtnet360.vt05.vt050013.entity.VT050013InfoToEditRequest"> 
+		SELECT COUNT(*) 
+		FROM ISSUES_STATIONERY_ITEMS 
+		WHERE ISSUES_STATIONERY_ID = #{requestID}
+		<if test="listStationery != null and listStationery.size() &gt; 0">
+			AND STATIONERY_ID IN 
+				<foreach collection="listStationery" item="item" index="index" open="(" separator="," close=")">
+						#{item.stationeryID}
+				</foreach>
+		</if>
+		AND STATUS = 0
+	</select>
+	
+	<delete id="deleteIssueStationeryItemJustCreate" parameterType="com.viettel.vtnet360.vt05.vt050013.entity.VT050013InfoToEditRequest">
+		DELETE FROM ISSUES_STATIONERY_ITEMS
+		WHERE ISSUES_STATIONERY_ID = #{requestID}
+		<if test="listStationery != null and listStationery.size() &gt; 0">
+			AND STATIONERY_ID IN 
+				<foreach collection="listStationery" item="item" index="index" open="(" separator="," close=")">
+						#{item.stationeryID}
+				</foreach>
+		</if>
+		AND STATUS = 0
+	</delete>
+	
+	<!-- findData in VPTCT -->
+	<select id="findDataVPTCT" resultType="com.viettel.vtnet360.vt05.vt050013.entity.VT050013DataGetById"
+							parameterType="java.lang.String">
+		SELECT 
+	        ist.CREATE_DATE as createDate, 
+	        qe.FULL_NAME as fullName,
+	        isi.TOTAL_REQUEST as totalRequest,  
+	        shr.TOTAL_FULFILL as totalFullfill,
+	        isi.TOTAL_REQUEST * isi.UNIT_PRICE as totalMoney,
+	        isi.TOTAL_FULFILL * isi.UNIT_PRICE as totalMoneyFullfill,
+	        isi.STATIONERY_NAME as stationeryName, 
+	        isi.UNIT_PRICE as unitPrice
+	   FROM ISSUES_STATIONERY_APPROVED isa 
+	        LEFT JOIN ISSUES_STATIONERY_ITEMS isi ON isa.ISSUES_STATIONERY_APPROVED_ID = isi.ISSUES_STATIONERY_APPROVED_ID 
+	        LEFT JOIN ISSUES_STATIONERY ist ON isi.ISSUES_STATIONERY_ID = ist.ISSUE_STATIONERY_ID
+	        LEFT JOIN QLDV_EMPLOYEE qe ON ist.EMPLOYEE_USERNAME = qe.USER_NAME
+            LEFT JOIN STORAGE_HCDV_REQUEST shr ON shr.ISSUES_STATIONERY_APPROVED_ID = isa.ISSUES_STATIONERY_APPROVED_ID
+		WHERE isa.ISSUES_STATIONERY_APPROVED_ID = #{issuesStationeryApprovedId}
+	</select>
+	
+	<select id="findAllDataVPTCT" resultType="com.viettel.vtnet360.vt05.vt050013.entity.VT050013DataGetAll"
+                            parameterType="java.lang.String">
+        SELECT      
+            qe.FULL_NAME as fullName,
+            isa.CREATE_DATE as createDate, 
+            isa.STATUS as status, 
+            isa.HCDV_MESSAGE as hcdvMessage,
+            isa.FEEDBACK_TO_VPTCT as feedbackToVptct,
+            isi.STATIONERY_NAME as stationeryName,
+            (SELECT FULL_NAME FROM QLDV_EMPLOYEE WHERE USER_NAME = isa.HCDV_USERNAME) as hcdvUserName,
+            (SELECT FULL_NAME FROM QLDV_EMPLOYEE WHERE USER_NAME = isa.VPTCT_USERNAME ) as tptctUserName,
+            isa.FEEDBACK_TO_HCDV as feedbackToHcdv,
+            isa.RATING_TO_HCDV as ratingToUser,
+            isa.RATING_TO_VPTCT as ratingToVptct ,
+            SUM(isi.TOTAL_REQUEST * isi.UNIT_PRICE) as countTotalMoneyRequest,
+            SUM(shr.TOTAL_FULFILL * isi.UNIT_PRICE) as countTotalMoneyFullfill,
+            SUM(isi.TOTAL_REQUEST) as countTotalRequest,
+            SUM(shr.TOTAL_FULFILL) as countTotal,
+            isi.TOTAL_REQUEST as quantity,
+            isi.UNIT_PRICE as price,
+            isi.TOTAL_REQUEST * isi.UNIT_PRICE as totalMoney,
+            isa.HCDV_REASON_REJECT as hcdvReasonReject,
+            isa.VPTCT_REASON as vptctReason,
+            isa.VPTCT_REASON_REJECT as vptctReasonReject
+        FROM 
+            ISSUES_STATIONERY_APPROVED isa 
+            LEFT JOIN STORAGE_HCDV_REQUEST shr ON shr.ISSUES_STATIONERY_APPROVED_ID = isa.ISSUES_STATIONERY_APPROVED_ID
+            LEFT JOIN ISSUES_STATIONERY_ITEMS isi ON isa.ISSUES_STATIONERY_APPROVED_ID = isi.ISSUES_STATIONERY_APPROVED_ID 
+            LEFT JOIN ISSUES_STATIONERY ist ON isi.ISSUES_STATIONERY_ID = ist.ISSUE_STATIONERY_ID
+            LEFT JOIN QLDV_EMPLOYEE qe ON ist.EMPLOYEE_USERNAME = qe.USER_NAME
+        WHERE 
+            isa.ISSUES_STATIONERY_APPROVED_ID = #{issuesStationeryApprovedId}
+    </select>
+</mapper>

@@ -1,0 +1,341 @@
+<!-- ThangBT -->
+<div class="container">
+  <div class="container-fluid text-center mt-3">
+    <h1 class="text-center">CẤU HÌNH BẾP</h1>
+  </div>
+  <div class="row mb-3">
+    <div class="col-xl-12 mb-3">
+      <p-fieldset legend="Thông tin bếp">
+        <div class="row mb-3" style="margin-left: 20px;">
+          <!-- kitchen name field -->
+          <div class="col-sm-6">
+            <div class="row">
+              <div class="col-sm-4" style="text-align: left; padding-top: 5px;">
+                Tên bếp
+                <span style="color: red;">*</span>:
+              </div>
+              <div class="col-sm-8 ui-fluid" style="margin-left: -34px; position: relative;">
+                <input #inputKitchenName type="text" pInputText [(ngModel)]="kitchenInfo" (ngModelChange)="changeKitchenName()"
+                  on-focus="focusKitchenName()" [pKeyFilter]="onlyChar" maxlength="255" placeholder="VD: Bếp số 1"
+                  style="width: 100%;" />
+              </div>
+            </div>
+          </div>
+          <!-- price field -->
+          <div class="col-sm-6">
+            <div class="row">
+              <div class="col-sm-3" style="text-align: left; padding-top: 5px;">
+                Đơn giá
+                <span style="color: red;">*</span>:
+              </div>
+              <div class="col-sm-9 ui-fluid" style="margin-left: -34px;">
+                <div class="ui-inputgroup">
+                  <input #inputPrice pKeyFilter="pint" pInputText [(ngModel)]="kitchenPrice" (ngModelChange)="changePrice(null)"
+                    style="width: 100%; text-align: right !important;" maxlength="10" />
+                  <span class="ui-inputgroup-addon">VND</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row mb-3" style="margin-left: 20px;">
+          <!-- place field -->
+          <div class="col-sm-6">
+            <div class="row">
+              <div class="col-sm-4" style="text-align: left; padding-top: 5px; padding-right: 0px !important;">
+                Vị trí bếp
+                <span style="color: red;">*</span>:
+              </div>
+              <div class="col-sm-8 ui-fluid" style="margin-left: -34px;">
+                <p-autoComplete #inputPlace [(ngModel)]="placeInfo" [suggestions]="filterPlace" (completeMethod)="loadPlace($event)"
+                  field="placeName" dropdown="true" [pKeyFilter]="onlyChar" (ngModelChange)="changePlace()" placeholder="VD: Tòa nhà Keangnam"></p-autoComplete>
+              </div>
+            </div>
+          </div>
+          <!-- checkbox status field -->
+          <div class="col-sm-6">
+            <div class="row">
+              <div class="col-sm-3" style="text-align: left; padding-top: 5px;">
+                Hoạt động:
+              </div>
+              <div class="col-sm-9 ui-fluid" style="margin-left: -34px; padding-top: 5px;">
+                <p-checkbox [(ngModel)]="kitchenStatus" binary="true"></p-checkbox>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row" style="margin-left: 20px;">
+          <div class="col-sm-2" style="text-align: left;">
+            Bếp trưởng:
+            <span style="color: red;">*</span>:
+          </div>
+          <div class="col-sm-4 ui-fluid" style="text-align: left;margin-left: -30px;">
+            <label>{{getChefName}} </label>
+          </div>
+        </div>
+
+        <div class="row" style="margin-left: 20px;">
+          <!-- chef field -->
+          <div class="col-sm-6">
+            <div class="row mb-3">
+              <div class="col-sm-4">
+              </div>
+              <div class="col-sm-8 ui-fluid" style="margin-left: -34px;">
+                <button type="button" pButton icon="fa fa-plus" iconPos="left"
+                        (click)="showDialogChef()" style="text-align: center;"></button>
+                <span>Danh sách bếp trưởng</span>
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-sm-4">
+              </div>
+              <div class="col-sm-8 ui-fluid" style="margin-left: -34px;">
+                <button type="button" pButton icon="fa fa-plus" iconPos="left"
+                  (click)="showDialog()" style="text-align: center;"></button>
+                <span>Danh sách số điện thoại nhận tin nhắn</span>
+              </div>
+            </div>
+          </div>
+          <!-- note field -->
+          <div class="col-sm-6">
+            <div class="row">
+              <div class="col-sm-3" style="text-align: left;">
+                Ghi chú:
+              </div>
+              <div class="col-sm-9 ui-fluid" style="margin-left: -34px;">
+                <textarea pInputTextarea [(ngModel)]="kitchenNote" [maxLength]="255" rows="5"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </p-fieldset>
+    </div>
+    <div class="col-xl-12">
+      <div class="text-center">
+        <!-- add button -->
+        <button *ngIf="isAdd; else isUpdate" type="button" pButton icon="fa fa-plus" iconPos="left" label="Thêm"
+          (click)="addData()" style="text-align: center;"></button>
+        <ng-template #isUpdate>
+          <!-- update button -->
+          <button type="button" pButton icon="fa fa-save" iconPos="left" label="Lưu" (click)="updateData()" style="text-align: center;"></button>
+        </ng-template>
+        <!-- refresh button -->
+        <button type="button" pButton icon="fa fa-refresh" iconPos="left" label="Làm mới" (click)="resetButton()" style="text-align: center;"></button>
+        <!-- export excel button -->
+        <button type="button" pButton icon="fa fa-file-o" iconPos="left" label="Xuất file" (click)="exportExcel()"
+          style="text-align: center;"></button>
+      </div>
+    </div>
+  </div>
+  <!-- create table -->
+  <div class="row">
+    <div class="col-sm-12">
+      <p-table #myTable [value]="listKitchen" [lazy]="true" (onPage)="paginate($event)" [totalRecords]="totalRecord"
+        [paginator]="true" [rows]="10" [loading]="loading">
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 2rem; font-weight: bold;">STT</th>
+            <th style="width: 3rem; font-weight: bold;">Thao tác</th>
+            <th style="width: 6rem; font-weight: bold;">Tên bếp</th>
+            <th style="width: 6rem; font-weight: bold;">Vị trí</th>
+            <th style="width: 6rem; font-weight: bold;">Bếp trưởng</th>
+            <th style="width: 10rem; font-weight: bold;">Ghi chú</th>
+            <th style="width: 6rem; font-weight: bold;">Trạng thái</th>
+          </tr>
+        </ng-template>
+        <ng-template let-ri="rowIndex" pTemplate="body" let-item>
+          <tr>
+            <td style="width: 2rem; padding: 2.5px 11.5px !important;">{{ri+1}}</td>
+            <td style="width: 3rem; padding: 2.5px 11.5px !important;">
+              <div class="row">
+                <div class="col-6 m-0 pr-1">
+                  <p-button icon="pi pi-pencil" (onClick)="doEdit(item)" pTooltip="Chỉnh sửa"></p-button>
+                </div>
+                <div class="col-6 pl-1 m-0">
+                  <p-button icon="pi pi-trash" (onClick)="doDelete(item)" pTooltip="Xóa"></p-button>
+                </div>
+              </div>
+            </td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="item.kitchenName" style="width: 6rem; padding: 2.5px 11.5px !important; text-align: left !important;">
+              {{item.kitchenName}}
+            </td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="item.placeName" style="width: 6rem; padding: 2.5px 11.5px !important; text-align: left !important;">
+              {{item.placeName}}
+            </td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="item.chefName" style="width: 6rem; padding: 2.5px 11.5px !important; text-align: left !important;">
+              {{item.chefName}}
+            </td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="item.note" style="width: 10rem; padding: 2.5px 11.5px !important; text-align: left !important;">
+              {{item.note}}
+            </td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="item.status ? 'Hoạt động' : 'Ngưng hoạt động'" style="width: 6rem; padding: 2.5px 11.5px !important; text-align: left !important;">
+              {{item.status ? "Hoạt động" : "Ngưng hoạt động"}}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="paginatorright">
+          <span style="position: absolute; right: 30px; bottom: 6px;">
+            {{startRow + 1}} - {{startRow + rowSize}} / {{totalRecord}}
+          </span>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td [attr.colspan]="7" style="text-align: center;">
+              Không có dữ liệu
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+
+  <!-- POP-UPPPPP add more phone -->
+  <p-dialog header="Chức năng hiển thị danh sách số điện thoại nhận tin nhắn" id="dialog" [(visible)]="display" [modal]="true"
+    [closable]="true" [responsive]="true" [width]="650" [minWidth]="200" [minY]="70" [maximizable]="false"
+    [dismissableMask]="true" [baseZIndex]="10000">
+    <div class="container">
+      <div class="container-fluid text-center mt-5">
+          <h4 class="text-center">DANH SÁCH SỐ ĐIỆN THOẠI NHẬN TIN NHẮN</h4>
+      </div>
+      <div class="row ">
+        <div class="col-sm-12 " style="margin: auto;">
+          <form ngNoForm onsubmit="return false;">
+
+            <p-scrollPanel [style]="{width: '100%', height: '200px'}">
+              <div class="row">
+                <div class="col-sm-2"></div>
+                <div #listPhone class="col-sm-8" style="margin-top: 10px;">
+                  <div class="row" *ngFor="let x of countUp">
+                    <div class="col-sm-11" style="padding-bottom: 5px;">
+                      <input pKeyFilter="pint" id="input" type="text" size="25" placeholder="Nhập số điện thoại" name="position"
+                        pInputText [(ngModel)]="listPhoneNumber[x]" style="width: 85%;" maxlength="10" (ngModelChange)="changeChefPhoneGetSms(x)">
+                    </div>
+                    <div class="col-sm-1" style="padding: 0px; margin-left: -30px;">
+                      <p-button (onClick)="remove(x)" icon="pi pi-minus"></p-button>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-sm-2"></div>
+              </div>
+
+              <div class="row" style="padding-top: 5px;">
+                <div class="col-sm-1"></div>
+                <label class="col-sm-3 col-form-label"></label>
+                <div class="col-sm-6">
+                  <p-button (onClick)="countup()" icon="pi pi-plus"></p-button>
+                </div>
+                <div class="col-sm-2"> </div>
+              </div>
+            </p-scrollPanel>
+
+
+            <div class="row row-button">
+              <div class="col-sm-4"></div>
+              <div class="col-sm-4">
+                <p-button class="ui-button-danger" icon="pi pi-times" label="Đóng" (click)="close()"></p-button>
+              </div>
+              <div class="col-sm-4"></div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <p-footer>
+    </p-footer>
+  </p-dialog>
+
+  <p-dialog header="Chức năng thêm bếp trưởng" id="dlgChef" [(visible)]="displayChef"
+            [modal]="true"
+            [focusOnShow]="true"
+            [positionTop]="100"
+            (onHide)="closeDlgChef()"
+            [closable]="true" [responsive]="true" [width]="1000" [minWidth]="200" [minY]="70" [maximizable]="false"
+            [dismissableMask]="true" [baseZIndex]="10000" >
+    <div class="container" >
+      <div style="min-height: 500px; max-height: 500px;overflow: hidden; overflow-y: auto;">
+        <div *ngFor="let infor of lstChefInfor; let i=index;trackBy:indexTracker" style="margin-top: .5em;">
+          <div class="row">
+            <div class="col-sm-11">
+              <div class="row" style="border: 1px solid #eaeaea; margin-top: 15px;margin-left: 15px;">
+                <div class="col-sm-6" style="margin-top: 10px;">
+                  <div class="row mb-3">
+                    <div class="col-sm-4" style="text-align: left; padding-top: 5px;">
+                      Bếp trưởng
+                      <span style="color: red;">*</span>:
+                    </div>
+                    <div class="col-sm-8 ui-fluid" style="margin-left: -34px;">
+                      <p-autoComplete #inputChefList [(ngModel)]="lstChefInfor[i]" [dropdown]="true"
+                                      [suggestions]="filterChef"
+                                      (completeMethod)="loadChef($event)" field="chefName" [pKeyFilter]="onlyChar"
+
+                                      (onSelect)="selectChef(i)" maxlength="100"
+                                      placeholder="VD: Bếp trưởng 1">
+
+                      </p-autoComplete>
+                    </div>
+                  </div>
+
+                  <div class="row mb-3">
+                    <div class="col-sm-4">
+                      Mã nhân viên
+                      <span style="color: red;">*</span>:
+                    </div>
+                    <div class="col-sm-8 ui-fluid" style="margin-left: -34px; position: relative;">
+                      <input #inputChefUserNameLst [pKeyFilter]="onlyChar" pInputText type="text"
+                             [(ngModel)]="lstChefInfor[i].chefUserName"
+                             maxlength="50" (ngModelChange)="changeChefName(i)"
+                             placeholder="Mã nhân viên"
+                             [disabled]="lstChefInfor[i].isEmployee === 1"
+                             style="width: 100%; text-align: left !important;"/>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-sm-6" style="margin-top: 10px;">
+                  <div class="row mb-1">
+                    <div class="col-sm-4">
+                      Số điện thoại
+                      <span style="color: red;">*</span>:
+                    </div>
+                    <div class="col-sm-8 ui-fluid" style="margin-left: -34px; position: relative;">
+                      <input #inputChefPhoneLst pKeyFilter="pint" pInputText type="text"
+                             [(ngModel)]="lstChefInfor[i].chefPhone"
+                             (ngModelChange)="changeChefPhone(i)"
+                             maxlength="10" placeholder="Số điện thoại"
+                             [disabled]="lstChefInfor[i].isEmployee === 1"
+                             style="width: 100%; text-align: left !important;"/>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-sm-1">
+              <button pButton type="button" style="margin-top: 40px;" icon="pi pi-minus" title="Xóa một textbox"
+                      (click)="removeChef(i)"
+                      [disabled]="lstChefInfor != null && lstChefInfor.length === 1"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-sm-12" style="padding-left: 25px !important;text-align: center;margin-top: 10px;">
+          <button pButton type="button" icon="pi pi-plus" title="Thêm bếp trưởng" (click)="addChef()"
+                  style="margin-right: .5em"></button>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="text-center col-xl-12" style="margin-top: 10px;">
+          <button pButton type="button" label="Đóng" title="Đóng" (click)="closeDlgChef()"
+                  ></button>
+          <button pButton type="button" icon="fa fa-save" label="Lưu" title="Đóng" (click)="validateAddChef()"
+                  ></button>
+        </div>
+      </div>
+    </div>
+  </p-dialog>
+
+</div>

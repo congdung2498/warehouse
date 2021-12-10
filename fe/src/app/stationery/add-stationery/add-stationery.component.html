@@ -1,0 +1,297 @@
+<div class="container">
+  <div class="container-fluid text-center mt-5">
+    <h1 class="text-center">DANH MỤC ĐỊNH MỨC VPP THEO ĐƠN VỊ</h1>
+  </div>
+  <div class="row ">
+    <div class="col-sm-12 " style="margin: auto;">
+      <p-fieldset legend="Thông tin đăng ký">
+        <div class="row">
+          <div class="col-sm-6">
+
+            <div class="form-group row">
+              <div class="col-sm-2">Đơn vị:</div>
+              <div class="col-sm-10 ui-fluid" style="margin-top: -15px">
+                <p-scrollPanel [style]="{height: '150px'}">
+                  <p-tree id="shortTree" [value]="sectorsDetails" selectionMode="checkbox"
+                          [(selection)]="selectedSectorDetails" (onNodeExpand)="nodeExpandDetails($event)"
+                          [loading]="loadingTree" class="no-border"></p-tree>
+                </p-scrollPanel>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-sm-6">
+            <div class="form-group row">
+              <div class="col-sm-4">Định mức/Người:</div>
+              <div class="col-sm-8 ui-fluid">
+
+                <!--<input #inputPrice maxlength="10" id="input" size="30" name="position" pInputText [(ngModel)]="unitPrice"-->
+                       <!--(ngModelChange)="changePrice(null)" style="width: 100%;">-->
+
+                <input #inputQuota pInputText  value="Đăng ký mới"  [(ngModel)] = "quota" (ngModelChange)="onChangePrice()"/>
+              </div>
+            </div>
+            <div class="form-group row">
+              <div class="col-sm-4">Quân số:</div>
+              <div class="col-sm-8 ui-fluid">
+                <input #inputQuantity pInputText value="Đăng ký mới" [(ngModel)] = "quantity" ng-pattern="[0-9]" (ngModelChange)="onChangeQuantity()" onKeyUp="if(this.value < 1){this.value = '';}"/>
+              </div>
+            </div>
+            <div class="form-group row">
+              <div class="col-sm-4">
+                Hạn đăng kí VPP:
+              </div>
+              <div class="col-sm-8 ui-fluid">
+                <div class="ui-inputgroup" >
+                  <input type="number" pInputText  disabled = "true" [(ngModel)] = "limitDate">
+                  <button pButton type="button" icon="pi pi-pencil" class="ui-button-warn" (click)="doLimitDate()"></button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </p-fieldset>
+      <div class="row row-button">
+        <div class="col-sm-4"></div>
+        <div class="col-sm-4">
+          <p-button label="Tìm kiếm" icon="pi pi-search" (click)="handleSearch()"></p-button>
+          <p-button icon="pi pi-plus" label="Thêm mới" (click)="handleAdd()"></p-button>
+        </div>
+        <div class="col-sm-4"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-sm-12">
+      <p-table #dt [rows]="10" [value]="dataResponseQuota" [totalRecords]="total_record"
+               (onLazyLoad)="onLazyLoad($event)" [lazy]="true" [paginator]="true">
+        <ng-template pTemplate="header">
+          <tr style="font-weight: bold;">
+            <th rowspan="1" style="width: 2rem; font-weight: bold; text-align: center;">STT</th>
+            <th rowspan="3" style="width: 3rem; font-weight: bold;text-align: center;">Thao tác</th>
+            <th rowspan="3" style="width: 8rem; font-weight: bold;text-align: center;">Đơn vị</th>
+            <th rowspan="3" style="width: 5rem; font-weight: bold;text-align: center;">Định mức/Người</th>
+            <th rowspan="3" style="width: 3rem; font-weight: bold;text-align: center;">Quân số</th>
+            <th rowspan="3" style="width: 5rem; font-weight: bold;text-align: center;">Tổng</th>
+            <th rowspan="2" style="width: 3rem; font-weight: bold;text-align: center;">Hạn đăng kí VPP </th>
+          </tr>
+
+        </ng-template>
+        <ng-template let-ri="rowIndex" pTemplate="body" let-item>
+          <tr>
+            <td style="width: 1rem; padding: 2px 1.5px !important;">{{ri+1}}</td>
+            <td class="wrapText" pTextEllipsis [pTooltip]=""
+                style="width: 5rem; text-align: left !important;">
+              <div class="row">
+                <div class="col-sm-6" style="padding: 3px 5px 3px 0px !important; text-align: right !important;">
+                  <p-button icon="pi pi-pencil" (onClick)="doEdit(item)" pTooltip="Chỉnh sửa"></p-button>
+                </div>
+                <div class="col-sm-6" style="padding: 3px 0px 3px 5px !important; text-align: left !important;">
+                  <p-button icon="pi pi-trash" (onClick)="doDelete(item)" pTooltip="Xóa"></p-button>
+                </div>
+              </div>
+            </td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="item.unitName" style="width: 5rem; text-align: left !important;">
+              {{item.unitName}}
+            </td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="item.quota |number:0" style="width: 5rem; text-align: right !important;">
+              {{item.quota | number:0}}
+            </td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="item.quantity" style="width: 9rem; text-align: right !important;">
+              {{item.quantity}}
+            </td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="item.total | number:0" style="width: 5rem; text-align: right !important;">
+              {{item.total | number:0}}
+            </td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="item.limitDate" style="width: 7rem; text-align: right !important;">
+              {{item.limitDate}}
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="paginatorright">
+            <span style="position: absolute; right: 30px; bottom: 6px;">
+              {{startRow}} - {{rowSize}} / {{total_record}}
+            </span>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr style="text-align: center">
+            <td [attr.colspan]="7">
+              Không có dữ liệu
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</div>
+
+<p-dialog [(visible)]="dialogChangeDate" (onHide)="closeLimitDate()" [width]="750" >
+  <p-header class="dialog-header">
+    THAY ĐỔI HẠN VPP
+  </p-header>
+
+  <div class="container">
+    <div class="col-sm-12">
+      <label class="col-sm-3 ">Hạn VPP<span style="color: red;">*</span>:</label>
+      <input class="col-sm-6" pInputText type="number" [(ngModel)] = "limitDate" min="1" max="31"
+             onKeyUp="if(this.value > 31){this.value='31';}else if(this.value < 1){this.value = '1';}"/>
+    </div>
+
+    <div class="row row-button">
+      <div class="col-sm-4"></div>
+      <div class="col-sm-4">
+        <p-button class="ui-button-danger" label="Lưu" (click)="saveLimitDate()"></p-button>
+        <p-button class="ui-button-danger" label="Đóng" (click)="closeLimitDate()"></p-button>
+      </div>
+      <div class="col-sm-4"></div>
+    </div>
+  </div>
+</p-dialog>
+
+<p-dialog  [(visible)]="dialogUpdate" [width]="1000" (onHide)="onHideCreateQuota()">
+  <p-header class="dialog-header">
+    Thêm danh mục định mức VPP
+  </p-header>
+
+  <div class="container">
+    <div class="row ">
+      <div class="col-sm-12 ">
+        <div class="row">
+          <div class="col-sm-6">
+
+            <div class="form-group row">
+              <div class="col-sm-3">
+                Đơn vị<span style="color: red;">*</span>:
+              </div>
+              <div class="col-sm-9 ui-fluid" style="margin-top: -15px">
+                <p-scrollPanel [style]="{height: '200px'}">
+                  <p-tree #inputTree
+                          id="shortTreeAdd" [value]="sectors"
+                          selectionMode="checkbox"
+                          [propagateSelectionUp]="false"
+                          [propagateSelectionDown]="false"
+                          [(selection)]="selectedSector"
+                          (onNodeExpand)="nodeExpand($event)"
+                          (onNodeSelect)="nodeSelect($event)"
+                          [loading]="loadingTree" class="no-border"></p-tree>
+                </p-scrollPanel>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-sm-6">
+            <div class="form-group row">
+              <label class="col-sm-4 ">Định mức/Người
+                <span style="color: red;">*</span>:</label>
+              <div class="col-sm-8 ui-fluid">
+                <!-- <input    [(ngModel)]="quotaUpdate" type="text"
+                       (change)="onChangeNumber()" style="width: 100%;"/> -->
+                <input  #inputQuotaAdd pInputText (ngModelChange)="onChangeQuotaAdd()"  [(ngModel)]="quotaUpdate" [pKeyFilter]="onlyNum"  />
+              </div>
+            </div>
+            <div class="form-group row">
+              <label class="col-sm-4 ">Quân số
+                <span style="color: red;">*</span>:</label>
+              <div class="col-sm-8 ui-fluid">
+                <input #inputQuantityAdd  pInputText min="1" (ngModelChange)="onChangeQuantityAdd()" [(ngModel)] = "quantityUpdate" onKeyUp="if(this.value < 1){this.value = '';}" ng-pattern="[0-9]" />
+              </div>
+            </div>
+            <div class="form-group row">
+              <label class="col-sm-4"> Tổng:</label>
+              <div class="col-sm-8 ui-fluid">
+                <input type="text" pInputText [(ngModel)] = "total" disabled="true" />
+              </div>
+            </div>
+            <div class="form-group row">
+              <label class="col-sm-4">Hạn đăng kí VPP:</label>
+              <div class="col-sm-8 ui-fluid">
+                <input type="text" pInputText disabled="true" [(ngModel)]="limitDateUpdate" />
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="row row-button">
+          <div class="col-sm-4"></div>
+          <div class="col-sm-4">
+            <p-button label="Thêm mới" (click)="addNew()"></p-button>
+            <p-button label="Hủy bỏ" (click)="cancel()"></p-button>
+          </div>
+          <div class="col-sm-4"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</p-dialog>
+
+
+<!--=======================================Edit====================================-->
+<p-dialog  [(visible)]="dialogEdit" [width]="1000" >
+  <p-header class="dialog-header">
+    Cập nhật danh mục định mức VPP
+  </p-header>
+
+  <div class="container">
+    <div class="row ">
+      <div class="col-sm-12 ">
+        <div class="row">
+          <div class="col-sm-6">
+
+            <div class="form-group row">
+              <label class="col-sm-3">Đơn vị<span style="color: red;">*</span>:</label>
+              <div class="col-sm-9 ui-fluid"  style="margin-top: -15px">
+                <p-scrollPanel [style]="{height: '200px'}">
+                  <p-tree id="shortTreeDlg" [value]="sectorUpdates" selectionMode="checkbox"
+                          [(selection)]="selectedSectorUpdate" (onNodeExpand)="nodeExpand($event)"
+                          [loading]="loadingTree" class="no-border"></p-tree>
+                </p-scrollPanel>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-sm-6">
+            <div class="form-group row">
+              <label class="col-sm-4">Định mức/Người<span style="color: red;">*</span>:</label>
+              <div class="col-sm-8 ui-fluid">
+                <!--<input #inputPrice  (change)="onChangeEdit()"  [(ngModel)]="quotaUpdate" [pKeyFilter]="onlyNum" />-->
+                  <input #inputquotaEdit pInputText  [(ngModel)] = "quotaUpdate"  (ngModelChange)="onChangeQuotaEdit()"
+                  />
+                <!--<p-spinner #inputPrice pInputText  [(ngModel)] = "quotaUpdate"  (change)="onChangeEdit()"  thosandSeparator="," decimalSeparator="." [formatInput]="true">  </p-spinner>-->
+              </div>
+            </div>
+            <div class="form-group row">
+              <label class="col-sm-4">Quân số <span style="color: red;">*</span>:</label>
+              <div class="col-sm-8 ui-fluid">
+                <input #inputQuantityFldEdit pInputText [(ngModel)] = "quantityUpdate" (ngModelChange)="onChangeQuantityEdit()" ng-pattern="[0-9]"
+                       min="1" onKeyUp="if(this.value < 1){this.value = '';}"/>
+              </div>
+            </div>
+            <div class="form-group row">
+              <label class="col-sm-4">Tổng:</label>
+              <div class="col-sm-8 ui-fluid">
+                <input  pInputText [(ngModel)]="totalEdit"   disabled="true"/>
+              </div>
+            </div>
+            <div class="form-group row">
+              <label class="col-sm-4">Hạn đăng kí VPP:</label>
+              <div class="col-sm-8 ui-fluid">
+                <input type="text" pInputText disabled="true" [(ngModel)] ="limitDateUpdate"/>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="row row-button">
+          <div class="col-sm-4"></div>
+          <div class="col-sm-4">
+            <p-button label="Cập nhật"  (click)="addEdit()"></p-button>
+            <p-button label="Hủy bỏ" (click)="editCancel()"></p-button>
+          </div>
+          <div class="col-sm-4"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</p-dialog>

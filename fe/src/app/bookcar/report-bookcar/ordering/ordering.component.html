@@ -1,0 +1,186 @@
+<div class="container-fluid text-center mt-3 mb-3">
+    <h1>XẾP XE CHO ĐƠN YÊU CẦU</h1>
+</div>
+<!--<p-fieldset legend="Chi tiết đăng kí">-->
+<div class="container">
+    <div class="row">
+        <div class="col-xl-12 mb-2">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="row mb-2">
+                        <div class="row col-sm-6" style="margin-right:10px">
+                            <label class="col-sm-6" style="text-align: left;">Đơn vị:</label>
+                            <div class="col-sm-6 ui-fluid">
+                                <label>{{unitName}}</label>
+                            </div>
+                        </div>
+                        <div class="row col-sm-6" style="margin-right:10px;">
+                            <div class="col-sm-6" style="text-align: left;">Trạng thái:</div>
+                            <div class="col-sm-6 ui-fluid" style="color: red;" *ngIf="copyInfo != null">
+                                <label>{{statusLabel}}</label>
+                            </div>
+                        </div>
+
+
+                    </div>
+
+
+                    <div class="row mb-2">
+                        <div class="row col-sm-6" style="margin-right:10px;">
+                            <label class="col-sm-6"
+                                   style="text-align: left;">Người sử dụng:
+                            </label>
+                            <div class="col-sm-6 ui-fluid" style="padding-top: 5px;">
+                                <label>{{fullName}}</label>
+                            </div>
+                        </div>
+
+
+                        <div class="row col-sm-6" style="margin-right:10px;">
+                            <label class="col-sm-6 ">Thời gian bắt đầu
+                                 :</label>
+                            <div class="col-sm-6 ui-fluid">
+                                <label>{{dateStart}}</label>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="row mb-2">
+
+                        <div class="row col-sm-6" style="margin-right:10px;">
+                            <label class="col-sm-6" style="text-align: left;">Số điện thoại:</label>
+                            <div class="col-sm-6 ui-fluid">
+                                <label>{{phoneNumber}}</label>
+                            </div>
+                        </div>
+
+                        <div class="row col-sm-6" style="margin-right:10px;">
+                            <label class="col-sm-6 ">Thời gian kết thúc
+                                 :</label>
+                            <div class="col-sm-6 ui-fluid">
+                                <label>{{dateEnd}}</label>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="row mb-2">
+                        <div class="row col-sm-6" style="margin-right:10px;">
+                            <label class="col-sm-6" style="text-align: left;">Số người đi:
+                            </label>
+
+                            <div class="col-sm-6 ui-fluid">
+                                <label>{{numOfPassenger}}</label>
+                            </div>
+                        </div>
+                        <div class="row col-sm-6" style="margin-right:10px;">
+                            <label class="col-sm-6 ">Loại hành trình
+                                 :</label>
+                            <div class="col-sm-6 ui-fluid">
+                                <label>{{journey ? journey.journey:''}}</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="row col-sm-6" style="margin-right:10px;">
+                            <label class="col-sm-6 ">Loại xe
+                                 :</label>
+                            <div class="col-sm-6 ui-fluid">
+                                <label>{{carType ?carType.type:''}}</label>
+                            </div>
+                        </div>
+                        <div class="row col-sm-6" style="margin-right:10px;">
+                            <label class="col-sm-6 ">Điểm khởi hành
+                                 :</label>
+                            <div class="col-sm-6 ui-fluid">
+                                <label>{{startPlace ? startPlace.placeName : ''}}</label>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="row mb-2">
+
+                        <div class="row col-sm-6" style="margin-right:10px;">
+                            <label class="col-sm-6 ">Số chỗ
+                                 :</label>
+                            <div class="col-sm-6 ui-fluid">
+                                <label>{{seat ? seat.seat:''}}</label>
+                            </div>
+                        </div>
+                        <div class="row col-sm-6" style="margin-right:10px;">
+                            <label class="col-sm-6 ">Điểm đến
+                                 :</label>
+                            <div class="col-sm-6 ui-fluid">
+                                <label>{{tagetPlace}}</label>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="row mb-2">
+                        <div class="row col-sm-6" style="margin-right:10px;">
+                            <label class="col-sm-6" style="text-align: left;">Lý do sử dụng :
+                            </label>
+                            <div class="col-sm-6 ">
+                                <label>{{reason}}</label>
+                            </div>
+                        </div>
+                        <div class="row col-sm-6" style="margin-right:10px;">
+                            <label class="col-sm-6 ">Tuyến đường
+                                 :</label>
+                            <div class="col-sm-6 ">
+                                <label>{{route}}</label>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+                <div class="row col-sm-12 mb-2">
+                    <label class="col-sm-12" style="text-align: left;">Chọn
+                        lái xe:
+                    </label>
+                    <div class="col-sm-6 ui-fluid">
+                        <p-dropdown [style]="{'width': '100%'}" #listPlanSquadF [options]="driveCarNameFreeList"
+                                    [(ngModel)]="driveCarNameFree" optionLabel="fullName"
+                                    placeholder="-- Chọn lái xe --"
+                                    emptyFilterMessage="Không có dữ liệu" (onChange)="getCarFree($event)"
+                                    filter="true">
+                        </p-dropdown>
+                    </div>
+                </div>
+
+                <div class="row col-sm-12 mb-2">
+                    <label class="col-sm-12" style="text-align: left;">Chọn xe:
+                    </label>
+                    <div class="col-sm-6 ui-fluid">
+                        <p-dropdown [style]="{'width': '100%'}" #listPlanSquadF [options]="teamCarNameFreeList"
+                                    [(ngModel)]="teamCarNameFree" optionLabel="licensePlate"
+                                    placeholder="-- Chọn xe --"
+                                    emptyFilterMessage="Không có dữ liệu"
+                                    filter="true">
+                            <ng-template let-item pTemplate="selectedItem">
+                                {{item.value.type}} - {{item.value.seat}} - {{item.value.licensePlate}}
+                            </ng-template>
+                            <ng-template let-items pTemplate="item">
+                                {{items.value.type}} - {{items.value.seat}} - {{items.value.licensePlate}}
+                            </ng-template>
+                        </p-dropdown>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row mb-12">
+    <div class="col-sm-12">
+        <div style="text-align: center">
+            <button *ngIf="isStatusCancelOrder" pButton type="button" label="Hủy yêu cầu" class="ui-button-danger" (click)="doRefuse()"></button>
+            <button type="button" pButton *ngIf="isStatusRefuseOrder" label="Từ chối" class="ui-button-danger" (click)="doRefuse()"></button>
+            <button  type="button" pButton label="Xếp xe" (click)="isOrder()"></button>
+        </div>
+    </div>
+</div>

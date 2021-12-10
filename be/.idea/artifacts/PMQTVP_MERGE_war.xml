@@ -1,0 +1,14 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="PMQTVP_MERGE:war">
+    <output-path>$PROJECT_DIR$/target</output-path>
+    <properties id="maven-jee-properties">
+      <options>
+        <module>PMQTVP_MERGE</module>
+        <packaging>war</packaging>
+      </options>
+    </properties>
+    <root id="archive" name="PMQTVP.war">
+      <element id="artifact" artifact-name="PMQTVP_MERGE:war exploded" />
+    </root>
+  </artifact>
+</component>

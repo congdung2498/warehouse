@@ -1,0 +1,4172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt07.vt070002.dao.VT070002DAO">
+
+		
+	<!-- getListTinBox -->
+	<select id="getListTinBox"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail">
+		SELECT 
+		distinct
+		tb.TIN_BOX_ID as tinBoxId,
+		tb.NAME as name,
+		tb.QR_CODE as qrCode,
+		tb.DESCRIPTION as description,
+		tb.STATUS as status,
+		tb.WAREHOUSE_ID as warehouseId,
+		w.NAME as warehouseName,
+		s.QR_CODE as slotQrCode,
+		tb.SLOT_ID as slotId,
+		tb.INDEX as 'index',
+		tb.MNG_USER as mngUser,
+		tb.CREATE_USER as createUser,
+		w.TYPE as warehouseType
+		FROM TIN_BOX tb
+		LEFT JOIN WAREHOUSE w
+		ON w.WAREHOUSE_ID = tb.WAREHOUSE_ID 
+		LEFT JOIN SLOT s
+		ON s.SLOT_ID = tb.SLOT_ID
+		<!-- WHERE r.WAREHOUSE_ID = #{warehouseId} -->
+		WHERE tb.DEL_FLAG = 0 and tb.unit = #{unit}
+			<if test="name != null">
+				AND tb.NAME LIKE CONCAT('%', #{name}, '%')
+			</if>
+			<if test="tinBoxId != 0">
+				AND tb.TIN_BOX_ID = #{tinBoxId}
+			</if>
+			<if test="viewAll != true">
+				AND tb.CREATE_USER = #{queryUser}
+			</if>
+		<!-- ORDER BY tb.UPDATE_DATE DESC LIMIT #{pageNo}, 20 -->
+	</select>
+	
+	<!-- getListTinBoxByQrCode -->
+	<select id="getListTinBoxByQrCode"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail">
+		SELECT 
+		distinct
+		tb.TIN_BOX_ID as tinBoxId,
+		tb.NAME as name,
+		tb.QR_CODE as qrCode,
+		tb.DESCRIPTION as description,
+		tb.STATUS as status,
+		tb.WAREHOUSE_ID as warehouseId,
+		w.NAME as warehouseName,
+		s.QR_CODE as slotQrCode,
+		tb.SLOT_ID as slotId,
+		tb.INDEX as 'index',
+		tb.MNG_USER as mngUser,
+		tb.CREATE_USER as createUser
+		FROM TIN_BOX tb
+		LEFT JOIN WAREHOUSE w
+		ON w.WAREHOUSE_ID = tb.WAREHOUSE_ID 
+		LEFT JOIN SLOT s
+		ON s.SLOT_ID = tb.SLOT_ID
+		WHERE tb.DEL_FLAG = 0
+		AND (tb.QR_CODE = #{qrCode}
+		OR TB.TIN_BOX_ID IN (SELECT F.TIN_BOX_ID FROM FOLDER F WHERE F.qr_code = #{qrCode} AND F.del_flag = 0))
+		AND tb.unit = #{unit}
+		<if test="viewAll != true">
+			AND tb.CREATE_USER = #{queryUser}
+		</if>
+		ORDER BY tb.UPDATE_DATE DESC LIMIT 0, 1
+	</select>
+	
+	<select id="getTotalRecordTinBox" resultType="int"
+	parameterType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail">
+		SELECT COUNT(*)
+		FROM TIN_BOX as a
+		WHERE tb.DEL_FLAG = 0
+			<if test="index != null">
+				AND a.index >= #{index}
+			</if>
+			<if test="warehouseId != 0">
+				AND a.warehouse_id = #{warehouseId}
+			</if>
+			 <if test="error != null">
+				<bind name="error" value="'%' + error + '%'" />
+				AND a.type like #{error}
+			</if>
+			<if test="mngUser != null">
+				<bind name="mngUser" value="'%' + mngUser + '%'" />
+				AND a.mng_user like #{mngUser}
+			</if>
+			<if test="name != null">
+				<bind name="name" value="'%' + name + '%'" />
+				AND a.name like #{name}
+			</if>
+	</select>
+	
+	<select id="findTypeWarehouseDetail"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseDetail"
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseDetail">
+		SELECT
+			a.warehouse_id as warehouseId,
+			a.name as name,
+			a.address as address,
+			a.type as type,
+			a.status as status,
+			a.acreage as acreage,
+			a.del_flag as delFlag,
+			a.row_num as rowNum,
+			a.column_num as columnNum,
+			a.height_num as heightNum			
+		FROM
+			warehouse as a 		
+		<where>
+			 a.del_flag = '0'
+			 AND a.status = '1'
+			 <if test="name != null">
+				<bind name="name" value="'%' + name + '%'" />
+				AND a.name like #{name}
+			</if> 
+		</where> 
+ 
+		 
+		ORDER BY a.name ASC
+
+	</select>	
+	<!-- searchListTinBox -->
+	<select id="searchListTinBox"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail">
+		SELECT
+			a.tin_box_id as tinBoxId,
+			a.name as name,
+			a.qr_code as qrCode,
+			a.description as description,
+			a.warehouse_id as warehouseId,
+			a.slot_id as slotId,
+			w.NAME as warehouseName,
+			a.index as 'index',
+			a.mng_user as mngUser,
+			a.type as type
+		FROM
+			tin_box as a 
+		INNER JOIN WAREHOUSE w
+		ON w.WAREHOUSE_ID = a.WAREHOUSE_ID
+		
+		<where>
+			w.del_flag='0'
+			AND a.del_flag='0'
+			<if test="index != 0">
+				AND a.index = #{index}
+			</if> 
+			<if test="warehouseId != 0">
+				AND a.warehouse_id = #{warehouseId}
+			</if> 
+			 <if test="type != null">
+				<bind name="type" value="'%' + type + '%'" />
+				AND a.type like #{type}
+			</if> 
+			<if test="mngUser != null">
+				<bind name="mngUser" value="'%' + mngUser + '%'" />
+				AND a.mng_user like #{mngUser}
+			</if> 
+			<if test="name != null">
+				<bind name="name" value="'%' + name + '%'" />
+				AND a.name like #{name}
+			</if> 
+		</where> 
+ 
+		 
+		ORDER BY a.update_date DESC, a.create_date DESC
+
+	</select>
+	
+	<update id="updateTinboxByInformation"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail">
+		UPDATE TIN_BOX AS a
+		SET 
+		a.name = #{name},
+		a.index =  #{index},
+		a.mng_user = #{mngUser},
+		a.type = #{type},
+		a.warehouse_id = #{warehouseId},
+		a.update_date = now()
+		WHERE a.tin_box_id = #{tinBoxId}
+		AND a.del_flag = 0
+	</update>
+	
+	<!-- getNumberOfTinBox -->
+	<select id="getNumberOfTinBox"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.RequestParam"
+		resultType="int">
+		select 
+        count(*)
+		from (
+		select *, 1 as typeSearch from TIN_BOX where tin_box_id = 0
+		<if test="name==null">
+			union
+			select *, 1 as typeSearch from TIN_BOX where unit = #{unit} AND del_flag = 0
+		</if>
+		<if test="name==null and typeSearch == 0">
+			union
+			select *, 1 as typeSearch from TIN_BOX where name like CONCAT('%', #{name}, '%') AND unit = #{unit} AND del_flag = 0
+		</if>
+		<if test="name!=null and typeSearch==1" >
+			union
+			select *, 1 as typeSearch from TIN_BOX where name like CONCAT('%', #{name}, '%') AND unit = #{unit} AND del_flag = 0
+		</if>
+		<if test="name!=null and typeSearch==2">
+			union
+			select tb.*, 2 as typeSearch from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and fd.name like CONCAT('%', #{name}, '%')
+			AND tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+		</if>
+		<if test="name!=null and typeSearch==3">
+		union
+		select tb.*, 3 as typeSearch from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+		inner join PROJECT_DOC pjd on pjd.folder_id = fd.folder_id
+		inner join PROJECT pj on pj.project_id = pjd.project_id and pj.name like CONCAT('%', #{name}, '%')  AND pj.STATUS = 1
+		union
+	    select tb.*, 3 as typeSearch from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+		inner join PROJECT_DOC pjd on pjd.folder_id = fd.folder_id
+		inner join PROJECT pj on pj.project_id = pjd.project_id and pj.name like CONCAT('%', #{name}, '%')  AND pj.STATUS = 1
+		</if>
+		<if test="name!=null and typeSearch==4">
+		union
+		select tb.*, 4 as typeSearch from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+		inner join PACKAGE_DOC pkd on pkd.folder_id = fd.folder_id
+		inner join PACKAGE pk on pk.package_id = pkd.package_id and pk.name like CONCAT('%', #{name}, '%')
+		union
+		select tb.*, 4 as typeSearch from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+		inner join PACKAGE_DOC pkd on pkd.folder_id = fd.folder_id
+		inner join PACKAGE pk on pk.package_id = pkd.package_id and pk.name like CONCAT('%', #{name}, '%')
+		</if>
+		<if test="name!=null and typeSearch==5">
+		union
+		select tb.*, 5 as typeSearch from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+		inner join CONTRACT_DOC ctd on ctd.folder_id = fd.folder_id
+		inner join CONTRACT ct on ct.contract_id = ctd.contract_id and ct.name like CONCAT('%', #{name}, '%')
+		union
+		select tb.*, 5 as typeSearch from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+		inner join CONTRACT_DOC ctd on ctd.folder_id = fd.folder_id
+		inner join CONTRACT ct on ct.contract_id = ctd.contract_id and ct.name like CONCAT('%', #{name}, '%')
+		</if>
+		<if test="name!=null and typeSearch==6">
+		union
+		select tb.*, 6 as typeSearch from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+		inner join CONSTRUCTION_DOC csd on csd.folder_id = fd.folder_id
+		inner join CONSTRUCTION cst on cst.construction_id = csd.construction_id and cst.name like CONCAT('%', #{name}, '%')
+		union
+		select tb.*, 6 as typeSearch from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+		inner join CONSTRUCTION_DOC csd on csd.folder_id = fd.folder_id
+		inner join CONSTRUCTION cst on cst.construction_id = csd.construction_id and cst.name like CONCAT('%', #{name}, '%')
+		</if>
+	
+		<if test="name!=null and typeSearch==7">
+		union
+		select tb.*, 7 as typeSearch from TIN_BOX tb
+                  inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+                  inner join OFFICIAL_DISPATCH_TRAVELS_DOC odtd on fd.folder_id = odtd.folder_id
+                  inner join OFFICIAL_DISPATCH od on odtd.official_dispatch_id = od.official_dispatch_id
+             and od.name like CONCAT('%', #{name}, '%') and od.type=1
+		union
+		select tb.*, 7 as typeSearch from TIN_BOX tb
+                  inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+                  inner join OFFICIAL_DISPATCH_TRAVELS_DOC odtd on fd.folder_id = odtd.folder_id
+                  inner join OFFICIAL_DISPATCH od on odtd.official_dispatch_id = od.official_dispatch_id
+             and od.name like CONCAT('%', #{name}, '%') and od.type=1
+		</if>
+		
+		<if test="name!=null and typeSearch==8">
+		union
+		select tb.*, 8 as typeSearch from TIN_BOX tb
+                  inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+                  inner join INCOMING_OFFICIAL_DISPATCH_DOC iodd on fd.folder_id = iodd.folder_id
+                  inner join OFFICIAL_DISPATCH od on iodd.official_dispatch_id = od.official_dispatch_id
+             and od.name like CONCAT('%', #{name}, '%') and od.type=0
+		union
+		select tb.*, 8 as typeSearch from TIN_BOX tb
+                  inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+                  inner join INCOMING_OFFICIAL_DISPATCH_DOC iodd on fd.folder_id = iodd.folder_id
+                  inner join OFFICIAL_DISPATCH od on iodd.official_dispatch_id = od.official_dispatch_id
+             and od.name like CONCAT('%', #{name}, '%') and od.type=0
+		</if>
+		
+		<if test="name!=null and typeSearch==9">
+		union
+		select tb.*, 9 as typeSearch from TIN_BOX tb
+         inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+         inner join VOUCHER v on v.folder_id = fd.folder_id and v.name like CONCAT('%', #{name}, '%') and v.type = 4
+         inner join VOUCHER_DOC vd on v.voucher_id = vd.voucher_id
+		union
+		select tb.*, 9 as typeSearch from TIN_BOX tb
+         inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+         inner join VOUCHER v on v.folder_id = fd.folder_id and v.name like CONCAT('%', #{name}, '%') and v.type = 4
+         inner join VOUCHER_DOC vd on v.voucher_id = vd.voucher_id
+		</if>
+		
+		<if test="name!=null and typeSearch==10">
+		union
+		select tb.*, 10 as typeSearch from TIN_BOX tb
+         inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+         inner join VOUCHER v on v.folder_id = fd.folder_id and v.name like CONCAT('%', #{name}, '%') and v.type = 6
+         inner join VOUCHER_DOC vd on v.voucher_id = vd.voucher_id
+		union
+		select tb.*, 10 as typeSearch from TIN_BOX tb
+         inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+         inner join VOUCHER v on v.folder_id = fd.folder_id and v.name like CONCAT('%', #{name}, '%') and v.type = 6
+         inner join VOUCHER_DOC vd on v.voucher_id = vd.voucher_id
+		</if>
+		
+		<if test="name!=null and typeSearch==11">
+		union
+         select tb.*, 11 as typeSearch from TIN_BOX tb
+         inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+         inner join PAYMENT_SUMMARY ps on fd.folder_id = ps.folder_id and ps.name like CONCAT('%', #{name}, '%')
+         inner join PAYMENT_SUMMARY_DOC psd on fd.folder_id = psd.folder_id
+		</if>
+		) A
+		inner join WAREHOUSE w on A.warehouse_id = w.warehouse_id
+		And A.DEL_FLAG = 0
+		<if test="viewAll != true">
+			AND A.CREATE_USER = #{queryUser}
+		</if>
+	</select>
+	
+	<!-- getListFolderByTinBoxId -->
+	<select id="getListFolderByTinBoxId"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.FolderDetail">
+		SELECT 
+		f.FOLDER_ID as folderId,
+		f.TIN_BOX_ID as tinBoxId,
+		f.NAME as name,
+		f.QR_CODE as qrCode,
+		f.STATUS as status,
+		f.BORROW_ID as borrowId,
+		f.TYPE as type
+		FROM FOLDER f
+		WHERE f.TIN_BOX_ID = #{tinBoxId}
+		<if test="folderId != 0">
+			AND f.FOLDER_ID = #{folderId}
+		</if>
+		AND f.DEL_FLAG = 0
+		ORDER BY NAME ASC LIMIT #{pageNo}, 20
+	</select>
+	
+	<!-- getNumberOfFolderByTinBoxId -->
+	<select id="getNumberOfFolderByTinBoxId"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.RequestParam"
+		resultType="int">
+		SELECT 
+		count(*)		 
+		FROM FOLDER f
+		WHERE f.TIN_BOX_ID = #{tinBoxId}
+		<if test="folderId != 0">
+			AND f.FOLDER_ID = #{folderId}
+		</if>
+		AND f.DEL_FLAG = 0
+	</select>
+	
+	<!-- getListProjectByFolderId -->
+	<select id="getListProjectByFolderId"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ProjectDetail">
+		SELECT 
+		p.PROJECT_ID as projectId,
+		p.NAME as name,
+		p.DESCRIPTION as description,
+		p.STATUS as status,
+		p.ERP_ID as erpId,
+		p.CODE as code
+		FROM PROJECT p
+		INNER JOIN PROJECT_IN_FOLDER pif on p.PROJECT_ID = pif.PROJECT_ID AND pif.DEL_FLAG = 0 AND p.STATUS = 1
+		INNER JOIN FOLDER f on f.FOLDER_ID = pif.FOLDER_ID
+		WHERE f.FOLDER_ID = #{folderId}
+		<if test="projectId != 0">
+			AND p.PROJECT_ID = #{projectId}
+		</if>
+		ORDER BY pif.UPDATE_DATE DESC LIMIT #{pageNo}, 20
+	</select>
+	
+	<!-- getNumberOfProjectByFolderId -->
+	<select id="getNumberOfProjectByFolderId"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.RequestParam"
+		resultType="int">
+		SELECT 
+		count(*)
+		FROM PROJECT p
+		INNER JOIN PROJECT_IN_FOLDER pif on p.PROJECT_ID = pif.PROJECT_ID AND pif.DEL_FLAG = 0  AND p.STATUS = 1
+		INNER JOIN FOLDER f on f.FOLDER_ID = pif.FOLDER_ID
+		WHERE f.FOLDER_ID = #{folderId}
+		<if test="projectId != 0">
+			AND p.PROJECT_ID = #{projectId}
+		</if>
+	</select>
+	
+	<!-- getListProjectOutFolder -->
+	<select id="getListProjectOutFolder"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ProjectDetail">
+		SELECT 
+		p.PROJECT_ID as projectId,
+		p.NAME as name,
+		p.DESCRIPTION as description,
+		p.STATUS as status,
+		p.ERP_ID as erpId,
+		p.CODE as code
+		FROM PROJECT p
+		LEFT JOIN PROJECT_IN_FOLDER pif on p.projectId = pif.projectId  AND p.STATUS = 1
+		<where>
+			<if test="folderId != 0">
+				AND pif.FOLDER_ID != #{folderId}
+			</if>
+			<if test="name != null">
+				AND p.NAME LIKE CONCAT('%', #{name}, '%')
+			</if>
+			<if test="projectId != 0">
+				AND p.PROJECT_ID = #{projectId}
+			</if>
+		</where> 
+		ORDER BY UPDATE_DATE DESC LIMIT #{pageNo}, 20
+	</select>
+
+	<!-- insertTinBox -->
+	<insert id="insertTinBox"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail"
+		keyProperty="tinBoxId" keyColumn="TIN_BOX_ID">
+		INSERT INTO TIN_BOX(
+			NAME,
+			QR_CODE,
+			DESCRIPTION,
+			STATUS,
+			WAREHOUSE_ID,
+			SLOT_ID,
+			CREATE_DATE,
+			UPDATE_DATE,
+			UPDATE_USER,
+			CREATE_USER,
+			`INDEX`,
+			MNG_USER,
+			UNIT
+		)
+		VALUES(
+			#{name},
+			#{qrCode},
+			#{description},
+			#{status},
+			#{warehouseId},
+			#{slotId},
+			SYSDATE(),
+			SYSDATE(),
+			#{createUser},
+			#{createUser},
+			#{index},
+			#{mngUser},
+			#{unit}
+		)
+		<selectKey keyProperty="tinBoxId" resultType="long"
+            order="AFTER">
+            SELECT LAST_INSERT_ID();
+        </selectKey>
+	</insert>
+	
+	<!-- insertFolder -->
+	<insert id="insertFolder"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.FolderDetail"
+		keyProperty="folderId" keyColumn="FOLDER_ID" useGeneratedKeys="true">
+		INSERT INTO FOLDER(
+			NAME,
+			QR_CODE,
+			STATUS,
+			TIN_BOX_ID,
+			CREATE_DATE,
+			UPDATE_DATE,
+			UPDATE_USER,
+			CREATE_USER,
+			UNIT,
+			TYPE
+		)
+		VALUES(
+			#{name},
+			#{qrCode},
+			#{status},
+			#{tinBoxId},
+			SYSDATE(),
+			SYSDATE(),
+			#{createUser},
+			#{createUser},
+			#{unit},
+			#{type}
+		)
+		<selectKey keyProperty="folderId" resultType="long"
+            order="AFTER">
+            SELECT LAST_INSERT_ID();
+        </selectKey>
+	</insert>
+	
+	<!-- updateProjectDocDetail -->
+	<update id="updateProjectDocDetail"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.ProjectDocDetail">
+		UPDATE PROJECT_DOC
+		SET
+		FOLDER_ID=#{folderId}
+		WHERE
+		PROJECT_DOC_ID=#{projectDocId}
+		<if test="folderId != 0">
+			AND (FOLDER_ID = 0 OR FOLDER_ID = null)
+		</if>
+	</update>
+	
+	<!-- updateProjectOfContract -->
+	<update id="updateProjectOfContract"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.ContractDetail">
+		UPDATE CONTRACT
+		SET
+		PROJECT_ID=#{projectId}
+		WHERE
+		CONTRACT_ID=#{contractId}
+	</update>
+	
+	<!-- updateContractDocDetail -->
+	<update id="updateContractDocDetail"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.ContractDocDetail">
+		UPDATE CONTRACT_DOC
+		SET
+		FOLDER_ID=#{folderId}
+		WHERE
+		CONTRACT_DOC_ID=#{contractDocId}
+		<if test="folderId != 0">
+			AND (FOLDER_ID = 0 OR FOLDER_ID = null)
+		</if>
+	</update>
+	
+	<!-- updateConstructionDocDetail -->
+	<update id="updateConstructionDocDetail"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.ConstructionDocDetail">
+		UPDATE CONSTRUCTION_DOC
+		SET
+		FOLDER_ID=#{folderId}
+		WHERE
+		CONSTRUCTION_DOC_ID=#{constructionDocId}
+		<if test="folderId != 0">
+			AND (FOLDER_ID = 0 OR FOLDER_ID = null)
+		</if>
+	</update>
+	
+	<!-- updatePackageDocDetail -->
+	<update id="updatePackageDocDetail"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.PackageDocDetail">
+		UPDATE PACKAGE_DOC
+		SET
+		FOLDER_ID=#{folderId}
+		WHERE
+		PACKAGE_DOC_ID=#{packageDocId}
+		<if test="folderId != 0">
+			AND (FOLDER_ID = 0 OR FOLDER_ID = null)
+		</if>
+	</update>
+	
+	<!-- insertProjectInFoderDetail -->
+	<insert id="insertProjectInFoderDetail"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.ProjectInFoderDetail"
+		keyProperty="projectInFolderId" keyColumn="PROJECT_IN_FOLDER_ID">
+		INSERT INTO PROJECT_IN_FOLDER(
+			PROJECT_ID,
+			FOLDER_ID,
+			DEL_FLAG,
+			CREATE_DATE,
+			UPDATE_DATE,
+			UPDATE_USER,
+			CREATE_USER
+		)
+		VALUES(
+			#{projectId},
+			#{folderId},
+			#{delFlag},
+			SYSDATE(),
+			SYSDATE(),
+			#{createUser},
+			#{createUser}
+		)
+		<selectKey keyProperty="projectInFolderId" resultType="long"
+            order="AFTER">
+            SELECT LAST_INSERT_ID();
+        </selectKey>
+	</insert>
+	
+	<!-- updateTinBox -->
+	<update id="updateTinBox"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail">
+		UPDATE TIN_BOX
+		SET NAME = #{name},
+			QR_CODE = #{qrCode},
+			DESCRIPTION = #{description},
+			STATUS = #{status},
+			WAREHOUSE_ID = #{warehouseId},
+			SLOT_ID = #{slotId},
+			UPDATE_DATE = SYSDATE(),
+			UPDATE_USER = #{updateUser},
+			DEL_FLAG = #{delFlag}
+		WHERE
+			TIN_BOX_ID = #{tinBoxId}
+		AND DEL_FLAG = 0
+	</update>
+	
+	<!-- updateFolder -->
+	<update id="updateFolder"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.FolderDetail">
+		UPDATE FOLDER
+		SET	NAME = #{name},
+			QR_CODE = #{qrCode},
+			STATUS = #{status},
+			TIN_BOX_ID = #{tinBoxId},
+			UPDATE_DATE = SYSDATE(),
+			UPDATE_USER = #{updateUser},
+			DEL_FLAG = #{delFlag}
+		WHERE
+			FOLDER_ID = #{folderId}
+		AND DEL_FLAG = 0
+	</update>
+	
+	<resultMap id="resultCheckProjectInFolder"
+		type="com.viettel.vtnet360.vt07.vt070002.entity.ProjectDetail">
+
+		<result property="projectId" column="PROJECT_ID" />
+		<result property="name" column="NAME" />
+		<result property="description" column="DESCRIPTION" />
+		<result property="status" column="STATUS" />
+		<result property="erpId" column="ERP_ID" />
+		<result property="code" column="CODE" />
+
+	</resultMap>
+	
+	<!-- checkProjectInFolder -->
+	<select id="checkProjectInFolder"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultMap="resultCheckProjectInFolder">
+		SELECT p.* FROM PROJECT p
+		INNER JOIN PROJECT_DOC pd on p.PROJECT_ID = pd.PROJECT_ID AND pd.FOLDER_ID = #{folderId} and p.PROJECT_ID = #{projectId} AND p.STATUS = 1
+		UNION
+		SELECT p.* FROM PROJECT p
+		INNER JOIN PACKAGE pk on pk.PROJECT_ID = p.PROJECT_ID and p.PROJECT_ID = #{projectId} AND p.STATUS = 1
+		INNER JOIN PACKAGE_DOC pd on pd.PACKAGE_ID = pk.PACKAGE_ID AND pd.FOLDER_ID = #{folderId}
+		UNION
+		SELECT p.* FROM PROJECT p
+		INNER JOIN CONTRACT_PROJECT cp on cp.PROJECT_ID = p.PROJECT_ID and p.PROJECT_ID = #{projectId} AND p.STATUS = 1
+		INNER JOIN CONTRACT c on c.CONTRACT_ID = cp.CONTRACT_ID 
+		INNER JOIN CONTRACT_DOC cd on cd.CONTRACT_ID = c.CONTRACT_ID AND cd.FOLDER_ID = #{folderId}
+		UNION
+		SELECT p.* FROM PROJECT p
+		INNER JOIN CONTRACT_PROJECT cp on cp.PROJECT_ID = p.PROJECT_ID and p.PROJECT_ID = #{projectId} AND p.STATUS = 1
+		INNER JOIN CONTRACT c on c.CONTRACT_ID = cp.CONTRACT_ID 
+		INNER JOIN CONSTRUCTION cst on c.CONTRACT_ID = cst.CONTRACT_ID
+		INNER JOIN CONSTRUCTION_PROJECT ctp on ctp.CONSTRUCTION_ID = cst.CONSTRUCTION_ID and ctp.PROJECT_ID = #{projectId}
+		INNER JOIN CONSTRUCTION_DOC cd on cd.CONSTRUCTION_ID = cst.CONSTRUCTION_ID AND cd.FOLDER_ID = #{folderId}
+	</select>
+	
+	<!-- removeProjectInFoderDetail -->
+	<update id="removeProjectInFoderDetail"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.ProjectInFoderDetail">
+		UPDATE PROJECT_IN_FOLDER
+		SET	
+			DEL_FLAG = #{delFlag},
+			UPDATE_DATE = SYSDATE(),
+			UPDATE_USER = #{updateUser}
+		WHERE
+			FOLDER_ID = #{folderId}
+			AND PROJECT_ID = #{projectId}
+	</update>
+	
+	
+	<!-- getProjects -->
+	<select id="getProjects"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ProjectDetail">
+		SELECT 
+		DISTINCT
+		p.PROJECT_ID as projectId,
+		p.NAME as name,
+		p.DESCRIPTION as description,
+		p.STATUS as status,
+		p.ERP_ID as erpId,
+		p.CODE as code
+		FROM PROJECT p
+		WHERE p.UNIT = #{unit} AND p.STATUS = 1
+		AND p.PROJECT_ID NOT IN 
+		(SELECT pif.PROJECT_ID FROM PROJECT_IN_FOLDER pif where pif.FOLDER_ID = #{folderId} AND pif.DEL_FLAG=0 AND pif.FOLDER_ID != 0)
+		<!-- LEFT JOIN PROJECT_IN_FOLDER pif on pif.PROJECT_ID = p.PROJECT_ID and pif.FOLDER_ID != #{folderId} -->
+		
+		<if test="projectId != 0">
+			AND p.PROJECT_ID = #{projectId}
+		</if>
+		<if test="exceptObjIds.size() > 0 and objectType == 0">
+			AND p.PROJECT_ID NOT IN
+			<foreach collection="exceptObjIds" item="item" index="index" open="(" separator="," close=")">
+				#{item.id}
+	   		</foreach>
+   		</if>
+		<if test="name != null and objectType == 0">
+			AND p.NAME LIKE CONCAT('%', #{name}, '%')
+		</if>
+		<if test="objectType == 0">
+			LIMIT #{pageNo}, 20
+		</if>
+		
+	</select>
+	
+	<!-- getPackages -->
+	<select id="getPackages"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.PackageDetail">
+		SELECT 
+		DISTINCT
+		p.PACKAGE_ID as packageId,
+		p.PROJECT_ID as projectId,
+		p.NAME as name,
+		p.DESCRIPTION as description,
+		p.STATUS as status,
+		p.ERP_ID as erpId,
+		p.CODE as code
+		FROM PACKAGE p
+		INNER JOIN PACKAGE_DOC pd on pd.PACKAGE_ID = p.PACKAGE_ID and pd.FOLDER_ID = 0
+		WHERE p.PROJECT_ID = #{projectId}
+		<if test="exceptObjIds.size() > 0 and objectType == 1">
+		AND p.PACKAGE_ID NOT IN
+		<foreach collection="exceptObjIds" item="item" index="index" open="(" separator="," close=")">
+			#{item.id}
+   		</foreach>
+   		</if>
+   		<if test="name != null and objectType == 1">
+			AND p.NAME LIKE CONCAT('%', #{name}, '%')
+		</if>
+		<if test="packageId != 0">
+			AND p.PACKAGE_ID = #{packageId}
+		</if>
+		<if test="objectType == 1">
+			LIMIT #{pageNo}, 20
+		</if>
+	</select>
+	
+	<!-- getContracts -->
+	<select id="getContracts"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ContractDetail">
+		SELECT 
+		DISTINCT
+		c.CONTRACT_ID as contractId,
+		c.PROJECT_ID as projectId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONTRACT c
+		INNER JOIN (
+			select contract_id from CONTRACT_DOC cd where cd.folder_id = 0
+			<if test="exceptObjIds.size() > 0 and objectType == 2">
+			AND cd.CONTRACT_ID NOT IN
+				<foreach collection="exceptObjIds" item="item" index="index" open="(" separator="," close=")">
+					#{item.id}
+	   			</foreach>
+	   		</if>
+	   		<if test="contractId != 0">
+				AND cd.CONTRACT_ID = #{contractId}
+			</if>
+			union
+			select contract_id from CONSTRUCTION ct
+			inner join CONSTRUCTION_DOC ctd on ct.construction_id = ctd.construction_id
+			<if test="exceptObjIds.size() > 0 and objectType == 2">
+			AND ct.CONTRACT_ID NOT IN
+				<foreach collection="exceptObjIds" item="item" index="index" open="(" separator="," close=")">
+					#{item.id}
+	   			</foreach>
+	   		</if>
+	   		<if test="contractId != 0">
+				AND ct.CONTRACT_ID = #{contractId}
+			</if>
+		) cti
+		on cti.contract_id = c.contract_id 
+		<if test="name != null and objectType == 2">
+			AND c.NAME LIKE CONCAT('%', #{name}, '%')
+		</if>
+		and c.STATUS = 1
+		<if test="objectType == 2">
+			LIMIT #{pageNo}, 20
+		</if>
+	</select>
+	<!-- Backup
+	<select id="getContracts"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ContractDetail">
+		SELECT 
+		c.CONTRACT_ID as contractId,
+		c.PROJECT_ID as projectId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONTRACT c
+		WHERE c.PROJECT_ID = #{projectId}
+		<if test="exceptObjIds.size() > 0 and objectType == 2">
+		AND c.CONTRACT_ID NOT IN
+			<foreach collection="exceptObjIds" item="item" index="index" open="(" separator="," close=")">
+				#{item.id}
+   			</foreach>
+   		</if>
+   		<if test="name != null and objectType == 2">
+			AND c.NAME LIKE CONCAT('%', #{name}, '%')
+		</if>
+		<if test="contractId != 0">
+			AND c.CONTRACT_ID = #{contractId}
+		</if>
+	</select> -->
+	<!-- getConstructions -->
+	<select id="getConstructions"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ConstructionDetail">
+		SELECT
+		DISTINCT
+		c.CONTRACT_ID as contractId,
+		c.CONSTRUCTION_ID as constructionId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONSTRUCTION c
+		INNER JOIN CONSTRUCTION_DOC cd on cd.CONSTRUCTION_ID = c.CONSTRUCTION_ID and cd.FOLDER_ID = 0
+		LEFT JOIN CONSTRUCTION_PROJECT cp on c.CONSTRUCTION_ID = cp.CONSTRUCTION_ID 
+		and cp.DEL_FLAG = 0 
+		<!-- and cp.PROJECT_ID = #{projectId}  -->
+		WHERE c.CONTRACT_ID = #{contractId}
+		AND (cp.project_id is null or cp.project_id = #{projectId})
+		<if test="exceptObjIds.size() > 0 and objectType == 3">
+		AND c.CONSTRUCTION_ID NOT IN
+			<foreach collection="exceptObjIds" item="item" index="index" open="(" separator="," close=")">
+				#{item.id}
+   			</foreach>
+   		</if>
+   		<if test="name != null and objectType == 3">
+			AND c.NAME LIKE CONCAT('%', #{name}, '%')
+		</if>
+		<if test="constructionId != 0">
+			AND c.CONSTRUCTION_ID = #{constructionId}
+		</if>
+		<if test="objectType == 3">
+			LIMIT #{pageNo}, 20
+		</if>
+	</select>
+	
+	<!-- <select id="getConstructions"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ConstructionDetail">
+		SELECT
+		DISTINCT
+		c.CONTRACT_ID as contractId,
+		c.CONSTRUCTION_ID as constructionId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONSTRUCTION c
+		INNER JOIN CONSTRUCTION_DOC cd on cd.CONSTRUCTION_ID = c.CONSTRUCTION_ID and cd.FOLDER_ID = 0
+		WHERE c.CONTRACT_ID = #{contractId}
+		<if test="exceptObjIds.size() > 0 and objectType == 3">
+		AND c.CONSTRUCTION_ID NOT IN
+			<foreach collection="exceptObjIds" item="item" index="index" open="(" separator="," close=")">
+				#{item.id}
+   			</foreach>
+   		</if>
+   		<if test="name != null and objectType == 3">
+			AND c.NAME LIKE CONCAT('%', #{name}, '%')
+		</if>
+		<if test="constructionId != 0">
+			AND c.CONSTRUCTION_ID = #{constructionId}
+		</if>
+		<if test="objectType == 3">
+			LIMIT #{pageNo}, 20
+		</if>
+	</select> -->
+	
+	
+	<!-- getAvailProjectDocs -->
+	<select id="getAvailProjectDocs"
+		parameterType="long"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ProjectDocDetail">
+		SELECT 
+		pd.PROJECT_DOC_ID as projectDocId,
+		pd.PROJECT_ID as projectId,
+		pd.FOLDER_ID as folderId,
+		pd.NAME as name,
+		pd.TYPE as type
+		FROM PROJECT_DOC pd
+		WHERE pd.PROJECT_ID = #{projectId} AND pd.FOLDER_ID = 0
+	</select>
+	
+	<!-- getAvailPackageDocs -->
+	<select id="getAvailPackageDocs"
+		parameterType="long"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.PackageDocDetail">
+		SELECT 
+		pd.PACKAGE_DOC_ID as packageDocId,
+		pd.PACKAGE_ID as packageId,
+		pd.FOLDER_ID as folderId,
+		pd.NAME as name,
+		pd.TYPE as type
+		FROM PACKAGE_DOC pd
+		WHERE pd.PACKAGE_ID = #{packageId} AND pd.FOLDER_ID = 0
+	</select>
+	
+	<!-- getAvailContractDocs -->
+	<select id="getAvailContractDocs"
+		parameterType="long"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ContractDocDetail">
+		SELECT 
+		pd.CONTRACT_DOC_ID as contractDocId,
+		pd.CONTRACT_ID as contractId,
+		pd.FOLDER_ID as folderId,
+		pd.NAME as name,
+		pd.TYPE as type
+		FROM CONTRACT_DOC pd
+		WHERE pd.CONTRACT_ID = #{contractId} AND pd.FOLDER_ID = 0
+	</select>
+	
+	<!-- getAvailConstructionDocs -->
+	<select id="getAvailConstructionDocs"
+		parameterType="long"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ConstructionDocDetail">
+		SELECT 
+		pd.CONSTRUCTION_DOC_ID as constructionDocId,
+		pd.CONSTRUCTION_ID as constructiontId,
+		pd.FOLDER_ID as folderId,
+		pd.NAME as name,
+		pd.TYPE as type
+		FROM CONSTRUCTION_DOC pd
+		WHERE pd.CONSTRUCTION_ID = #{constructionId} AND pd.FOLDER_ID = 0
+	</select>
+	
+	<!-- getProjectById -->
+	<select id="getProjectById"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ProjectDetail">
+		SELECT 
+		p.PROJECT_ID as projectId,
+		p.NAME as name,
+		p.DESCRIPTION as description,
+		p.STATUS as status,
+		p.ERP_ID as erpId,
+		p.CODE as code
+		FROM PROJECT p
+		<!-- INNER JOIN PROJECT_IN_FOLDER pif on p.PROJECT_ID = pif.PROJECT_ID AND pif.DEL_FLAG = 0
+		INNER JOIN FOLDER f on f.FOLDER_ID = pif.FOLDER_ID -->
+		WHERE
+		<!-- f.FOLDER_ID = #{folderId} AND --> 
+		p.PROJECT_ID = #{projectId} AND p.STATUS = 1
+	</select>
+	
+	<!-- getProjectDocInFolder -->
+	<select id="getProjectDocInFolder"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ProjectDocDetail">
+		SELECT 
+		pd.PROJECT_DOC_ID as projectDocId,
+		pd.PROJECT_ID as projectId,
+		pd.FOLDER_ID as folderId,
+		pd.NAME as name,
+		pd.TYPE as type
+		FROM PROJECT_DOC pd
+		WHERE pd.PROJECT_ID = #{projectId} AND (pd.FOLDER_ID = 0 OR pd.FOLDER_ID = #{folderId})
+	</select>
+	
+	<!-- getProjectPackagesInFolder -->
+	<select id="getProjectPackagesInFolder"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.PackageDetail">
+		SELECT 
+		DISTINCT
+		p.PACKAGE_ID as packageId,
+		p.PROJECT_ID as projectId,
+		p.NAME as name,
+		p.DESCRIPTION as description,
+		p.STATUS as status,
+		p.ERP_ID as erpId,
+		p.CODE as code
+		FROM PACKAGE p
+		INNER JOIN PACKAGE_DOC pd on pd.PACKAGE_ID = p.PACKAGE_ID and (pd.FOLDER_ID = #{folderId} OR pd.FOLDER_ID = 0)
+		WHERE p.PROJECT_ID = #{projectId}
+	</select>
+	
+		<!-- getProjectPackagesInFolderSuper -->
+	<select id="getProjectPackagesInFolderSuper"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.PackageDetail">
+		SELECT 
+		DISTINCT
+		p.PACKAGE_ID as packageId,
+		p.PROJECT_ID as projectId,
+		p.NAME as name,
+		p.DESCRIPTION as description,
+		p.STATUS as status,
+		p.ERP_ID as erpId,
+		p.CODE as code
+		FROM PACKAGE p
+		INNER JOIN PACKAGE_DOC pd on pd.PACKAGE_ID = p.PACKAGE_ID and (pd.FOLDER_ID = 0 OR pd.FOLDER_ID = #{folderId})
+		WHERE p.PROJECT_ID = #{projectId}
+		<!-- LIMIT 0, 5 -->
+	</select>
+	
+	<!-- getPackageDocInFolder -->
+	<select id="getPackageDocInFolder"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.PackageDocDetail">
+		SELECT 
+		pd.PACKAGE_DOC_ID as packageDocId,
+		pd.PACKAGE_ID as packageId,
+		pd.FOLDER_ID as folderId,
+		pd.NAME as name,
+		pd.TYPE as type
+		FROM PACKAGE_DOC pd
+		WHERE pd.PACKAGE_ID = #{packageId} AND (pd.FOLDER_ID = 0 OR pd.FOLDER_ID = #{folderId})
+	</select>
+	
+	<!-- getPackageContractsInFolder -->
+	<select id="getPackageContractsInFolder"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ContractDetail">
+		SELECT
+		DISTINCT
+		c.CONTRACT_ID as contractId,
+		c.PROJECT_ID as projectId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONTRACT c
+		<!-- INNER JOIN CONTRACT_PROJECT cp on cp.CONTRACT_ID = c.CONTRACT_ID and (cp.PROJECT_ID = #{projectId} or c.PROJECT_ID = #{projectId}) -->
+		INNER JOIN CONTRACT_DOC cd on cd.CONTRACT_ID = c.CONTRACT_ID
+		<!-- and (c.PROJECT_ID = #{projectId} or c.contract_id in (select contract_id from CONTRACT_PROJECT where project_id = #{projectId}))	-->
+		and (c.package_id = #{packageId}) 
+		LEFT JOIN CONSTRUCTION ct on ct.CONTRACT_ID = c.CONTRACT_ID
+		LEFT JOIN CONSTRUCTION_DOC ctd on ctd.CONSTRUCTION_ID = ct.CONSTRUCTION_ID
+		WHERE ((cd.FOLDER_ID = #{folderId} OR cd.FOLDER_ID = 0) or (ctd.FOLDER_ID = #{folderId} OR ctd.FOLDER_ID = 0))
+		<!--  WHERE c.PROJECT_ID = #{projectId} and (cd.FOLDER_ID = #{folderId} or ctd.FOLDER_ID = #{folderId}) -->
+	</select>
+	
+	<!-- getProjectContractsInFolderSuper -->
+	<select id="getProjectContractsInFolderSuper"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ContractDetail">
+		SELECT * FROM (
+		SELECT
+		DISTINCT
+		c.CONTRACT_ID as contractId,
+		c.PROJECT_ID as projectId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONTRACT c
+		INNER JOIN CONTRACT_DOC cd on cd.CONTRACT_ID = c.CONTRACT_ID
+		WHERE (cd.FOLDER_ID = 0 or cd.FOLDER_ID = #{folderId})
+		and c.PROJECT_ID = #{projectId} 
+		UNION
+		SELECT
+		DISTINCT
+		c.CONTRACT_ID as contractId,
+		c.PROJECT_ID as projectId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONTRACT c
+		INNER JOIN CONSTRUCTION ct on ct.CONTRACT_ID = c.CONTRACT_ID
+		INNER JOIN CONSTRUCTION_DOC ctd on ctd.CONSTRUCTION_ID = ct.CONSTRUCTION_ID
+		WHERE (ctd.FOLDER_ID = 0 or ctd.FOLDER_ID = #{folderId})
+		and c.PROJECT_ID = #{projectId} 
+		UNION
+		SELECT
+		DISTINCT
+		c.CONTRACT_ID as contractId,
+		c.PROJECT_ID as projectId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONTRACT c
+		<!-- INNER JOIN CONTRACT_PROJECT cp on cp.CONTRACT_ID = c.CONTRACT_ID and (cp.PROJECT_ID = #{projectId} or c.PROJECT_ID = #{projectId}) -->
+		INNER JOIN CONTRACT_DOC cd on cd.CONTRACT_ID = c.CONTRACT_ID
+		and (c.PROJECT_ID = #{projectId} or c.contract_id in (select contract_id from CONTRACT_PROJECT where project_id = #{projectId}))	
+		LEFT JOIN CONSTRUCTION ct on ct.CONTRACT_ID = c.CONTRACT_ID
+		LEFT JOIN CONSTRUCTION_DOC ctd on ctd.CONSTRUCTION_ID = ct.CONSTRUCTION_ID
+		WHERE (cd.FOLDER_ID = #{folderId} or ctd.FOLDER_ID = #{folderId})
+		) A 
+		<!-- 20200407
+		SELECT * FROM (
+		SELECT
+		DISTINCT
+		c.CONTRACT_ID as contractId,
+		c.PROJECT_ID as projectId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONTRACT c
+		INNER JOIN CONTRACT_DOC cd on cd.CONTRACT_ID = c.CONTRACT_ID
+		INNER JOIN CONSTRUCTION ct on ct.CONTRACT_ID = c.CONTRACT_ID
+		INNER JOIN CONSTRUCTION_DOC ctd on ctd.CONSTRUCTION_ID = ct.CONSTRUCTION_ID
+		WHERE (cd.FOLDER_ID = 0 or ctd.FOLDER_ID = 0 or cd.FOLDER_ID = #{folderId} or ctd.FOLDER_ID = #{folderId})
+		and c.PROJECT_ID = #{projectId} 
+		
+		UNION
+		
+		SELECT
+		DISTINCT
+		c.CONTRACT_ID as contractId,
+		c.PROJECT_ID as projectId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONTRACT c
+		INNER JOIN CONTRACT_PROJECT cp on cp.CONTRACT_ID = c.CONTRACT_ID and (cp.PROJECT_ID = #{projectId} or c.PROJECT_ID = #{projectId})
+		INNER JOIN CONTRACT_DOC cd on cd.CONTRACT_ID = c.CONTRACT_ID
+		INNER JOIN CONSTRUCTION ct on ct.CONTRACT_ID = c.CONTRACT_ID
+		INNER JOIN CONSTRUCTION_DOC ctd on ctd.CONSTRUCTION_ID = ct.CONSTRUCTION_ID
+		WHERE (cd.FOLDER_ID = #{folderId} or ctd.FOLDER_ID = #{folderId})
+		) A -->
+		<!-- LIMIT 0, 5 -->
+		<!--  WHERE c.PROJECT_ID = #{projectId} and (cd.FOLDER_ID = #{folderId} or ctd.FOLDER_ID = #{folderId}) -->
+	</select>
+	
+	<!-- Backup -->
+	<!-- getProjectContractsInFolder -->
+	<!-- <select id="getProjectContractsInFolder"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ContractDetail">
+		SELECT
+		DISTINCT
+		c.CONTRACT_ID as contractId,
+		c.PROJECT_ID as projectId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONTRACT c
+		INNER JOIN CONTRACT_DOC cd on cd.CONTRACT_ID = c.CONTRACT_ID
+		INNER JOIN CONSTRUCTION ct on ct.CONTRACT_ID = c.CONTRACT_ID
+		INNER JOIN CONSTRUCTION_DOC ctd on ctd.CONSTRUCTION_ID = ct.CONSTRUCTION_ID
+		WHERE (cd.FOLDER_ID = #{folderId} or ctd.FOLDER_ID = #{folderId}) -->
+		<!--  WHERE c.PROJECT_ID = #{projectId} and (cd.FOLDER_ID = #{folderId} or ctd.FOLDER_ID = #{folderId}) -->
+	<!-- </select> -->
+	 
+	<!-- getContractDocInFolder -->
+	<select id="getContractDocInFolder"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ContractDocDetail">
+		SELECT 
+		pd.CONTRACT_DOC_ID as contractDocId,
+		pd.CONTRACT_ID as contractId,
+		pd.FOLDER_ID as folderId,
+		pd.NAME as name,
+		pd.TYPE as type
+		FROM CONTRACT_DOC pd
+		WHERE pd.CONTRACT_ID = #{contractId} AND (pd.FOLDER_ID = 0 OR pd.FOLDER_ID = #{folderId})
+	</select>
+	
+	<!-- getProjectConstructionsInFolder -->
+	<select id="getProjectConstructionsInFolder"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ConstructionDetail">
+		SELECT 
+		DISTINCT
+		c.CONSTRUCTION_ID as constructionId,
+		c.CONTRACT_ID as contractId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONSTRUCTION c
+		INNER JOIN CONSTRUCTION_DOC cd on cd.CONSTRUCTION_ID = c.CONSTRUCTION_ID and (cd.FOLDER_ID = #{folderId} OR cd.FOLDER_ID =0) and c.CONTRACT_ID = #{contractId}
+		and (c.contract_id in (select contract_id from CONTRACT where project_id=#{projectId})
+		or c.construction_id in (select construction_id from CONSTRUCTION_PROJECT where project_id = #{projectId} and del_flag = 0))
+	</select>
+	
+	<!-- getProjectConstructionsInFolderSuper -->
+	<select id="getProjectConstructionsInFolderSuper"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ConstructionDetail">
+		SELECT 
+		DISTINCT
+		c.CONSTRUCTION_ID as constructionId,
+		c.CONTRACT_ID as contractId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONSTRUCTION c
+		INNER JOIN CONSTRUCTION_DOC cd on cd.CONSTRUCTION_ID = c.CONSTRUCTION_ID and (cd.FOLDER_ID = 0 or cd.FOLDER_ID = #{folderId})
+		WHERE c.CONTRACT_ID = #{contractId}
+		<!-- 20200407
+		SELECT * FROM (
+		SELECT 
+		DISTINCT
+		c.CONSTRUCTION_ID as constructionId,
+		c.CONTRACT_ID as contractId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONSTRUCTION c
+		INNER JOIN CONSTRUCTION_DOC cd on cd.CONSTRUCTION_ID = c.CONSTRUCTION_ID and (cd.FOLDER_ID = 0 or cd.FOLDER_ID = #{folderId})
+		INNER JOIN CONTRACT ct on ct.CONTRACT_ID = c.CONTRACT_ID AND ct.PROJECT_ID = #{projectId}
+		WHERE c.CONTRACT_ID = #{contractId}
+		
+		UNION
+		
+		SELECT 
+		DISTINCT
+		c.CONSTRUCTION_ID as constructionId,
+		c.CONTRACT_ID as contractId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONSTRUCTION c
+		INNER JOIN CONSTRUCTION_PROJECT cp 
+		on c.construction_id = cp.construction_id and cp.project_id = #{projectId} and cp.del_flag = 0
+		INNER JOIN CONSTRUCTION_DOC cd on cd.CONSTRUCTION_ID = c.CONSTRUCTION_ID and (cd.FOLDER_ID = #{folderId})
+		WHERE c.CONTRACT_ID = #{contractId}
+		) A -->
+		<!-- LIMIT 0, 5  -->
+	</select>
+	
+	<!-- <select id="getProjectConstructionsInFolder"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ConstructionDetail">
+		SELECT 
+		DISTINCT
+		c.CONSTRUCTION_ID as constructionId,
+		c.CONTRACT_ID as contractId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONSTRUCTION c
+		INNER JOIN CONSTRUCTION_DOC cd on cd.CONSTRUCTION_ID = c.CONSTRUCTION_ID and (cd.FOLDER_ID = #{folderId})
+		WHERE c.CONTRACT_ID = #{contractId}
+	</select>
+	 -->
+	<!-- getConstructionDocInFolder -->
+	<select id="getConstructionDocInFolder"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ConstructionDocDetail">
+		SELECT 
+		pd.CONSTRUCTION_DOC_ID as constructionDocId,
+		pd.CONSTRUCTION_ID as constructionId,
+		pd.FOLDER_ID as folderId,
+		pd.NAME as name,
+		pd.TYPE as type
+		FROM CONSTRUCTION_DOC pd
+		WHERE pd.CONSTRUCTION_ID = #{constructionId} AND (pd.FOLDER_ID = 0 OR pd.FOLDER_ID = #{folderId})
+	</select>
+	
+	<!-- removeDocsProjectInFolder -->
+	<update id="removeDocsProjectInFolder"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam">
+		UPDATE PROJECT_DOC
+		SET	
+			FOLDER_ID = 0
+		WHERE
+			FOLDER_ID = #{folderId}
+			<if test="projectId != 0">
+			AND PROJECT_ID = #{projectId}
+			</if>
+	</update>
+	
+	<!-- removeDocsPackageInFolder -->
+	<update id="removeDocsPackageInFolder"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam">
+		UPDATE PACKAGE_DOC
+		SET	
+			FOLDER_ID = 0
+		WHERE
+			FOLDER_ID = #{folderId}
+			<if test="projectId != 0">
+			AND PACKAGE_ID IN (SELECT PACKAGE_ID FROM PACKAGE WHERE PROJECT_ID = #{projectId})
+			</if>
+	</update>
+	
+	<!-- removeDocsContractInFolder -->
+	<update id="removeDocsContractInFolder"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam">
+		UPDATE CONTRACT_DOC
+		SET	
+			FOLDER_ID = 0
+		WHERE
+			FOLDER_ID = #{folderId}
+			<if test="projectId != 0">
+			AND CONTRACT_ID IN (SELECT CONTRACT_ID FROM CONTRACT WHERE PROJECT_ID = #{projectId})
+			</if>
+	</update>
+	
+	<!-- removeDocsConstructionInFolder -->
+	<update id="removeDocsConstructionInFolder"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam">
+		UPDATE CONSTRUCTION_DOC
+		SET	
+			FOLDER_ID = 0
+		WHERE
+			FOLDER_ID = #{folderId}
+			<if test="projectId != 0">
+			AND CONSTRUCTION_ID IN (
+				SELECT CONSTRUCTION_ID FROM CONSTRUCTION 
+				INNER JOIN CONTRACT on CONSTRUCTION.CONTRACT_ID = CONTRACT.CONTRACT_ID
+				AND CONTRACT.PROJECT_ID = #{projectId}
+			)
+			</if>
+	</update>
+	
+	
+	<!-- getAllProjectDocsByWarehouse -->
+	<select id="getAllProjectDocumentWithWarehouseId"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.DocumentReportRecord">
+		SELECT p.project_id as projectId, p.name AS projectName, pd.name as projectDoc, pa.name AS packageName, pad.name AS packageDoc, 
+		c.name AS contractName, cd.name AS contractDoc, co.name AS constructionName, cod.name AS constructionDoc,
+		tb.qr_code as tinBoxQRCode, tb.name as tinBoxName, f.qr_code as folderQRCode, f.name AS folderName,
+		w.name AS warehouseName, CONCAT(r.`row`,"/",r.`column`,"/",s.height) AS `position`, s.qr_code as `positionQRCode`
+		FROM WAREHOUSE w JOIN TIN_BOX tb ON tb.warehouse_id = w.warehouse_id AND w.warehouse_id = #{warehouseId} AND w.`status` = 1 AND tb.`status` = 1
+		AND tb.`del_flag` = 0 and w.`del_flag` = 0
+		JOIN FOLDER f ON tb.tin_box_id = f.tin_box_id AND f.`status` = 1 AND f.del_flag = 0
+		JOIN PROJECT_DOC pd ON pd.folder_id = f.folder_id
+		JOIN PROJECT p ON p.project_id = pd.project_id AND p.`status` = 1
+		LEFT JOIN PACKAGE pa ON pa.project_id = p.project_id and pa.`status` = 1
+		LEFT JOIN PACKAGE_DOC pad ON pad.package_id = pa.package_id AND pad.folder_id = f.folder_id
+		LEFT JOIN CONTRACT c ON c.project_id = p.project_id and c.`status` = 1
+		LEFT JOIN CONTRACT_DOC cd ON cd.contract_id = c.contract_id AND cd.folder_id = f.folder_id
+		LEFT JOIN CONSTRUCTION co ON co.contract_id = c.contract_id and co.`status` = 1
+		LEFT JOIN CONSTRUCTION_DOC cod ON cod.construction_id = co.construction_id AND cod.folder_id = f.folder_id
+		JOIN SLOT s ON s.slot_id = tb.slot_id AND s.`status` = 1 AND s.del_flag = 0
+		JOIN RACK r ON r.rack_id = s.rack_id AND r.del_flag = 0 AND r.`type` = 2
+	</select>
+	
+	<!-- getProjectDocsByWarehouse -->
+	<select id="getProjectDocumentWithWarehouseId"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.DocumentReportRecord">
+		SELECT p.project_id as projectId, p.name AS projectName, pd.name as projectDoc, pa.name AS packageName, pad.name AS packageDoc, 
+		c.name AS contractName, cd.name AS contractDoc, co.name AS constructionName, cod.name AS constructionDoc,
+		tb.qr_code as tinBoxQRCode, tb.name as tinBoxName, f.qr_code as folderQRCode, f.name AS folderName,
+		w.name AS warehouseName, CONCAT(r.`row`,"/",r.`column`,"/",s.height) AS `position`, s.qr_code as `positionQRCode`
+		FROM WAREHOUSE w JOIN TIN_BOX tb ON tb.warehouse_id = w.warehouse_id AND w.warehouse_id = #{warehouseId} AND w.`status` = 1 AND tb.`status` = 1
+		JOIN FOLDER f ON tb.tin_box_id = f.tin_box_id AND f.`status` = 1
+		JOIN PROJECT_DOC pd ON pd.folder_id = f.folder_id
+		JOIN PROJECT p ON p.project_id = pd.project_id AND p.`status` = 1
+		LEFT JOIN PACKAGE pa ON pa.project_id = p.project_id and pa.`status` = 1
+		LEFT JOIN PACKAGE_DOC pad ON pad.package_id = pa.package_id AND pad.folder_id = f.folder_id
+		LEFT JOIN CONTRACT c ON c.project_id = p.project_id and c.`status` = 1
+		LEFT JOIN CONTRACT_DOC cd ON cd.contract_id = c.contract_id AND cd.folder_id = f.folder_id
+		LEFT JOIN CONSTRUCTION co ON co.contract_id = c.contract_id and co.`status` = 1
+		LEFT JOIN CONSTRUCTION_DOC cod ON cod.construction_id = co.construction_id AND cod.folder_id = f.folder_id
+		JOIN SLOT s ON s.slot_id = tb.slot_id AND s.`status` = 1 AND s.del_flag = 0
+		JOIN RACK r ON r.rack_id = s.rack_id AND r.del_flag = 0 AND r.`type` = 2 ORDER BY r.`row`, r.`column`, s.height
+		LIMIT #{pageNumber}, #{pageSize}
+	</select>
+	
+	<!-- Count PROJECT Doc by WAREHOUSE -->
+	<select id="countProjectDocumentWithWarehouseId"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="int">
+		SELECT count(*)
+		FROM WAREHOUSE w JOIN TIN_BOX tb ON tb.warehouse_id = w.warehouse_id AND w.warehouse_id = #{warehouseId} AND w.`status` = 1 AND tb.`status` = 1
+		JOIN FOLDER f ON tb.tin_box_id = f.tin_box_id AND f.`status` = 1
+		JOIN PROJECT_DOC pd ON pd.folder_id = f.folder_id
+		JOIN PROJECT p ON p.project_id = pd.project_id AND p.`status` = 1
+		LEFT JOIN PACKAGE pa ON pa.project_id = p.project_id and pa.`status` = 1
+		LEFT JOIN PACKAGE_DOC pad ON pad.package_id = pa.package_id AND pad.folder_id = f.folder_id
+		LEFT JOIN CONTRACT c ON c.project_id = p.project_id and c.`status` = 1
+		LEFT JOIN CONTRACT_DOC cd ON cd.contract_id = c.contract_id AND cd.folder_id = f.folder_id
+		LEFT JOIN CONSTRUCTION co ON co.contract_id = c.contract_id and co.`status` = 1
+		LEFT JOIN CONSTRUCTION_DOC cod ON cod.construction_id = co.construction_id AND cod.folder_id = f.folder_id
+		JOIN SLOT s ON s.slot_id = tb.slot_id AND s.`status` = 1 AND s.del_flag = 0
+		JOIN RACK r ON r.rack_id = s.rack_id AND r.del_flag = 0 AND r.`type` = 2 ORDER BY r.`row`, r.`column`, s.height
+	</select>
+	
+	<!-- Count PROJECT Tinbox by WAREHOUSE -->
+	<select id="countProjectTinboxWithWarehouseId"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="int">
+		
+		SELECT COUNT(*) FROM (SELECT DISTINCT tb.tin_box_id
+		FROM WAREHOUSE w JOIN TIN_BOX tb ON tb.warehouse_id = w.warehouse_id AND w.warehouse_id = #{warehouseId} AND w.`status` = 1 AND tb.`status` = 1
+		JOIN FOLDER f ON tb.tin_box_id = f.tin_box_id AND f.`status` = 1
+		JOIN PROJECT_DOC pd ON pd.folder_id = f.folder_id) tbl;
+	</select>
+	
+	<!-- Count PROJECT FOLDER by WAREHOUSE -->
+	<select id="countProjectFolderWithWarehouseId"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="int">
+		
+		SELECT COUNT(*)
+		FROM WAREHOUSE w JOIN TIN_BOX tb ON tb.warehouse_id = w.warehouse_id AND w.warehouse_id = #{warehouseId} AND w.`status` = 1 AND tb.`status` = 1
+		JOIN FOLDER f ON tb.tin_box_id = f.tin_box_id AND f.`status` = 1
+		JOIN PROJECT_DOC pd ON pd.folder_id = f.folder_id;
+	</select>
+	
+	<select id="getDocumentInWarehouse"
+		parameterType = "integer"
+		resultType = "com.viettel.vtnet360.vt07.vt070002.entity.DocumentReportRecord">
+		SELECT * FROM 
+			(SELECT pd.folder_id AS folderId, pd.name AS documentName, p.name AS projectName, '' as packageName, '' AS contractName, '' AS constructionName
+			
+			from PROJECT_DOC pd
+			JOIN PROJECT p ON p.project_id = pd.project_id  AND p.STATUS = 1
+			WHERE pd.folder_id !=0
+			
+			UNION
+			
+			SELECT pkgd.folder_id AS folderId, pkgd.name AS documentName, p.name AS projectName, pkg.name AS packageName, '' AS contractName, '' AS constructionName
+			from PACKAGE_DOC pkgd
+			JOIN PACKAGE pkg ON  pkg.package_id = pkgd.package_id
+			JOIN PROJECT p ON p.project_id = pkg.project_id  AND p.STATUS = 1
+			WHERE pkgd.folder_id !=0
+			
+			UNION
+			
+			SELECT cd.folder_id AS folderId, cd.name AS documentName, p.name AS projectName, '' AS packageName, c.name AS contractName, '' AS constructionName
+			from CONTRACT_DOC cd
+			JOIN CONTRACT c ON  c.contract_id = cd.contract_id
+			JOIN CONTRACT_PROJECT cp ON c.contract_id = cp.contract_id
+			JOIN PROJECT p ON p.project_id = cp.project_id  AND p.STATUS = 1
+			WHERE cd.folder_id !=0
+			
+			UNION
+			
+			SELECT cond.folder_id AS folderId, cond.name AS documentName, p.name AS projectName, '' AS packageName, '' AS contractName, con.name AS constructionName
+			from CONSTRUCTION_DOC cond
+			JOIN CONSTRUCTION con ON  con.construction_id = cond.construction_id
+			JOIN CONSTRUCTION_PROJECT conp ON conp.construction_id = con.construction_id
+			JOIN PROJECT p ON p.project_id = conp.project_id  AND p.STATUS = 1
+			WHERE cond.folder_id !=0
+			) TABLE1
+			
+		JOIN 
+			(SELECT f.folder_id AS folderId, tb.qr_code as tinBoxQRCode, tb.name as tinBoxName, f.qr_code as folderQRCode, f.name AS folderName,
+				w.name AS warehouseName, CONCAT(r.`row`,"/",r.`column`,"/",s.height) AS `position`, s.qr_code as `positionQRCode`
+			FROM WAREHOUSE w JOIN TIN_BOX tb ON tb.warehouse_id = w.warehouse_id AND w.warehouse_id = #{warehouseId} AND w.`status` = 1
+			JOIN FOLDER f ON tb.tin_box_id = f.tin_box_id
+			JOIN SLOT s ON s.slot_id = tb.slot_id AND s.`status` = 1 AND s.del_flag = 0
+			JOIN RACK r ON r.rack_id = s.rack_id AND r.del_flag = 0 AND r.`type` = 2 ORDER BY r.`row`, r.`column`, s.height) TABLE2
+					
+		ON TABLE1.folderId = TABLE2.folderId
+		
+		<if test="pageSize > 0">
+			LIMIT #{pageSize}
+			<if test="offset > 0 ">
+				 OFFSET #{offset}
+			</if>
+		</if>
+			
+	</select>
+	
+	<select id="countThingsInWarehouse" parameterType="int"
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseDetail">
+		SELECT count(distinct(folderQRCode)) as totalFolder, count(distinct(tinBoxQRCode)) as totalTinBox, COUNT(*) as totalRecords FROM 
+			(SELECT pd.folder_id AS folderId, pd.name AS documentName, p.name AS projectName, '' as packageName, '' AS contractName, '' AS constructionName
+			
+			from PROJECT_DOC pd
+			JOIN PROJECT p ON p.project_id = pd.project_id  AND p.STATUS = 1
+			WHERE pd.folder_id !=0
+			
+			UNION
+			
+			SELECT pkgd.folder_id AS folderId, pkgd.name AS documentName, p.name AS projectName, pkg.name AS packageName, '' AS contractName, '' AS constructionName
+			from PACKAGE_DOC pkgd
+			JOIN PACKAGE pkg ON  pkg.package_id = pkgd.package_id
+			JOIN PROJECT p ON p.project_id = pkg.project_id  AND p.STATUS = 1
+			WHERE pkgd.folder_id !=0
+			
+			UNION
+			
+			SELECT cd.folder_id AS folderId, cd.name AS documentName, p.name AS projectName, '' AS packageName, c.name AS contractName, '' AS constructionName
+			from CONTRACT_DOC cd
+			JOIN CONTRACT c ON  c.contract_id = cd.contract_id
+			JOIN CONTRACT_PROJECT cp ON c.contract_id = cp.contract_id
+			JOIN PROJECT p ON p.project_id = cp.project_id  AND p.STATUS = 1
+			WHERE cd.folder_id !=0
+			
+			UNION
+			
+			SELECT cond.folder_id AS folderId, cond.name AS documentName, p.name AS projectName, '' AS packageName, '' AS contractName, con.name AS constructionName
+			from CONSTRUCTION_DOC cond
+			JOIN CONSTRUCTION con ON  con.construction_id = cond.construction_id
+			JOIN CONSTRUCTION_PROJECT conp ON conp.construction_id = con.construction_id
+			JOIN PROJECT p ON p.project_id = conp.project_id  AND p.STATUS = 1
+			WHERE cond.folder_id !=0
+			) TABLE1
+			
+		JOIN 
+			(SELECT f.folder_id AS folderId, tb.qr_code as tinBoxQRCode, tb.name as tinBoxName, f.qr_code as folderQRCode, f.name AS folderName,
+				w.name AS warehouseName, CONCAT(r.`row`,"/",r.`column`,"/",s.height) AS `position`, s.qr_code as `positionQRCode`
+			FROM WAREHOUSE w JOIN TIN_BOX tb ON tb.warehouse_id = w.warehouse_id AND w.warehouse_id = #{warehouseId} AND w.`status` = 1
+			JOIN FOLDER f ON tb.tin_box_id = f.tin_box_id
+			JOIN SLOT s ON s.slot_id = tb.slot_id AND s.`status` = 1 AND s.del_flag = 0
+			JOIN RACK r ON r.rack_id = s.rack_id AND r.del_flag = 0 AND r.`type` = 2 ORDER BY r.`row`, r.`column`, s.height) TABLE2
+					
+		ON TABLE1.folderId = TABLE2.folderId
+	</select>
+	
+	<!-- getTinBoxById -->
+	<select id="getTinBoxById"
+		parameterType="long"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail">
+		SELECT
+			a.tin_box_id as tinBoxId,
+			a.name as name,
+			a.qr_code as qrCode,
+			a.description as description,
+			a.warehouse_id as warehouseId,
+			a.slot_id as slotId,
+			a.index as 'index',
+			a.mng_user as mngUser,
+			a.type as type,
+			a.create_user as createUser,
+			a.update_user as updateUser
+		FROM
+			tin_box as a 
+		WHERE a.tin_box_id = #{tinBoxId}
+	</select>
+	
+	<!-- getFolderById -->
+	<select id="getFolderById"
+		parameterType="long"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.FolderDetail">
+		SELECT
+			a.folder_id as folderId,
+			a.name as name,
+			a.qr_code as qrCode,
+			a.create_user as createUser,
+			a.update_user as updateUser
+		FROM
+			folder as a 
+		WHERE a.folder_id = #{folderId}
+	</select>
+	
+	<!-- searchTinBox -->
+	<select id="searchTinBox"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail">
+		select 
+		A.TIN_BOX_ID as tinBoxId,
+		A.NAME as name,
+		A.QR_CODE as qrCode,
+		A.DESCRIPTION as description,
+		A.STATUS as status,
+		A.WAREHOUSE_ID as warehouseId,
+		A.SLOT_ID as slotId,
+		A.INDEX as `index`,
+		A.MNG_USER as mngUser,
+		A.create_user as createUser,
+		w.NAME as warehouseName,
+		A.typeSearch as type
+		from (
+		select *, 1 as typeSearch from TIN_BOX where tin_box_id = 0 and del_flag = 0
+		<if test="name==null">
+			union
+			select *, 1 as typeSearch from TIN_BOX where unit = #{unit}
+		</if>
+		<if test="name==null and typeSearch == 0">
+			union
+			select *, 1 as typeSearch from TIN_BOX where name like CONCAT('%', #{name}, '%') AND unit = #{unit} and del_flag = 0
+		</if>
+		<if test="name!=null and typeSearch==1" >
+			union
+			select *, 1 as typeSearch from TIN_BOX where name like CONCAT('%', #{name}, '%') AND unit = #{unit} and del_flag = 0
+		</if>
+		<if test="name!=null and typeSearch==2">
+			union
+			select tb.*, 2 as typeSearch from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and fd.name like CONCAT('%', #{name}, '%')
+			AND tb.unit = #{unit} and tb.del_flag = 0 and fd.del_flag = 0
+		</if>
+		<if test="name!=null and typeSearch==3">
+		union
+		select tb.*, 3 as typeSearch from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+		inner join PROJECT_DOC pjd on pjd.folder_id = fd.folder_id 
+		inner join PROJECT pj on pj.project_id = pjd.project_id and pj.name like CONCAT('%', #{name}, '%')  AND pj.STATUS = 1 
+		union
+	    select tb.*, 3 as typeSearch from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+		inner join PROJECT_DOC pjd on pjd.folder_id = fd.folder_id
+		inner join PROJECT pj on pj.project_id = pjd.project_id and pj.name like CONCAT('%', #{name}, '%')  AND pj.STATUS = 1
+		</if>
+		<if test="name!=null and typeSearch==4">
+		union
+		select tb.*, 4 as typeSearch from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+		inner join PACKAGE_DOC pkd on pkd.folder_id = fd.folder_id
+		inner join PACKAGE pk on pk.package_id = pkd.package_id and pk.name like CONCAT('%', #{name}, '%')
+		union
+		select tb.*, 4 as typeSearch from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+		inner join PACKAGE_DOC pkd on pkd.folder_id = fd.folder_id
+		inner join PACKAGE pk on pk.package_id = pkd.package_id and pk.name like CONCAT('%', #{name}, '%')
+		</if>
+		<if test="name!=null and typeSearch==5">
+		union
+		select tb.*, 5 as typeSearch from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+		inner join CONTRACT_DOC ctd on ctd.folder_id = fd.folder_id
+		inner join CONTRACT ct on ct.contract_id = ctd.contract_id and ct.name like CONCAT('%', #{name}, '%')
+		union
+		select tb.*, 5 as typeSearch from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+		inner join CONTRACT_DOC ctd on ctd.folder_id = fd.folder_id
+		inner join CONTRACT ct on ct.contract_id = ctd.contract_id and ct.name like CONCAT('%', #{name}, '%')
+		</if>
+		<if test="name!=null and typeSearch==6">
+		union
+		select tb.*, 6 as typeSearch from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+		inner join CONSTRUCTION_DOC csd on csd.folder_id = fd.folder_id
+		inner join CONSTRUCTION cst on cst.construction_id = csd.construction_id and cst.name like CONCAT('%', #{name}, '%')
+		union
+		select tb.*, 6 as typeSearch from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+		inner join CONSTRUCTION_DOC csd on csd.folder_id = fd.folder_id
+		inner join CONSTRUCTION cst on cst.construction_id = csd.construction_id and cst.name like CONCAT('%', #{name}, '%')
+		</if>
+	
+		<if test="name!=null and typeSearch==7">
+		union
+		select tb.*, 7 as typeSearch from TIN_BOX tb
+                  inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+                  inner join OFFICIAL_DISPATCH od on fd.folder_id = od.folder_id
+             and od.name like CONCAT('%', #{name}, '%') and od.type=1
+		union
+		select tb.*, 7 as typeSearch from TIN_BOX tb
+                  inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+                  inner join OFFICIAL_DISPATCH od on fd.folder_id = od.folder_id
+             and od.name like CONCAT('%', #{name}, '%') and od.type=1
+		</if>
+		
+		<if test="name!=null and typeSearch==8">
+		union
+		select tb.*, 8 as typeSearch from TIN_BOX tb
+                  inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+                  inner join OFFICIAL_DISPATCH od on fd.folder_id = od.folder_id
+             and od.name like CONCAT('%', #{name}, '%') and od.type=0
+		union
+		select tb.*, 8 as typeSearch from TIN_BOX tb
+                  inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+                  inner join OFFICIAL_DISPATCH od on fd.folder_id = od.folder_id
+             and od.name like CONCAT('%', #{name}, '%') and od.type=0
+		</if>
+		
+		<if test="name!=null and typeSearch==9">
+		union
+		select tb.*, 9 as typeSearch from TIN_BOX tb
+         inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+         inner join VOUCHER v on v.folder_id = fd.folder_id and v.name like CONCAT('%', #{name}, '%') and v.type = 4
+		union
+		select tb.*, 9 as typeSearch from TIN_BOX tb
+         inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+         inner join VOUCHER v on v.folder_id = fd.folder_id and v.name like CONCAT('%', #{name}, '%') and v.type = 4
+		</if>
+		
+		<if test="name!=null and typeSearch==10">
+		union
+		select tb.*, 10 as typeSearch from TIN_BOX tb
+         inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+         inner join VOUCHER v on v.folder_id = fd.folder_id and v.name like CONCAT('%', #{name}, '%') and v.type = 6
+		union
+		select tb.*, 10 as typeSearch from TIN_BOX tb
+         inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+         inner join VOUCHER v on v.folder_id = fd.folder_id and v.name like CONCAT('%', #{name}, '%') and v.type = 6
+		</if>
+		
+		<if test="name!=null and typeSearch==11">
+		union
+         select tb.*, 11 as typeSearch from TIN_BOX tb
+         inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit} AND tb.del_flag = 0 AND fd.del_flag = 0
+         inner join PAYMENT_SUMMARY ps on fd.folder_id = ps.folder_id and ps.name like CONCAT('%', #{name}, '%')
+		</if>
+		) A
+		inner join WAREHOUSE w on A.warehouse_id = w.warehouse_id
+		And A.DEL_FLAG = 0
+		<if test="viewAll != true">
+			AND A.CREATE_USER = #{queryUser}
+		</if>
+		ORDER BY A.QR_CODE DESC LIMIT #{pageNo}, 20
+	</select>
+	
+	
+	<!-- getRelationProjectContract -->
+	<select id="getRelationProjectContract"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.ContractDetail"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ContractDetail">
+		SELECT 
+		distinct
+		c.CONTRACT_ID as contractId,
+		c.PROJECT_ID as projectId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONTRACT c
+		INNER JOIN CONTRACT_PROJECT cp
+		on cp.contract_id = c.contract_id and cp.contract_id = #{contractId} and cp.project_id = #{projectId}
+	</select>
+	
+	<!-- insertRelationProjectContract -->
+	<insert id="insertRelationProjectContract"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.ContractDetail">
+		INSERT INTO CONTRACT_PROJECT(
+			contract_id,
+			project_id,
+			create_user,
+			create_date
+		)
+		VALUES(
+			#{contractId},
+			#{projectId},
+			#{updateUser},
+			SYSDATE()
+		)
+	</insert>
+	
+	<!-- getRelationProjectConstruction -->
+	<select id="getRelationProjectConstruction"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.ConstructionDetail"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ConstructionDetail">
+		SELECT 
+		distinct
+		c.CONTRACT_ID as contractId,
+		c.CONSTRUCTION_ID as constructionId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONSTRUCTION c
+		INNER JOIN CONSTRUCTION_PROJECT cp
+		on cp.CONSTRUCTION_ID = c.CONSTRUCTION_ID and cp.CONSTRUCTION_ID = #{constructionId} and cp.project_id = #{projectId}
+		and cp.del_flag = 0
+	</select>
+	
+	<!-- insertRelationProjectConstruction -->
+	<insert id="insertRelationProjectConstruction"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.ConstructionDetail">
+		INSERT INTO CONSTRUCTION_PROJECT(
+			construction_id,
+			project_id,
+			create_user,
+			create_date,
+			del_flag
+		)
+		VALUES(
+			#{constructionId},
+			#{projectId},
+			#{updateUser},
+			SYSDATE(),
+			0
+		)
+	</insert>
+	
+	<!-- getConstructionInFolder -->
+	<select id="getConstructionInFolder"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.ConstructionDetail"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ConstructionDetail">
+		SELECT
+		distinct
+		c.CONTRACT_ID as contractId,
+		c.CONSTRUCTION_ID as constructionId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONSTRUCTION c
+		INNER JOIN CONSTRUCTION_DOC cd
+		on c.CONSTRUCTION_ID = cd.CONSTRUCTION_ID and cd.CONSTRUCTION_ID = #{constructionId} 
+		<!-- and cd.folder_id = #{folderId} -->
+		INNER JOIN CONSTRUCTION_PROJECT cp on cp.CONSTRUCTION_ID = c.CONSTRUCTION_ID
+		INNER JOIN PROJECT_IN_FOLDER pif on pif.PROJECT_ID = cp.PROJECT_ID and cd.FOLDER_ID = pif.FOLDER_ID
+		AND cd.FOLDER_ID != 0
+	</select>
+	
+	<!-- remoceRelationProjectConstruction -->
+	<update id="remoceRelationProjectConstruction"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.ConstructionDetail">
+		UPDATE CONSTRUCTION_PROJECT AS cp
+		SET 
+		cp.del_flag = 1,
+		update_date = SYSDATE(),
+		update_user = #{updateUser}
+		WHERE cp.CONSTRUCTION_ID = #{constructionId}
+		AND cp.PROJECT_ID = #{projectId}
+	</update>
+	
+	
+	<!-- getContractIdFromDocId -->
+	<select id="getContractIdFromDocId"
+		parameterType="long"
+		resultType="long">
+		SELECT
+		distinct
+		CONTRACT_ID 
+		FROM CONTRACT_DOC cd
+		WHERE cd.CONTRACT_DOC_ID = #{contractDocId}
+	</select>
+	
+	<!-- getConstructionIdFromDocId -->
+	<select id="getConstructionIdFromDocId"
+		parameterType="long"
+		resultType="long">
+		SELECT
+		distinct
+		CONSTRUCTION_ID 
+		FROM CONSTRUCTION_DOC cd
+		WHERE cd.CONSTRUCTION_DOC_ID = #{constructionDocId}
+	</select>
+	
+	<!-- getContractIdFromConstructionId -->
+	<select id="getContractIdFromConstructionId"
+		parameterType="long"
+		resultType="long">
+		SELECT
+		distinct
+		CONTRACT_ID 
+		FROM CONSTRUCTION c
+		WHERE c.CONSTRUCTION_ID = #{constructionId}
+	</select>
+	
+	<select id="countTotalTinBox"
+		parameterType="int"
+		resultType="int">
+		SELECT 
+			COUNT(*)
+		FROM
+			TIN_BOX
+		WHERE
+			DEL_FLAG = 0
+		AND
+			WAREHOUSE_ID = #{warehouseId}
+		
+	</select>
+	
+	<select id="countOccupiedSlot"
+		parameterType="int"
+		resultType="int">
+		SELECT 
+			COUNT(*)
+		FROM
+			SLOT SL		
+		JOIN
+			RACK R 
+		WHERE 
+			SL.DEL_FLAG = 0 AND SL.QR_CODE != ""	
+		AND
+			SL.RACK_ID = R.RACK_ID		
+		AND
+			R.WAREHOUSE_ID = #{warehouseId}
+		
+	</select>
+	
+	<!-- getListFolderByQrCode -->
+	<select id="getListFolderByQrCode"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.FolderDetail">
+		SELECT 
+		f.FOLDER_ID as folderId,
+		f.TIN_BOX_ID as tinBoxId,
+		f.NAME as name,
+		f.QR_CODE as qrCode,
+		f.STATUS as status,
+		f.BORROW_ID as borrowId
+		FROM FOLDER f
+		WHERE 
+		f.QR_CODE = #{qrCode}
+		AND f.UNIT = #{unit}
+		AND f.DEL_FLAG = 0
+		ORDER BY NAME ASC LIMIT 0, 1
+	</select>
+	
+	<select id="searchFolderByNameOrQrCode" 
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.SearchFolderResponse">
+		SELECT f.folder_id AS 'folderId', f.tin_box_id AS 'tinBoxId', f.name as 'folderName', 
+			f.qr_code AS 'folderQrCode', t.name AS 'tinBoxName', t.qr_code AS 'tinBoxQrCode'
+		FROM FOLDER f
+		JOIN TIN_BOX t
+		ON f.tin_box_id = t.tin_box_id and f.unit = #{unit}
+		WHERE f.del_flag = 0 AND t.del_flag = 0
+		AND (
+			f.qr_code LIKE CONCAT('%', #{keyword}, '%') 
+			OR 
+			f.name LIKE CONCAT('%', #{keyword}, '%') 
+			OR 
+			t.qr_code LIKE CONCAT('%', #{keyword}, '%')
+			OR 
+			t.name LIKE CONCAT('%', #{keyword}, '%')
+			)
+		ORDER BY f.name
+		LIMIT #{offset}, #{pageSize}
+	</select>
+	
+	<select id="searchFolderByNameOrQrCodeTotalRecord" resultType="int">
+		SELECT count(*)
+		FROM FOLDER f
+		JOIN TIN_BOX t
+		ON f.tin_box_id = t.tin_box_id and f.unit = #{unit}
+		WHERE f.del_flag = 0 AND t.del_flag = 0
+		AND (
+			f.qr_code LIKE CONCAT('%', #{keyword}, '%') 
+			OR 
+			f.name LIKE CONCAT('%', #{keyword}, '%') 
+			OR 
+			t.qr_code LIKE CONCAT('%', #{keyword}, '%')
+			OR 
+			t.name LIKE CONCAT('%', #{keyword}, '%')
+			)
+		ORDER BY f.name
+	</select>
+	
+	<select id="getProjectsInFolder"
+		parameterType ="long"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ProjectDetail">
+		SELECT p.project_id as 'projectId', p.name as 'name', p.code as 'code' FROM PROJECT p
+		JOIN PROJECT_IN_FOLDER pif
+		ON p.project_id = pif.project_id AND p.STATUS = 1
+		WHERE pif.folder_id = #{folderId} AND pif.del_flag = 0
+	</select>
+	
+	<select id="getProjectsNotInFolder"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ProjectDetail">
+		SELECT project_id as 'projectId', name as 'name', code as 'code' FROM project
+		WHERE unit=#{unit} and `status` = 1
+		AND project_id NOT IN 
+			(SELECT pj.project_id FROM PROJECT pj
+			JOIN PROJECT_IN_FOLDER pif
+			ON pj.project_id = pif.project_id AND pj.STATUS = 1
+			WHERE pif.folder_id = #{folderId} AND  pif.del_flag = 0)
+			
+		AND (
+			project_id IN 
+				(SELECT DISTINCT project_id from PROJECT_DOC where folder_id = 0)
+			OR project_id IN
+				(SELECT DISTINCT project_id FROM PACKAGE pk
+				JOIN PACKAGE_DOC pkd ON pkd.package_id = pk.package_id
+				WHERE pkd.folder_id = 0)
+			OR project_id IN
+				(SELECT DISTINCT ct.project_id FROM CONTRACT ct
+				JOIN CONTRACT_DOC cd ON cd.contract_id = ct.contract_id
+				WHERE cd.folder_id = 0)
+			OR project_id IN 
+				(SELECT DISTINCT cp.project_id FROM CONTRACT_PROJECT cp 
+				JOIN CONSTRUCTION cons ON cons.contract_id = cp.contract_id
+				JOIN CONSTRUCTION_DOC cond ON cond.construction_id = cons.construction_id
+				WHERE cond.folder_id = 0)
+			)
+	</select>
+	
+	<select id="getType1Warehouses"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseDetail"
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseDetail">
+		SELECT
+			a.warehouse_id as warehouseId,
+			a.name as name,
+			a.address as address,
+			a.type as type,
+			a.status as status,
+			a.acreage as acreage,
+			a.del_flag as delFlag,
+			a.row_num as rowNum,
+			a.column_num as columnNum,
+			a.height_num as heightNum			
+		FROM
+			warehouse as a 		
+		<where>
+			 a.del_flag = '0'
+			 AND a.status = '1'
+			 AND a.type = '1'
+			 <if test="name != null">
+				<bind name="name" value="'%' + name + '%'" />
+				AND a.name like #{name}
+			</if> 
+		</where> 
+ 
+		 
+		ORDER BY a.name ASC
+
+	</select>
+	
+	<select id="getTinBoxInType1Warehouse"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail">
+		SELECT
+			a.tin_box_id as tinBoxId,
+			a.name as name,
+			a.qr_code as qrCode,
+			a.description as description,
+			a.warehouse_id as warehouseId,
+			a.slot_id as slotId,
+			w.NAME as warehouseName,
+			a.index as 'index',
+			a.mng_user as mngUser,
+			a.type as type
+		FROM
+			tin_box as a 
+		INNER JOIN WAREHOUSE w
+		ON w.WAREHOUSE_ID = a.WAREHOUSE_ID
+		
+		<where>
+			w.del_flag='0' and w.type = '1'
+			AND a.del_flag='0'
+			<if test="index != 0">
+				AND a.index = #{index}
+			</if> 
+			<if test="warehouseId != 0">
+				AND a.warehouse_id = #{warehouseId}
+			</if>
+			<if test="mngUser != null">
+				<bind name="mngUser" value="'%' + mngUser + '%'" />
+				AND a.mng_user like #{mngUser}
+			</if> 
+			<if test="name != null">
+				<bind name="name" value="'%' + name + '%'" />
+				AND a.name like #{name}
+			</if> 
+		</where> 
+ 
+		 
+		ORDER BY a.update_date DESC, a.create_date DESC
+
+	</select>
+	
+	<select id="searchDocument"
+		resultType = "com.viettel.vtnet360.vt07.vt070002.entity.DocumentReportRecord">
+		SELECT * FROM 
+			(SELECT pd.folder_id AS folderId, pd.name AS documentName, p.name AS projectName, '' as packageName, '' AS contractName, '' AS constructionName
+			
+			from PROJECT_DOC pd
+			JOIN PROJECT p ON p.project_id = pd.project_id  AND p.STATUS = 1
+			WHERE pd.folder_id !=0
+			
+			UNION
+			
+			SELECT pkgd.folder_id AS folderId, pkgd.name AS documentName, p.name AS projectName, pkg.name AS packageName, '' AS contractName, '' AS constructionName
+			from PACKAGE_DOC pkgd
+			JOIN PACKAGE pkg ON  pkg.package_id = pkgd.package_id
+			JOIN PROJECT p ON p.project_id = pkg.project_id  AND p.STATUS = 1
+			WHERE pkgd.folder_id !=0
+			
+			UNION
+			
+			SELECT cd.folder_id AS folderId, cd.name AS documentName, p.name AS projectName, '' AS packageName, c.name AS contractName, '' AS constructionName
+			from CONTRACT_DOC cd
+			JOIN CONTRACT c ON  c.contract_id = cd.contract_id
+			JOIN CONTRACT_PROJECT cp ON c.contract_id = cp.contract_id
+			JOIN PROJECT p ON p.project_id = cp.project_id  AND p.STATUS = 1
+			WHERE cd.folder_id !=0
+			
+			UNION
+			
+			SELECT cond.folder_id AS folderId, cond.name AS documentName, p.name AS projectName, '' AS packageName, '' AS contractName, con.name AS constructionName
+			from CONSTRUCTION_DOC cond
+			JOIN CONSTRUCTION con ON  con.construction_id = cond.construction_id
+			JOIN CONSTRUCTION_PROJECT conp ON conp.construction_id = con.construction_id
+			JOIN PROJECT p ON p.project_id = conp.project_id  AND p.STATUS = 1
+			WHERE cond.folder_id !=0
+			) TABLE1
+			
+		JOIN 
+			(SELECT f.folder_id AS folderId, tb.qr_code as tinBoxQRCode, tb.name as tinBoxName, f.qr_code as folderQRCode, f.name AS folderName,
+				w.name AS warehouseName, CONCAT(r.`row`,"/",r.`column`,"/",s.height) AS `position`, s.qr_code as `positionQRCode`
+			FROM WAREHOUSE w JOIN TIN_BOX tb ON tb.warehouse_id = w.warehouse_id AND w.`status` = 1
+			JOIN FOLDER f ON tb.tin_box_id = f.tin_box_id and f.unit = #{unit}
+			JOIN SLOT s ON s.slot_id = tb.slot_id AND s.`status` = 1 AND s.del_flag = 0
+			JOIN RACK r ON r.rack_id = s.rack_id AND r.del_flag = 0 AND r.`type` = 2 ORDER BY r.`row`, r.`column`, s.height) TABLE2
+					
+		ON TABLE1.folderId = TABLE2.folderId
+		<if test="keyword != null">
+			AND TABLE1.documentName like CONCAT('%', #{keyword}, '%')
+		</if>
+		
+		<if test="pageSize > 0">
+			LIMIT #{pageSize}
+			<if test="offset > 0 ">
+				 OFFSET #{offset}
+			</if>
+		</if>
+			
+	</select>
+	
+	<select id="getProjectsInTinBox" resultType="com.viettel.vtnet360.vt07.vt070002.entity.ProjectDetail">
+		SELECT distinct p.project_id as 'projectId', p.name FROM PROJECT p
+			JOIN PROJECT_IN_FOLDER pif ON pif.project_id = p.project_id
+			JOIN FOLDER f ON f.folder_id = pif.folder_id 
+			JOIN TIN_BOX tb ON tb.tin_box_id = f.tin_box_id
+			
+			WHERE tb.tin_box_id = #{tinBoxId}
+			AND tb.unit = #{unit}
+			AND f.unit = #{unit}
+			AND p.unit = #{unit}
+			AND f.del_flag = 0 AND pif.del_flag = 0 AND tb.del_flag = 0
+	</select>
+	
+	<select id="searchDocumentsByKeyword" resultType="com.viettel.vtnet360.vt07.vt070002.entity.SearchDocumentResponse">
+	Select * from (
+		SELECT 
+			pd.project_doc_id AS 'documentId', pd.name AS 'documentName', pd.folder_id AS 'folderId', f.name AS 'folderName', tb.tin_box_id AS 'tinBoxId', tb.name AS 'tinBoxName', pj.project_id AS 'projectId', pj.name AS 'projectName', 'Project Document' AS 'documentType'
+		FROM PROJECT_DOC pd
+		JOIN FOLDER f ON pd.folder_id = f.folder_id
+		JOIN PROJECT pj ON pd.project_id = pj.project_id
+		JOIN TIN_BOX tb ON tb.tin_box_id = f.tin_box_id
+		
+		WHERE pd.folder_id != 0 and pd.name LIKE CONCAT('%', #{keyword}, '%')
+		AND f.unit = #{unit} AND pj.unit = #{unit} AND tb.unit = #{unit}
+		AND f.del_flag = 0 AND tb.del_flag = 0
+		
+		UNION
+		
+		SELECT 
+			pkgd.package_doc_id AS 'documentId', pkgd.name AS 'documentName', pkgd.folder_id AS 'folderId', f.name AS 'folderName', tb.tin_box_id AS 'tinBoxId', tb.name AS 'tinBoxName', pj.project_id AS 'projectId', pj.name AS 'projectName', 'Package Document' AS 'documentType'
+		FROM PACKAGE_DOC pkgd
+		JOIN FOLDER f ON pkgd.folder_id = f.folder_id
+		JOIN PACKAGE pkg ON pkgd.package_id = pkg.package_id
+		JOIN PROJECT pj ON pj.project_id = pkg.project_id
+		JOIN TIN_BOX tb ON tb.tin_box_id = f.tin_box_id
+		
+		WHERE pkgd.folder_id != 0 and pkgd.name LIKE CONCAT('%', #{keyword}, '%')
+		AND f.unit = #{unit} AND pj.unit = #{unit} AND tb.unit = #{unit}
+		AND f.del_flag = 0 AND tb.del_flag = 0
+		
+		UNION
+		
+		SELECT 
+			cd.contract_doc_id AS 'documentId', cd.name AS 'documentName', cd.folder_id AS 'folderId', f.name AS 'folderName', tb.tin_box_id AS 'tinBoxId', tb.name AS 'tinBoxName', pj.project_id AS 'projectId', pj.name AS 'projectName', 'Contract Document' AS 'documentType'
+		FROM CONTRACT_DOC cd
+		JOIN FOLDER f ON cd.folder_id = f.folder_id
+		JOIN CONTRACT ct ON ct.contract_id = cd.contract_id
+		JOIN PROJECT pj ON pj.project_id = ct.project_id
+		JOIN TIN_BOX tb ON tb.tin_box_id = f.tin_box_id
+		
+		WHERE cd.folder_id != 0 and cd.name LIKE CONCAT('%', #{keyword}, '%')
+		AND f.unit = #{unit} AND pj.unit = #{unit} AND tb.unit = #{unit}
+		AND f.del_flag = 0 AND tb.del_flag = 0
+		
+		
+		UNION
+		
+		SELECT
+			cond.construction_doc_id AS 'documentId', cond.name AS 'documentName', cond.folder_id AS 'folderId',  f.name AS 'folderName',  tb.tin_box_id AS 'tinBoxId', tb.name AS 'tinBoxName', pj.project_id AS 'projectId', pj.name AS 'projectName', 'Construction Document' AS 'documentType'
+		FROM CONSTRUCTION_DOC cond
+		JOIN CONSTRUCTION cons ON cond.construction_id = cons.construction_id
+		JOIN CONTRACT ct ON ct.contract_id = cons.contract_id
+		JOIN PROJECT pj ON pj.project_id = ct.project_id
+		JOIN FOLDER f ON cond.folder_id = f.folder_id
+		JOIN TIN_BOX tb ON tb.tin_box_id = f.tin_box_id
+		
+		WHERE cond.folder_id != 0 and cond.name LIKE CONCAT('%', #{keyword}, '%')
+		AND f.unit = #{unit} AND pj.unit = #{unit} AND tb.unit = #{unit}
+		AND f.del_flag = 0 AND tb.del_flag = 0
+		
+	) allResultTable LIMIT #{pageSize} OFFSET #{offset}
+		
+	</select>
+	
+	<!-- Group region -->
+	
+	<!-- getListTinBoxGroup -->
+	<select id="getListTinBoxGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail">
+		SELECT 
+		distinct
+		tb.TIN_BOX_ID as tinBoxId,
+		tb.NAME as name,
+		tb.QR_CODE as qrCode,
+		tb.DESCRIPTION as description,
+		tb.STATUS as status,
+		tb.WAREHOUSE_ID as warehouseId,
+		w.NAME as warehouseName,
+		s.QR_CODE as slotQrCode,
+		tb.SLOT_ID as slotId,
+		tb.INDEX as 'index',
+		tb.MNG_USER as mngUser,
+		tb.CREATE_USER as createUser,
+		w.TYPE as warehouseType
+		FROM TIN_BOX_GROUP tb
+		LEFT JOIN WAREHOUSE_GROUP w
+		ON w.WAREHOUSE_ID = tb.WAREHOUSE_ID 
+		LEFT JOIN SLOT_GROUP s
+		ON s.SLOT_ID = tb.SLOT_ID
+		<!-- WHERE r.WAREHOUSE_ID = #{warehouseId} -->
+		WHERE tb.DEL_FLAG = 0 and tb.unit = #{unit}
+			<if test="name != null">
+				AND tb.NAME LIKE CONCAT('%', #{name}, '%')
+			</if>
+			<if test="tinBoxId != 0">
+				AND tb.TIN_BOX_ID = #{tinBoxId}
+			</if>
+			<if test="viewAll != true">
+				AND tb.CREATE_USER = #{queryUser}
+			</if>
+		<!-- ORDER BY tb.UPDATE_DATE DESC LIMIT #{pageNo}, 20 -->
+	</select>
+	
+	<!-- getListTinBoxByQrCodeGroup -->
+	<select id="getListTinBoxByQrCodeGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail">
+		SELECT 
+		distinct
+		tb.TIN_BOX_ID as tinBoxId,
+		tb.NAME as name,
+		tb.QR_CODE as qrCode,
+		tb.DESCRIPTION as description,
+		tb.STATUS as status,
+		tb.WAREHOUSE_ID as warehouseId,
+		w.NAME as warehouseName,
+		s.QR_CODE as slotQrCode,
+		tb.SLOT_ID as slotId,
+		tb.INDEX as 'index',
+		tb.MNG_USER as mngUser,
+		tb.CREATE_USER as createUser
+		FROM TIN_BOX_GROUP tb
+		LEFT JOIN WAREHOUSE_GROUP w
+		ON w.WAREHOUSE_ID = tb.WAREHOUSE_ID 
+		LEFT JOIN SLOT_GROUP s
+		ON s.SLOT_ID = tb.SLOT_ID
+		WHERE tb.DEL_FLAG = 0
+		AND (tb.QR_CODE = #{qrCode}
+		OR TB.TIN_BOX_ID IN (SELECT F.TIN_BOX_ID FROM FOLDER_GROUP F WHERE F.qr_code = #{qrCode} AND F.del_flag = 0))
+		AND tb.unit = #{unit}
+		<if test="viewAll != true">
+			AND tb.CREATE_USER = #{queryUser}
+		</if>
+		ORDER BY tb.UPDATE_DATE DESC LIMIT 0, 1
+	</select>
+	
+	<select id="getTotalRecordTinBoxGroup" resultType="int"
+	parameterType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail">
+		SELECT COUNT(*)
+		FROM TIN_BOX_GROUP as a
+		WHERE tb.DEL_FLAG = 0
+			<if test="index != null">
+				AND a.index >= #{index}
+			</if>
+			<if test="warehouseId != 0">
+				AND a.warehouse_id = #{warehouseId}
+			</if>
+			 <if test="error != null">
+				<bind name="error" value="'%' + error + '%'" />
+				AND a.type like #{error}
+			</if>
+			<if test="mngUser != null">
+				<bind name="mngUser" value="'%' + mngUser + '%'" />
+				AND a.mng_user like #{mngUser}
+			</if>
+			<if test="name != null">
+				<bind name="name" value="'%' + name + '%'" />
+				AND a.name like #{name}
+			</if>
+	</select>
+	
+	<select id="findTypeWarehouseDetailGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseDetail"
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseDetail">
+		SELECT
+			a.warehouse_id as warehouseId,
+			a.name as name,
+			a.address as address,
+			a.type as type,
+			a.status as status,
+			a.acreage as acreage,
+			a.del_flag as delFlag,
+			a.row_num as rowNum,
+			a.column_num as columnNum,
+			a.height_num as heightNum			
+		FROM
+			warehouse_group as a 		
+		<where>
+			 a.del_flag = '0'
+			 AND a.status = '1'
+			 <if test="name != null">
+				<bind name="name" value="'%' + name + '%'" />
+				AND a.name like #{name}
+			</if> 
+		</where> 
+ 
+		 
+		ORDER BY a.name ASC
+
+	</select>	
+	<!-- searchListTinBoxGroup -->
+	<select id="searchListTinBoxGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail">
+		SELECT
+			a.tin_box_id as tinBoxId,
+			a.name as name,
+			a.qr_code as qrCode,
+			a.description as description,
+			a.warehouse_id as warehouseId,
+			a.slot_id as slotId,
+			w.NAME as warehouseName,
+			a.index as 'index',
+			a.mng_user as mngUser,
+			a.type as type
+		FROM
+			tin_box_group as a 
+		INNER JOIN WAREHOUSE_GROUP w
+		ON w.WAREHOUSE_ID = a.WAREHOUSE_ID
+		
+		<where>
+			w.del_flag='0'
+			AND a.del_flag='0'
+			<if test="index != 0">
+				AND a.index = #{index}
+			</if> 
+			<if test="warehouseId != 0">
+				AND a.warehouse_id = #{warehouseId}
+			</if> 
+			 <if test="type != null">
+				<bind name="type" value="'%' + type + '%'" />
+				AND a.type like #{type}
+			</if> 
+			<if test="mngUser != null">
+				<bind name="mngUser" value="'%' + mngUser + '%'" />
+				AND a.mng_user like #{mngUser}
+			</if> 
+			<if test="name != null">
+				<bind name="name" value="'%' + name + '%'" />
+				AND a.name like #{name}
+			</if> 
+		</where> 
+ 
+		 
+		ORDER BY a.update_date DESC, a.create_date DESC
+
+	</select>
+	
+	<update id="updateTinboxByInformationGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail">
+		UPDATE TIN_BOX_GROUP AS a
+		SET 
+		a.name = #{name},
+		a.index =  #{index},
+		a.mng_user = #{mngUser},
+		a.type = #{type},
+		a.warehouse_id = #{warehouseId},
+		a.update_date = now()
+		WHERE a.tin_box_id = #{tinBoxId}
+		AND a.del_flag = 0
+	</update>
+	
+	<!-- getNumberOfTinBoxGroup -->
+	<select id="getNumberOfTinBoxGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.RequestParam"
+		resultType="int">
+		select 
+        count()
+		from (
+		select *, 1 as typeSearch from TIN_BOX where tin_box_id = 0
+		<if test="name==null">
+			union
+			select *, 1 as typeSearch from TIN_BOX where unit = #{unit}
+		</if>
+		<if test="name==null and typeSearch == 0">
+			union
+			select *, 1 as typeSearch from TIN_BOX where name like CONCAT('%', #{name}, '%') AND unit = #{unit}
+		</if>
+		<if test="name!=null and typeSearch==1" >
+			union
+			select *, 1 as typeSearch from TIN_BOX where name like CONCAT('%', #{name}, '%') AND unit = #{unit}
+		</if>
+		<if test="name!=null and typeSearch==2">
+			union
+			select tb.*, 2 as typeSearch from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and fd.name like CONCAT('%', #{name}, '%')
+			AND tb.unit = #{unit}
+		</if>
+		<if test="name!=null and typeSearch==3">
+		union
+		select tb.*, 3 as typeSearch from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+		inner join PROJECT_DOC pjd on pjd.folder_id = fd.folder_id
+		inner join PROJECT pj on pj.project_id = pjd.project_id and pj.name like CONCAT('%', #{name}, '%')  AND pj.STATUS = 1
+		union
+	    select tb.*, 3 as typeSearch from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+		inner join PROJECT_DOC pjd on pjd.folder_id = fd.folder_id
+		inner join PROJECT pj on pj.project_id = pjd.project_id and pj.name like CONCAT('%', #{name}, '%')  AND pj.STATUS = 1
+		</if>
+		<if test="name!=null and typeSearch==4">
+		union
+		select tb.*, 4 as typeSearch from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+		inner join PACKAGE_DOC pkd on pkd.folder_id = fd.folder_id
+		inner join PACKAGE pk on pk.package_id = pkd.package_id and pk.name like CONCAT('%', #{name}, '%')
+		union
+		select tb.*, 4 as typeSearch from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+		inner join PACKAGE_DOC pkd on pkd.folder_id = fd.folder_id
+		inner join PACKAGE pk on pk.package_id = pkd.package_id and pk.name like CONCAT('%', #{name}, '%')
+		</if>
+		<if test="name!=null and typeSearch==5">
+		union
+		select tb.*, 5 as typeSearch from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+		inner join CONTRACT_DOC ctd on ctd.folder_id = fd.folder_id
+		inner join CONTRACT ct on ct.contract_id = ctd.contract_id and ct.name like CONCAT('%', #{name}, '%')
+		union
+		select tb.*, 5 as typeSearch from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+		inner join CONTRACT_DOC ctd on ctd.folder_id = fd.folder_id
+		inner join CONTRACT ct on ct.contract_id = ctd.contract_id and ct.name like CONCAT('%', #{name}, '%')
+		</if>
+		<if test="name!=null and typeSearch==6">
+		union
+		select tb.*, 6 as typeSearch from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+		inner join CONSTRUCTION_DOC csd on csd.folder_id = fd.folder_id
+		inner join CONSTRUCTION cst on cst.construction_id = csd.construction_id and cst.name like CONCAT('%', #{name}, '%')
+		union
+		select tb.*, 6 as typeSearch from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+		inner join CONSTRUCTION_DOC csd on csd.folder_id = fd.folder_id
+		inner join CONSTRUCTION cst on cst.construction_id = csd.construction_id and cst.name like CONCAT('%', #{name}, '%')
+		</if>
+	
+		<if test="name!=null and typeSearch==7">
+		union
+		select tb.*, 7 as typeSearch from TIN_BOX tb
+                  inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+                  inner join OFFICIAL_DISPATCH_TRAVELS_DOC odtd on fd.folder_id = odtd.folder_id
+                  inner join OFFICIAL_DISPATCH od on od.folder_id = fd.folder_id
+             and od.name like CONCAT('%', #{name}, '%') and od.type=1
+		union
+		select tb.*, 7 as typeSearch from TIN_BOX tb
+                  inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+                  inner join OFFICIAL_DISPATCH_TRAVELS_DOC odtd on fd.folder_id = odtd.folder_id
+                  inner join OFFICIAL_DISPATCH od on od.folder_id = fd.folder_id
+             and od.name like CONCAT('%', #{name}, '%') and od.type=1
+		</if>
+		
+		<if test="name!=null and typeSearch==8">
+		union
+		select tb.*, 8 as typeSearch from TIN_BOX tb
+                  inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+                  inner join INCOMING_OFFICIAL_DISPATCH_DOC iodd on iodd.official_dispatch_id = od.official_dispatch_id
+                  inner join OFFICIAL_DISPATCH od on od.folder_id = fd.folder_id
+             and od.name like CONCAT('%', #{name}, '%') and od.type=0
+		union
+		select tb.*, 8 as typeSearch from TIN_BOX tb
+                  inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+                  inner join INCOMING_OFFICIAL_DISPATCH_DOC iodd on iodd.official_dispatch_id = od.official_dispatch_id
+                  inner join OFFICIAL_DISPATCH od on od.folder_id = fd.folder_id
+             and od.name like CONCAT('%', #{name}, '%') and od.type=0
+		</if>
+		
+		<if test="name!=null and typeSearch==9">
+		union
+		select tb.*, 9 as typeSearch from TIN_BOX tb
+         inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+         inner join VOUCHER v on v.folder_id = fd.folder_id and v.name like CONCAT('%', #{name}, '%') and v.type = 4
+         inner join VOUCHER_DOC vd on v.voucher_id = vd.voucher_id
+		union
+		select tb.*, 9 as typeSearch from TIN_BOX tb
+         inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+         inner join VOUCHER v on v.folder_id = fd.folder_id and v.name like CONCAT('%', #{name}, '%') and v.type = 4
+         inner join VOUCHER_DOC vd on v.voucher_id = vd.voucher_id
+		</if>
+		
+		<if test="name!=null and typeSearch==10">
+		union
+		select tb.*, 10 as typeSearch from TIN_BOX tb
+         inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+         inner join VOUCHER v on v.folder_id = fd.folder_id and v.name like CONCAT('%', #{name}, '%') and v.type = 6
+         inner join VOUCHER_DOC vd on v.voucher_id = vd.voucher_id
+		union
+		select tb.*, 10 as typeSearch from TIN_BOX tb
+         inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+         inner join VOUCHER v on v.folder_id = fd.folder_id and v.name like CONCAT('%', #{name}, '%') and v.type = 6
+         inner join VOUCHER_DOC vd on v.voucher_id = vd.voucher_id
+		</if>
+		
+		<if test="name!=null and typeSearch==11">
+		union
+         select tb.*, 11 as typeSearch from TIN_BOX tb
+         inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+         inner join PAYMENT_SUMMARY ps on fd.folder_id = ps.folder_id and ps.name like CONCAT('%', #{name}, '%')
+         inner join PAYMENT_SUMMARY_DOC psd on fd.folder_id = psd.folder_id
+		</if>
+		) A
+		inner join WAREHOUSE w on A.warehouse_id = w.warehouse_id
+		And A.DEL_FLAG = 0
+		<if test="viewAll != true">
+			AND A.CREATE_USER = #{queryUser}
+		</if>
+	</select>
+	
+	<!-- getListFolderByTinBoxIdGroup -->
+	<select id="getListFolderByTinBoxIdGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.FolderDetail">
+		SELECT 
+		f.FOLDER_ID as folderId,
+		f.TIN_BOX_ID as tinBoxId,
+		f.NAME as name,
+		f.QR_CODE as qrCode,
+		f.STATUS as status,
+		f.BORROW_ID as borrowId
+		FROM FOLDER_GROUP f
+		WHERE f.TIN_BOX_ID = #{tinBoxId}
+		<if test="folderId != 0">
+			AND f.FOLDER_ID = #{folderId}
+		</if>
+		AND f.DEL_FLAG = 0
+		ORDER BY NAME ASC LIMIT #{pageNo}, 20
+	</select>
+	
+	<!-- getNumberOfFolderByTinBoxIdGroup -->
+	<select id="getNumberOfFolderByTinBoxIdGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.RequestParam"
+		resultType="int">
+		SELECT 
+		count(*)		 
+		FROM FOLDER_GROUP f
+		WHERE f.TIN_BOX_ID = #{tinBoxId}
+		<if test="folderId != 0">
+			AND f.FOLDER_ID = #{folderId}
+		</if>
+		AND f.DEL_FLAG = 0
+	</select>
+	
+	<!-- getListProjectByFolderIdGroup -->
+	<select id="getListProjectByFolderIdGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ProjectDetail">
+		SELECT 
+		p.PROJECT_ID as projectId,
+		p.NAME as name,
+		p.DESCRIPTION as description,
+		p.STATUS as status,
+		p.ERP_ID as erpId,
+		p.CODE as code
+		FROM PROJECT_GROUP p
+		INNER JOIN PROJECT_IN_FOLDER_GROUP pif on p.PROJECT_ID = pif.PROJECT_ID AND pif.DEL_FLAG = 0 AND p.STATUS = 1
+		INNER JOIN FOLDER_GROUP f on f.FOLDER_ID = pif.FOLDER_ID
+		WHERE f.FOLDER_ID = #{folderId}
+		<if test="projectId != 0">
+			AND p.PROJECT_ID = #{projectId}
+		</if>
+		ORDER BY pif.UPDATE_DATE DESC LIMIT #{pageNo}, 20
+	</select>
+	
+	<!-- getNumberOfProjectByFolderIdGroup -->
+	<select id="getNumberOfProjectByFolderIdGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.RequestParam"
+		resultType="int">
+		SELECT 
+		count(*)
+		FROM PROJECT_GROUP p
+		INNER JOIN PROJECT_IN_FOLDER_GROUP pif on p.PROJECT_ID = pif.PROJECT_ID AND pif.DEL_FLAG = 0  AND p.STATUS = 1
+		INNER JOIN FOLDER_GROUP f on f.FOLDER_ID = pif.FOLDER_ID
+		WHERE f.FOLDER_ID = #{folderId}
+		<if test="projectId != 0">
+			AND p.PROJECT_ID = #{projectId}
+		</if>
+	</select>
+	
+	<!-- getListProjectOutFolderGroup -->
+	<select id="getListProjectOutFolderGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ProjectDetail">
+		SELECT 
+		p.PROJECT_ID as projectId,
+		p.NAME as name,
+		p.DESCRIPTION as description,
+		p.STATUS as status,
+		p.ERP_ID as erpId,
+		p.CODE as code
+		FROM PROJECT_GROUP p
+		LEFT JOIN PROJECT_IN_FOLDER_GROUP pif on p.projectId = pif.projectId AND p.STATUS = 1
+		<where>
+			<if test="folderId != 0">
+				AND pif.FOLDER_ID != #{folderId}
+			</if>
+			<if test="name != null">
+				AND p.NAME LIKE CONCAT('%', #{name}, '%')
+			</if>
+			<if test="projectId != 0">
+				AND p.PROJECT_ID = #{projectId}
+			</if>
+		</where> 
+		ORDER BY UPDATE_DATE DESC LIMIT #{pageNo}, 20
+	</select>
+
+	<!-- insertTinBoxGroup -->
+	<insert id="insertTinBoxGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail"
+		keyProperty="tinBoxId" keyColumn="TIN_BOX_ID">
+		INSERT INTO TIN_BOX_GROUP(
+			NAME,
+			QR_CODE,
+			DESCRIPTION,
+			STATUS,
+			WAREHOUSE_ID,
+			SLOT_ID,
+			CREATE_DATE,
+			UPDATE_DATE,
+			UPDATE_USER,
+			CREATE_USER,
+			`INDEX`,
+			MNG_USER,
+			UNIT
+		)
+		VALUES(
+			#{name},
+			#{qrCode},
+			#{description},
+			#{status},
+			#{warehouseId},
+			#{slotId},
+			SYSDATE(),
+			SYSDATE(),
+			#{createUser},
+			#{createUser},
+			#{index},
+			#{mngUser},
+			#{unit}
+		)
+		<selectKey keyProperty="tinBoxId" resultType="long"
+            order="AFTER">
+            SELECT LAST_INSERT_ID();
+        </selectKey>
+	</insert>
+	
+	<!-- insertFolderGroup -->
+	<insert id="insertFolderGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.FolderDetail"
+		keyProperty="folderId" keyColumn="FOLDER_ID">
+		INSERT INTO FOLDER_GROUP(
+			NAME,
+			QR_CODE,
+			STATUS,
+			TIN_BOX_ID,
+			CREATE_DATE,
+			UPDATE_DATE,
+			UPDATE_USER,
+			CREATE_USER,
+			UNIT
+		)
+		VALUES(
+			#{name},
+			#{qrCode},
+			#{status},
+			#{tinBoxId},
+			SYSDATE(),
+			SYSDATE(),
+			#{createUser},
+			#{createUser},
+			#{unit}
+		)
+		<selectKey keyProperty="folderId" resultType="long"
+            order="AFTER">
+            SELECT LAST_INSERT_ID();
+        </selectKey>
+	</insert>
+	
+	<!-- updateProjectDocDetailGroup -->
+	<update id="updateProjectDocDetailGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.ProjectDocDetail">
+		UPDATE PROJECT_DOC_GROUP
+		SET
+		FOLDER_ID=#{folderId}
+		WHERE
+		PROJECT_DOC_ID=#{projectDocId}
+		<if test="folderId != 0">
+			AND (FOLDER_ID = 0 OR FOLDER_ID = null)
+		</if>
+	</update>
+	
+	<!-- updateProjectOfContractGroup -->
+	<update id="updateProjectOfContractGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.ContractDetail">
+		UPDATE CONTRACT_GROUP
+		SET
+		PROJECT_ID=#{projectId}
+		WHERE
+		CONTRACT_ID=#{contractId}
+	</update>
+	
+	<!-- updateContractDocDetailGroup -->
+	<update id="updateContractDocDetailGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.ContractDocDetail">
+		UPDATE CONTRACT_DOC_GROUP
+		SET
+		FOLDER_ID=#{folderId}
+		WHERE
+		CONTRACT_DOC_ID=#{contractDocId}
+		<if test="folderId != 0">
+			AND (FOLDER_ID = 0 OR FOLDER_ID = null)
+		</if>
+	</update>
+	
+	<!-- updateConstructionDocDetailGroup -->
+	<update id="updateConstructionDocDetailGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.ConstructionDocDetail">
+		UPDATE CONSTRUCTION_DOC_GROUP
+		SET
+		FOLDER_ID=#{folderId}
+		WHERE
+		CONSTRUCTION_DOC_ID=#{constructionDocId}
+		<if test="folderId != 0">
+			AND (FOLDER_ID = 0 OR FOLDER_ID = null)
+		</if>
+	</update>
+	
+	<!-- updatePackageDocDetailGroup -->
+	<update id="updatePackageDocDetailGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.PackageDocDetail">
+		UPDATE PACKAGE_DOC_GROUP
+		SET
+		FOLDER_ID=#{folderId}
+		WHERE
+		PACKAGE_DOC_ID=#{packageDocId}
+		<if test="folderId != 0">
+			AND (FOLDER_ID = 0 OR FOLDER_ID = null)
+		</if>
+	</update>
+	
+	<!-- insertProjectInFoderDetailGroup -->
+	<insert id="insertProjectInFoderDetailGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.ProjectInFoderDetail"
+		keyProperty="projectInFolderId" keyColumn="PROJECT_IN_FOLDER_ID">
+		INSERT INTO PROJECT_IN_FOLDER_GROUP(
+			PROJECT_ID,
+			FOLDER_ID,
+			DEL_FLAG,
+			CREATE_DATE,
+			UPDATE_DATE,
+			UPDATE_USER,
+			CREATE_USER
+		)
+		VALUES(
+			#{projectId},
+			#{folderId},
+			#{delFlag},
+			SYSDATE(),
+			SYSDATE(),
+			#{createUser},
+			#{createUser}
+		)
+		<selectKey keyProperty="projectInFolderId" resultType="long"
+            order="AFTER">
+            SELECT LAST_INSERT_ID();
+        </selectKey>
+	</insert>
+	
+	<!-- updateTinBoxGroup -->
+	<update id="updateTinBoxGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail">
+		UPDATE TIN_BOX_GROUP
+		SET NAME = #{name},
+			QR_CODE = #{qrCode},
+			DESCRIPTION = #{description},
+			STATUS = #{status},
+			WAREHOUSE_ID = #{warehouseId},
+			SLOT_ID = #{slotId},
+			UPDATE_DATE = SYSDATE(),
+			UPDATE_USER = #{updateUser},
+			DEL_FLAG = #{delFlag}
+		WHERE
+			TIN_BOX_ID = #{tinBoxId}
+		AND DEL_FLAG = 0
+	</update>
+	
+	<!-- updateFolderGroup -->
+	<update id="updateFolderGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.FolderDetail">
+		UPDATE FOLDER_GROUP
+		SET	NAME = #{name},
+			QR_CODE = #{qrCode},
+			STATUS = #{status},
+			TIN_BOX_ID = #{tinBoxId},
+			UPDATE_DATE = SYSDATE(),
+			UPDATE_USER = #{updateUser},
+			DEL_FLAG = #{delFlag}
+		WHERE
+			FOLDER_ID = #{folderId}
+		AND DEL_FLAG = 0
+	</update>
+	
+	<!-- checkProjectInFolderGroup -->
+	<select id="checkProjectInFolderGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultMap="resultCheckProjectInFolder">
+		SELECT p.* FROM PROJECT_GROUP p
+		INNER JOIN PROJECT_DOC_GROUP pd on p.PROJECT_ID = pd.PROJECT_ID AND pd.FOLDER_ID = #{folderId} and p.PROJECT_ID = #{projectId} AND p.STATUS = 1
+		UNION
+		SELECT p.* FROM PROJECT_GROUP p
+		INNER JOIN PACKAGE_GROUP pk on pk.PROJECT_ID = p.PROJECT_ID and p.PROJECT_ID = #{projectId} AND p.STATUS = 1
+		INNER JOIN PACKAGE_DOC_GROUP pd on pd.PACKAGE_ID = pk.PACKAGE_ID AND pd.FOLDER_ID = #{folderId}
+		UNION
+		SELECT p.* FROM PROJECT_GROUP p
+		INNER JOIN CONTRACT_PROJECT_GROUP cp on cp.PROJECT_ID = p.PROJECT_ID and p.PROJECT_ID = #{projectId} AND p.STATUS = 1
+		INNER JOIN CONTRACT_GROUP c on c.CONTRACT_ID = cp.CONTRACT_ID 
+		INNER JOIN CONTRACT_DOC_GROUP cd on cd.CONTRACT_ID = c.CONTRACT_ID AND cd.FOLDER_ID = #{folderId}
+		UNION
+		SELECT p.* FROM PROJECT_GROUP p
+		INNER JOIN CONTRACT_PROJECT_GROUP cp on cp.PROJECT_ID = p.PROJECT_ID and p.PROJECT_ID = #{projectId} AND p.STATUS = 1
+		INNER JOIN CONTRACT_GROUP c on c.CONTRACT_ID = cp.CONTRACT_ID 
+		INNER JOIN CONSTRUCTION_GROUP cst on c.CONTRACT_ID = cst.CONTRACT_ID
+		INNER JOIN CONSTRUCTION_PROJECT_GROUP ctp on ctp.CONSTRUCTION_ID = cst.CONSTRUCTION_ID and ctp.PROJECT_ID = #{projectId}
+		INNER JOIN CONSTRUCTION_DOC_GROUP cd on cd.CONSTRUCTION_ID = cst.CONSTRUCTION_ID AND cd.FOLDER_ID = #{folderId}
+	</select>
+	
+	<!-- removeProjectInFoderDetailGroup -->
+	<update id="removeProjectInFoderDetailGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.ProjectInFoderDetail">
+		UPDATE PROJECT_IN_FOLDER_GROUP
+		SET	
+			DEL_FLAG = #{delFlag},
+			UPDATE_DATE = SYSDATE(),
+			UPDATE_USER = #{updateUser}
+		WHERE
+			FOLDER_ID = #{folderId}
+			AND PROJECT_ID = #{projectId}
+	</update>
+	
+	
+	<!-- getProjectsGroup -->
+	<select id="getProjectsGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ProjectDetail">
+		SELECT 
+		DISTINCT
+		p.PROJECT_ID as projectId,
+		p.NAME as name,
+		p.DESCRIPTION as description,
+		p.STATUS as status,
+		p.ERP_ID as erpId,
+		p.CODE as code
+		FROM PROJECT_GROUP p
+		WHERE p.UNIT = #{unit} AND p.STATUS = 1
+		AND p.PROJECT_ID NOT IN 
+		(SELECT pif.PROJECT_ID FROM PROJECT_IN_FOLDER_GROUP pif where pif.FOLDER_ID = #{folderId} AND pif.DEL_FLAG=0 AND pif.FOLDER_ID != 0)
+		<!-- LEFT JOIN PROJECT_IN_FOLDER pif on pif.PROJECT_ID = p.PROJECT_ID and pif.FOLDER_ID != #{folderId} -->
+		
+		<if test="projectId != 0">
+			AND p.PROJECT_ID = #{projectId}
+		</if>
+		<if test="exceptObjIds.size() > 0 and objectType == 0">
+			AND p.PROJECT_ID NOT IN
+			<foreach collection="exceptObjIds" item="item" index="index" open="(" separator="," close=")">
+				#{item.id}
+	   		</foreach>
+   		</if>
+		<if test="name != null and objectType == 0">
+			AND p.NAME LIKE CONCAT('%', #{name}, '%')
+		</if>
+		<if test="objectType == 0">
+			LIMIT #{pageNo}, 20
+		</if>
+		
+	</select>
+	
+	<!-- getPackagesGroup -->
+	<select id="getPackagesGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.PackageDetail">
+		SELECT 
+		DISTINCT
+		p.PACKAGE_ID as packageId,
+		p.PROJECT_ID as projectId,
+		p.NAME as name,
+		p.DESCRIPTION as description,
+		p.STATUS as status,
+		p.ERP_ID as erpId,
+		p.CODE as code
+		FROM PACKAGE_GROUP p
+		INNER JOIN PACKAGE_DOC_GROUP pd on pd.PACKAGE_ID = p.PACKAGE_ID and pd.FOLDER_ID = 0
+		WHERE p.PROJECT_ID = #{projectId}
+		<if test="exceptObjIds.size() > 0 and objectType == 1">
+		AND p.PACKAGE_ID NOT IN
+		<foreach collection="exceptObjIds" item="item" index="index" open="(" separator="," close=")">
+			#{item.id}
+   		</foreach>
+   		</if>
+   		<if test="name != null and objectType == 1">
+			AND p.NAME LIKE CONCAT('%', #{name}, '%')
+		</if>
+		<if test="packageId != 0">
+			AND p.PACKAGE_ID = #{packageId}
+		</if>
+		<if test="objectType == 1">
+			LIMIT #{pageNo}, 20
+		</if>
+	</select>
+	
+	<!-- getContractsGroup -->
+	<select id="getContractsGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ContractDetail">
+		SELECT 
+		DISTINCT
+		c.CONTRACT_ID as contractId,
+		c.PROJECT_ID as projectId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONTRACT_GROUP c
+		INNER JOIN (
+			select contract_id from CONTRACT_DOC_GROUP cd where cd.folder_id = 0
+			<if test="exceptObjIds.size() > 0 and objectType == 2">
+			AND cd.CONTRACT_ID NOT IN
+				<foreach collection="exceptObjIds" item="item" index="index" open="(" separator="," close=")">
+					#{item.id}
+	   			</foreach>
+	   		</if>
+	   		<if test="contractId != 0">
+				AND cd.CONTRACT_ID = #{contractId}
+			</if>
+			union
+			select contract_id from CONSTRUCTION_GROUP ct
+			inner join CONSTRUCTION_DOC_GROUP ctd on ct.construction_id = ctd.construction_id
+			<if test="exceptObjIds.size() > 0 and objectType == 2">
+			AND ct.CONTRACT_ID NOT IN
+				<foreach collection="exceptObjIds" item="item" index="index" open="(" separator="," close=")">
+					#{item.id}
+	   			</foreach>
+	   		</if>
+	   		<if test="contractId != 0">
+				AND ct.CONTRACT_ID = #{contractId}
+			</if>
+		) cti
+		on cti.contract_id = c.contract_id 
+		<if test="name != null and objectType == 2">
+			AND c.NAME LIKE CONCAT('%', #{name}, '%')
+		</if>
+		and c.STATUS = 1
+		<if test="objectType == 2">
+			LIMIT #{pageNo}, 20
+		</if>
+	</select>
+	
+	<!-- getConstructionsGroup -->
+	<select id="getConstructionsGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ConstructionDetail">
+		SELECT
+		DISTINCT
+		c.CONTRACT_ID as contractId,
+		c.CONSTRUCTION_ID as constructionId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONSTRUCTION_GROUP c
+		INNER JOIN CONSTRUCTION_DOC_GROUP cd on cd.CONSTRUCTION_ID = c.CONSTRUCTION_ID and cd.FOLDER_ID = 0
+		LEFT JOIN CONSTRUCTION_PROJECT_GROUP cp on c.CONSTRUCTION_ID = cp.CONSTRUCTION_ID 
+		and cp.DEL_FLAG = 0 
+		<!-- and cp.PROJECT_ID = #{projectId}  -->
+		WHERE c.CONTRACT_ID = #{contractId}
+		AND (cp.project_id is null or cp.project_id = #{projectId})
+		<if test="exceptObjIds.size() > 0 and objectType == 3">
+		AND c.CONSTRUCTION_ID NOT IN
+			<foreach collection="exceptObjIds" item="item" index="index" open="(" separator="," close=")">
+				#{item.id}
+   			</foreach>
+   		</if>
+   		<if test="name != null and objectType == 3">
+			AND c.NAME LIKE CONCAT('%', #{name}, '%')
+		</if>
+		<if test="constructionId != 0">
+			AND c.CONSTRUCTION_ID = #{constructionId}
+		</if>
+		<if test="objectType == 3">
+			LIMIT #{pageNo}, 20
+		</if>
+	</select>	
+	
+	<!-- getAvailProjectDocsGroup -->
+	<select id="getAvailProjectDocsGroup"
+		parameterType="long"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ProjectDocDetail">
+		SELECT 
+		pd.PROJECT_DOC_ID as projectDocId,
+		pd.PROJECT_ID as projectId,
+		pd.FOLDER_ID as folderId,
+		pd.NAME as name,
+		pd.TYPE as type
+		FROM PROJECT_DOC_GROUP pd
+		WHERE pd.PROJECT_ID = #{projectId} AND pd.FOLDER_ID = 0
+	</select>
+	
+	<!-- getAvailPackageDocsGroup -->
+	<select id="getAvailPackageDocsGroup"
+		parameterType="long"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.PackageDocDetail">
+		SELECT 
+		pd.PACKAGE_DOC_ID as packageDocId,
+		pd.PACKAGE_ID as packageId,
+		pd.FOLDER_ID as folderId,
+		pd.NAME as name,
+		pd.TYPE as type
+		FROM PACKAGE_DOC_GROUP pd
+		WHERE pd.PACKAGE_ID = #{packageId} AND pd.FOLDER_ID = 0
+	</select>
+	
+	<!-- getAvailContractDocsGroup -->
+	<select id="getAvailContractDocsGroup"
+		parameterType="long"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ContractDocDetail">
+		SELECT 
+		pd.CONTRACT_DOC_ID as contractDocId,
+		pd.CONTRACT_ID as contractId,
+		pd.FOLDER_ID as folderId,
+		pd.NAME as name,
+		pd.TYPE as type
+		FROM CONTRACT_DOC_GROUP pd
+		WHERE pd.CONTRACT_ID = #{contractId} AND pd.FOLDER_ID = 0
+	</select>
+	
+	<!-- getAvailConstructionDocsGroup -->
+	<select id="getAvailConstructionDocsGroup"
+		parameterType="long"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ConstructionDocDetail">
+		SELECT 
+		pd.CONSTRUCTION_DOC_ID as constructionDocId,
+		pd.CONSTRUCTION_ID as constructiontId,
+		pd.FOLDER_ID as folderId,
+		pd.NAME as name,
+		pd.TYPE as type
+		FROM CONSTRUCTION_DOC_GROUP pd
+		WHERE pd.CONSTRUCTION_ID = #{constructionId} AND pd.FOLDER_ID = 0
+	</select>
+	
+	<!-- getProjectByIdGroup -->
+	<select id="getProjectByIdGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ProjectDetail">
+		SELECT 
+		p.PROJECT_ID as projectId,
+		p.NAME as name,
+		p.DESCRIPTION as description,
+		p.STATUS as status,
+		p.ERP_ID as erpId,
+		p.CODE as code
+		FROM PROJECT_GROUP p
+		<!-- INNER JOIN PROJECT_IN_FOLDER pif on p.PROJECT_ID = pif.PROJECT_ID AND pif.DEL_FLAG = 0
+		INNER JOIN FOLDER f on f.FOLDER_ID = pif.FOLDER_ID -->
+		WHERE
+		<!-- f.FOLDER_ID = #{folderId} AND --> 
+		p.PROJECT_ID = #{projectId} AND p.STATUS = 1
+	</select>
+	
+	<!-- getProjectDocInFolderGroup -->
+	<select id="getProjectDocInFolderGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ProjectDocDetail">
+		SELECT 
+		pd.PROJECT_DOC_ID as projectDocId,
+		pd.PROJECT_ID as projectId,
+		pd.FOLDER_ID as folderId,
+		pd.NAME as name,
+		pd.TYPE as type
+		FROM PROJECT_DOC_GROUP pd
+		WHERE pd.PROJECT_ID = #{projectId} AND (pd.FOLDER_ID = 0 OR pd.FOLDER_ID = #{folderId})
+	</select>
+	
+	<!-- getProjectPackagesInFolderGroup -->
+	<select id="getProjectPackagesInFolderGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.PackageDetail">
+		SELECT 
+		DISTINCT
+		p.PACKAGE_ID as packageId,
+		p.PROJECT_ID as projectId,
+		p.NAME as name,
+		p.DESCRIPTION as description,
+		p.STATUS as status,
+		p.ERP_ID as erpId,
+		p.CODE as code
+		FROM PACKAGE_GROUP p
+		INNER JOIN PACKAGE_DOC_GROUP pd on pd.PACKAGE_ID = p.PACKAGE_ID and (pd.FOLDER_ID = #{folderId} OR pd.FOLDER_ID = 0)
+		WHERE p.PROJECT_ID = #{projectId}
+	</select>
+	
+		<!-- getProjectPackagesInFolderSuperGroup -->
+	<select id="getProjectPackagesInFolderSuperGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.PackageDetail">
+		SELECT 
+		DISTINCT
+		p.PACKAGE_ID as packageId,
+		p.PROJECT_ID as projectId,
+		p.NAME as name,
+		p.DESCRIPTION as description,
+		p.STATUS as status,
+		p.ERP_ID as erpId,
+		p.CODE as code
+		FROM PACKAGE_GROUP p
+		INNER JOIN PACKAGE_DOC_GROUP pd on pd.PACKAGE_ID = p.PACKAGE_ID and (pd.FOLDER_ID = 0 OR pd.FOLDER_ID = #{folderId})
+		WHERE p.PROJECT_ID = #{projectId}
+		<!-- LIMIT 0, 5 -->
+	</select>
+	
+	<!-- getPackageDocInFolderGroup -->
+	<select id="getPackageDocInFolderGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.PackageDocDetail">
+		SELECT 
+		pd.PACKAGE_DOC_ID as packageDocId,
+		pd.PACKAGE_ID as packageId,
+		pd.FOLDER_ID as folderId,
+		pd.NAME as name,
+		pd.TYPE as type
+		FROM PACKAGE_DOC_GROUP pd
+		WHERE pd.PACKAGE_ID = #{packageId} AND (pd.FOLDER_ID = 0 OR pd.FOLDER_ID = #{folderId})
+	</select>
+	
+	<!-- getPackageContractsInFolderGroup -->
+	<select id="getPackageContractsInFolderGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ContractDetail">
+		SELECT
+		DISTINCT
+		c.CONTRACT_ID as contractId,
+		c.PROJECT_ID as projectId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONTRACT_GROUP c
+		<!-- INNER JOIN CONTRACT_PROJECT cp on cp.CONTRACT_ID = c.CONTRACT_ID and (cp.PROJECT_ID = #{projectId} or c.PROJECT_ID = #{projectId}) -->
+		INNER JOIN CONTRACT_DOC_GROUP cd on cd.CONTRACT_ID = c.CONTRACT_ID
+		<!-- and (c.PROJECT_ID = #{projectId} or c.contract_id in (select contract_id from CONTRACT_PROJECT_GROUP where project_id = #{projectId}))	-->
+		and (c.package_id = #{packageId}) 
+		LEFT JOIN CONSTRUCTION_GROUP ct on ct.CONTRACT_ID = c.CONTRACT_ID
+		LEFT JOIN CONSTRUCTION_DOC_GROUP ctd on ctd.CONSTRUCTION_ID = ct.CONSTRUCTION_ID
+		WHERE ((cd.FOLDER_ID = #{folderId} OR cd.FOLDER_ID = 0) or (ctd.FOLDER_ID = #{folderId} OR ctd.FOLDER_ID = 0))
+		<!--  WHERE c.PROJECT_ID = #{projectId} and (cd.FOLDER_ID = #{folderId} or ctd.FOLDER_ID = #{folderId}) -->
+	</select>
+	
+	<!-- getProjectContractsInFolderSuperGroup -->
+	<select id="getProjectContractsInFolderSuperGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ContractDetail">
+		SELECT * FROM (
+		SELECT
+		DISTINCT
+		c.CONTRACT_ID as contractId,
+		c.PROJECT_ID as projectId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONTRACT_GROUP c
+		INNER JOIN CONTRACT_DOC_GROUP cd on cd.CONTRACT_ID = c.CONTRACT_ID
+		WHERE (cd.FOLDER_ID = 0 or cd.FOLDER_ID = #{folderId})
+		and c.PROJECT_ID = #{projectId} 
+		UNION
+		SELECT
+		DISTINCT
+		c.CONTRACT_ID as contractId,
+		c.PROJECT_ID as projectId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONTRACT_GROUP c
+		INNER JOIN CONSTRUCTION_GROUP ct on ct.CONTRACT_ID = c.CONTRACT_ID
+		INNER JOIN CONSTRUCTION_DOC_GROUP ctd on ctd.CONSTRUCTION_ID = ct.CONSTRUCTION_ID
+		WHERE (ctd.FOLDER_ID = 0 or ctd.FOLDER_ID = #{folderId})
+		and c.PROJECT_ID = #{projectId} 
+		UNION
+		SELECT
+		DISTINCT
+		c.CONTRACT_ID as contractId,
+		c.PROJECT_ID as projectId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONTRACT_GROUP c
+		<!-- INNER JOIN CONTRACT_PROJECT cp on cp.CONTRACT_ID = c.CONTRACT_ID and (cp.PROJECT_ID = #{projectId} or c.PROJECT_ID = #{projectId}) -->
+		INNER JOIN CONTRACT_DOC_GROUP cd on cd.CONTRACT_ID = c.CONTRACT_ID
+		and (c.PROJECT_ID = #{projectId} or c.contract_id in (select contract_id from CONTRACT_PROJECT_GROUP where project_id = #{projectId}))	
+		LEFT JOIN CONSTRUCTION_GROUP ct on ct.CONTRACT_ID = c.CONTRACT_ID
+		LEFT JOIN CONSTRUCTION_DOC_GROUP ctd on ctd.CONSTRUCTION_ID = ct.CONSTRUCTION_ID
+		WHERE (cd.FOLDER_ID = #{folderId} or ctd.FOLDER_ID = #{folderId})
+		) A 
+	</select>
+	 
+	<!-- getContractDocInFolderGroup -->
+	<select id="getContractDocInFolderGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ContractDocDetail">
+		SELECT 
+		pd.CONTRACT_DOC_ID as contractDocId,
+		pd.CONTRACT_ID as contractId,
+		pd.FOLDER_ID as folderId,
+		pd.NAME as name,
+		pd.TYPE as type
+		FROM CONTRACT_DOC_GROUP pd
+		WHERE pd.CONTRACT_ID = #{contractId} AND (pd.FOLDER_ID = 0 OR pd.FOLDER_ID = #{folderId})
+	</select>
+	
+	<!-- getProjectConstructionsInFolderGroup -->
+	<select id="getProjectConstructionsInFolderGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ConstructionDetail">
+		SELECT 
+		DISTINCT
+		c.CONSTRUCTION_ID as constructionId,
+		c.CONTRACT_ID as contractId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONSTRUCTION_GROUP c
+		INNER JOIN CONSTRUCTION_DOC_GROUP cd on cd.CONSTRUCTION_ID = c.CONSTRUCTION_ID and (cd.FOLDER_ID = #{folderId} OR cd.FOLDER_ID = 0) and c.CONTRACT_ID = #{contractId}
+		and (c.contract_id in (select contract_id from CONTRACT_GROUP where project_id=#{projectId})
+		or c.construction_id in (select construction_id from CONSTRUCTION_PROJECT_GROUP where project_id = #{projectId} and del_flag = 0))
+	</select>
+	
+	<!-- getProjectConstructionsInFolderSuperGroup -->
+	<select id="getProjectConstructionsInFolderSuperGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ConstructionDetail">
+		SELECT 
+		DISTINCT
+		c.CONSTRUCTION_ID as constructionId,
+		c.CONTRACT_ID as contractId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONSTRUCTION_GROUP c
+		INNER JOIN CONSTRUCTION_DOC_GROUP cd on cd.CONSTRUCTION_ID = c.CONSTRUCTION_ID and (cd.FOLDER_ID = 0 or cd.FOLDER_ID = #{folderId})
+		WHERE c.CONTRACT_ID = #{contractId}		
+	</select>
+	
+	<!-- getConstructionDocInFolderGroup -->
+	<select id="getConstructionDocInFolderGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ConstructionDocDetail">
+		SELECT 
+		pd.CONSTRUCTION_DOC_ID as constructionDocId,
+		pd.CONSTRUCTION_ID as constructionId,
+		pd.FOLDER_ID as folderId,
+		pd.NAME as name,
+		pd.TYPE as type
+		FROM CONSTRUCTION_DOC_GROUP pd
+		WHERE pd.CONSTRUCTION_ID = #{constructionId} AND (pd.FOLDER_ID = 0 OR pd.FOLDER_ID = #{folderId})
+	</select>
+	
+	<!-- removeDocsProjectInFolderGroup -->
+	<update id="removeDocsProjectInFolderGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam">
+		UPDATE PROJECT_DOC_GROUP
+		SET	
+			FOLDER_ID = 0
+		WHERE
+			FOLDER_ID = #{folderId}
+			<if test="projectId != 0">
+			AND PROJECT_ID = #{projectId}
+			</if>
+	</update>
+	
+	<!-- removeDocsPackageInFolderGroup -->
+	<update id="removeDocsPackageInFolderGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam">
+		UPDATE PACKAGE_DOC_GROUP
+		SET	
+			FOLDER_ID = 0
+		WHERE
+			FOLDER_ID = #{folderId}
+			<if test="projectId != 0">
+			AND PACKAGE_ID IN (SELECT PACKAGE_ID FROM PACKAGE_GROUP WHERE PROJECT_ID = #{projectId})
+			</if>
+	</update>
+	
+	<!-- removeDocsContractInFolderGroup -->
+	<update id="removeDocsContractInFolderGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam">
+		UPDATE CONTRACT_DOC_GROUP
+		SET	
+			FOLDER_ID = 0
+		WHERE
+			FOLDER_ID = #{folderId}
+			<if test="projectId != 0">
+			AND CONTRACT_ID IN (SELECT CONTRACT_ID FROM CONTRACT_GROUP WHERE PROJECT_ID = #{projectId})
+			</if>
+	</update>
+	
+	<!-- removeDocsConstructionInFolderGroup -->
+	<update id="removeDocsConstructionInFolderGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam">
+		UPDATE CONSTRUCTION_DOC_GROUP
+		SET	
+			FOLDER_ID = 0
+		WHERE
+			FOLDER_ID = #{folderId}
+			<if test="projectId != 0">
+			AND CONSTRUCTION_ID IN (
+				SELECT CONSTRUCTION_ID FROM CONSTRUCTION_GROUP 
+				INNER JOIN CONTRACT_GROUP on CONSTRUCTION.CONTRACT_ID = CONTRACT.CONTRACT_ID
+				AND CONTRACT.PROJECT_ID = #{projectId}
+			)
+			</if>
+	</update>
+	
+	
+	<!-- getAllProjectDocumentWithWarehouseIdGroup -->
+	<select id="getAllProjectDocumentWithWarehouseIdGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.DocumentReportRecord">
+		SELECT p.project_id as projectId, p.name AS projectName, pd.name as projectDoc, pa.name AS packageName, pad.name AS packageDoc, 
+		c.name AS contractName, cd.name AS contractDoc, co.name AS constructionName, cod.name AS constructionDoc,
+		tb.qr_code as tinBoxQRCode, tb.name as tinBoxName, f.qr_code as folderQRCode, f.name AS folderName,
+		w.name AS warehouseName, CONCAT(r.`row`,"/",r.`column`,"/",s.height) AS `position`, s.qr_code as `positionQRCode`
+		FROM WAREHOUSE_GROUP w JOIN TIN_BOX_GROUP tb ON tb.warehouse_id = w.warehouse_id AND w.warehouse_id = #{warehouseId} AND w.`status` = 1 AND tb.`status` = 1
+		AND tb.`del_flag` = 0 and w.`del_flag` = 0
+		JOIN FOLDER_GROUP f ON tb.tin_box_id = f.tin_box_id AND f.`status` = 1 AND f.del_flag = 0
+		JOIN PROJECT_DOC_GROUP pd ON pd.folder_id = f.folder_id
+		JOIN PROJECT_GROUP p ON p.project_id = pd.project_id AND p.`status` = 1
+		LEFT JOIN PACKAGE_GROUP pa ON pa.project_id = p.project_id and pa.`status` = 1
+		LEFT JOIN PACKAGE_DOC_GROUP pad ON pad.package_id = pa.package_id AND pad.folder_id = f.folder_id
+		LEFT JOIN CONTRACT_GROUP c ON c.project_id = p.project_id and c.`status` = 1
+		LEFT JOIN CONTRACT_DOC_GROUP cd ON cd.contract_id = c.contract_id AND cd.folder_id = f.folder_id
+		LEFT JOIN CONSTRUCTION_GROUP co ON co.contract_id = c.contract_id and co.`status` = 1
+		LEFT JOIN CONSTRUCTION_DOC_GROUP cod ON cod.construction_id = co.construction_id AND cod.folder_id = f.folder_id
+		JOIN SLOT_GROUP s ON s.slot_id = tb.slot_id AND s.`status` = 1 AND s.del_flag = 0
+		JOIN RACK_GROUP r ON r.rack_id = s.rack_id AND r.del_flag = 0 AND r.`type` = 2
+	</select>
+	
+	<!-- getProjectDocumentWithWarehouseIdGroup -->
+	<select id="getProjectDocumentWithWarehouseIdGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.DocumentReportRecord">
+		SELECT p.project_id as projectId, p.name AS projectName, pd.name as projectDoc, pa.name AS packageName, pad.name AS packageDoc, 
+		c.name AS contractName, cd.name AS contractDoc, co.name AS constructionName, cod.name AS constructionDoc,
+		tb.qr_code as tinBoxQRCode, tb.name as tinBoxName, f.qr_code as folderQRCode, f.name AS folderName,
+		w.name AS warehouseName, CONCAT(r.`row`,"/",r.`column`,"/",s.height) AS `position`, s.qr_code as `positionQRCode`
+		FROM WAREHOUSE_GROUP w JOIN TIN_BOX_GROUP tb ON tb.warehouse_id = w.warehouse_id AND w.warehouse_id = #{warehouseId} AND w.`status` = 1 AND tb.`status` = 1
+		JOIN FOLDER_GROUP f ON tb.tin_box_id = f.tin_box_id AND f.`status` = 1
+		JOIN PROJECT_DOC_GROUP pd ON pd.folder_id = f.folder_id
+		JOIN PROJECT_GROUP p ON p.project_id = pd.project_id AND p.`status` = 1
+		LEFT JOIN PACKAGE_GROUP pa ON pa.project_id = p.project_id and pa.`status` = 1
+		LEFT JOIN PACKAGE_DOC_GROUP pad ON pad.package_id = pa.package_id AND pad.folder_id = f.folder_id
+		LEFT JOIN CONTRACT_GROUP c ON c.project_id = p.project_id and c.`status` = 1
+		LEFT JOIN CONTRACT_DOC_GROUP cd ON cd.contract_id = c.contract_id AND cd.folder_id = f.folder_id
+		LEFT JOIN CONSTRUCTION_GROUP co ON co.contract_id = c.contract_id and co.`status` = 1
+		LEFT JOIN CONSTRUCTION_DOC_GROUP cod ON cod.construction_id = co.construction_id AND cod.folder_id = f.folder_id
+		JOIN SLOT_GROUP s ON s.slot_id = tb.slot_id AND s.`status` = 1 AND s.del_flag = 0
+		JOIN RACK_GROUP r ON r.rack_id = s.rack_id AND r.del_flag = 0 AND r.`type` = 2 ORDER BY r.`row`, r.`column`, s.height
+		LIMIT #{pageNumber}, #{pageSize}
+	</select>
+	
+	<!-- Count PROJECT Doc by WAREHOUSE -->
+	<select id="countProjectDocumentWithWarehouseIdGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="int">
+		SELECT count(*)
+		FROM WAREHOUSE_GROUP w JOIN TIN_BOX_GROUP tb ON tb.warehouse_id = w.warehouse_id AND w.warehouse_id = #{warehouseId} AND w.`status` = 1 AND tb.`status` = 1
+		JOIN FOLDER_GROUP f ON tb.tin_box_id = f.tin_box_id AND f.`status` = 1
+		JOIN PROJECT_DOC_GROUP pd ON pd.folder_id = f.folder_id
+		JOIN PROJECT_GROUP p ON p.project_id = pd.project_id AND p.`status` = 1
+		LEFT JOIN PACKAGE_GROUP pa ON pa.project_id = p.project_id and pa.`status` = 1
+		LEFT JOIN PACKAGE_DOC_GROUP pad ON pad.package_id = pa.package_id AND pad.folder_id = f.folder_id
+		LEFT JOIN CONTRACT_GROUP c ON c.project_id = p.project_id and c.`status` = 1
+		LEFT JOIN CONTRACT_DOC_GROUP cd ON cd.contract_id = c.contract_id AND cd.folder_id = f.folder_id
+		LEFT JOIN CONSTRUCTION_GROUP co ON co.contract_id = c.contract_id and co.`status` = 1
+		LEFT JOIN CONSTRUCTION_DOC_GROUP cod ON cod.construction_id = co.construction_id AND cod.folder_id = f.folder_id
+		JOIN SLOT_GROUP s ON s.slot_id = tb.slot_id AND s.`status` = 1 AND s.del_flag = 0
+		JOIN RACK_GROUP r ON r.rack_id = s.rack_id AND r.del_flag = 0 AND r.`type` = 2 ORDER BY r.`row`, r.`column`, s.height
+	</select>
+	
+	<!-- Count PROJECT Tinbox by WAREHOUSE -->
+	<select id="countProjectTinboxWithWarehouseIdGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="int">
+		
+		SELECT COUNT(*) FROM (SELECT DISTINCT tb.tin_box_id
+		FROM WAREHOUSE_GROUP w JOIN TIN_BOX_GROUP tb ON tb.warehouse_id = w.warehouse_id AND w.warehouse_id = #{warehouseId} AND w.`status` = 1 AND tb.`status` = 1
+		JOIN FOLDER_GROUP f ON tb.tin_box_id = f.tin_box_id AND f.`status` = 1
+		JOIN PROJECT_DOC_GROUP pd ON pd.folder_id = f.folder_id) tbl;
+	</select>
+	
+	<!-- Count PROJECT FOLDER by WAREHOUSE -->
+	<select id="countProjectFolderWithWarehouseIdGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="int">
+		
+		SELECT COUNT(*)
+		FROM WAREHOUSE_GROUP w JOIN TIN_BOX_GROUP tb ON tb.warehouse_id = w.warehouse_id AND w.warehouse_id = #{warehouseId} AND w.`status` = 1 AND tb.`status` = 1
+		JOIN FOLDER_GROUP f ON tb.tin_box_id = f.tin_box_id AND f.`status` = 1
+		JOIN PROJECT_DOC_GROUP pd ON pd.folder_id = f.folder_id;
+	</select>
+	
+	<select id="getDocumentInWarehouseGroup"
+		parameterType = "integer"
+		resultType = "com.viettel.vtnet360.vt07.vt070002.entity.DocumentReportRecord">
+		SELECT * FROM 
+			(SELECT pd.folder_id AS folderId, pd.name AS documentName, p.name AS projectName, '' as packageName, '' AS contractName, '' AS constructionName
+			
+			from PROJECT_DOC_GROUP pd
+			JOIN PROJECT_GROUP p ON p.project_id = pd.project_id  AND p.STATUS = 1
+			WHERE pd.folder_id !=0
+			
+			UNION
+			
+			SELECT pkgd.folder_id AS folderId, pkgd.name AS documentName, p.name AS projectName, pkg.name AS packageName, '' AS contractName, '' AS constructionName
+			from PACKAGE_DOC_GROUP pkgd
+			JOIN PACKAGE_GROUP pkg ON  pkg.package_id = pkgd.package_id
+			JOIN PROJECT_GROUP p ON p.project_id = pkg.project_id  AND p.STATUS = 1
+			WHERE pkgd.folder_id !=0
+			
+			UNION
+			
+			SELECT cd.folder_id AS folderId, cd.name AS documentName, p.name AS projectName, '' AS packageName, c.name AS contractName, '' AS constructionName
+			from CONTRACT_DOC_GROUP cd
+			JOIN CONTRACT_GROUP c ON  c.contract_id = cd.contract_id
+			JOIN CONTRACT_PROJECT_GROUP cp ON c.contract_id = cp.contract_id
+			JOIN PROJECT_GROUP p ON p.project_id = cp.project_id  AND p.STATUS = 1
+			WHERE cd.folder_id !=0
+			
+			UNION
+			
+			SELECT cond.folder_id AS folderId, cond.name AS documentName, p.name AS projectName, '' AS packageName, '' AS contractName, con.name AS constructionName
+			from CONSTRUCTION_DOC_GROUP cond
+			JOIN CONSTRUCTION_GROUP con ON  con.construction_id = cond.construction_id
+			JOIN CONSTRUCTION_PROJECT_GROUP conp ON conp.construction_id = con.construction_id
+			JOIN PROJECT_GROUP p ON p.project_id = conp.project_id  AND p.STATUS = 1
+			WHERE cond.folder_id !=0
+			) TABLE1
+			
+		JOIN 
+			(SELECT f.folder_id AS folderId, tb.qr_code as tinBoxQRCode, tb.name as tinBoxName, f.qr_code as folderQRCode, f.name AS folderName,
+				w.name AS warehouseName, CONCAT(r.`row`,"/",r.`column`,"/",s.height) AS `position`, s.qr_code as `positionQRCode`
+			FROM WAREHOUSE_GROUP w JOIN TIN_BOX_GROUP tb ON tb.warehouse_id = w.warehouse_id AND w.warehouse_id = #{warehouseId} AND w.`status` = 1
+			JOIN FOLDER_GROUP f ON tb.tin_box_id = f.tin_box_id
+			JOIN SLOT_GROUP s ON s.slot_id = tb.slot_id AND s.`status` = 1 AND s.del_flag = 0
+			JOIN RACK_GROUP r ON r.rack_id = s.rack_id AND r.del_flag = 0 AND r.`type` = 2 ORDER BY r.`row`, r.`column`, s.height) TABLE2
+					
+		ON TABLE1.folderId = TABLE2.folderId
+		
+		<if test="pageSize > 0">
+			LIMIT #{pageSize}
+			<if test="offset > 0 ">
+				 OFFSET #{offset}
+			</if>
+		</if>
+			
+	</select>
+	
+	<select id="countThingsInWarehouseGroup" parameterType="int"
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseDetail">
+		SELECT count(distinct(folderQRCode)) as totalFolder, count(distinct(tinBoxQRCode)) as totalTinBox, COUNT(*) as totalRecords FROM 
+			(SELECT pd.folder_id AS folderId, pd.name AS documentName, p.name AS projectName, '' as packageName, '' AS contractName, '' AS constructionName
+			
+			from PROJECT_DOC_GROUP pd
+			JOIN PROJECT_GROUP p ON p.project_id = pd.project_id  AND p.STATUS = 1
+			WHERE pd.folder_id !=0
+			
+			UNION
+			
+			SELECT pkgd.folder_id AS folderId, pkgd.name AS documentName, p.name AS projectName, pkg.name AS packageName, '' AS contractName, '' AS constructionName
+			from PACKAGE_DOC_GROUP pkgd
+			JOIN PACKAGE_GROUP pkg ON  pkg.package_id = pkgd.package_id
+			JOIN PROJECT_GROUP p ON p.project_id = pkg.project_id  AND p.STATUS = 1
+			WHERE pkgd.folder_id !=0
+			
+			UNION
+			
+			SELECT cd.folder_id AS folderId, cd.name AS documentName, p.name AS projectName, '' AS packageName, c.name AS contractName, '' AS constructionName
+			from CONTRACT_DOC_GROUP cd
+			JOIN CONTRACT_GROUP c ON  c.contract_id = cd.contract_id
+			JOIN CONTRACT_PROJECT_GROUP cp ON c.contract_id = cp.contract_id
+			JOIN PROJECT_GROUP p ON p.project_id = cp.project_id  AND p.STATUS = 1
+			WHERE cd.folder_id !=0
+			
+			UNION
+			
+			SELECT cond.folder_id AS folderId, cond.name AS documentName, p.name AS projectName, '' AS packageName, '' AS contractName, con.name AS constructionName
+			from CONSTRUCTION_DOC_GROUP cond
+			JOIN CONSTRUCTION_GROUP con ON  con.construction_id = cond.construction_id
+			JOIN CONSTRUCTION_PROJECT_GROUP conp ON conp.construction_id = con.construction_id
+			JOIN PROJECT_GROUP p ON p.project_id = conp.project_id  AND p.STATUS = 1
+			WHERE cond.folder_id !=0
+			) TABLE1
+			
+		JOIN 
+			(SELECT f.folder_id AS folderId, tb.qr_code as tinBoxQRCode, tb.name as tinBoxName, f.qr_code as folderQRCode, f.name AS folderName,
+				w.name AS warehouseName, CONCAT(r.`row`,"/",r.`column`,"/",s.height) AS `position`, s.qr_code as `positionQRCode`
+			FROM WAREHOUSE_GROUP w JOIN TIN_BOX_GROUP tb ON tb.warehouse_id = w.warehouse_id AND w.warehouse_id = #{warehouseId} AND w.`status` = 1
+			JOIN FOLDER_GROUP f ON tb.tin_box_id = f.tin_box_id
+			JOIN SLOT_GROUP s ON s.slot_id = tb.slot_id AND s.`status` = 1 AND s.del_flag = 0
+			JOIN RACK_GROUP r ON r.rack_id = s.rack_id AND r.del_flag = 0 AND r.`type` = 2 ORDER BY r.`row`, r.`column`, s.height) TABLE2
+					
+		ON TABLE1.folderId = TABLE2.folderId
+	</select>
+	
+	<!-- getTinBoxByIdGroup -->
+	<select id="getTinBoxByIdGroup"
+		parameterType="long"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail">
+		SELECT
+			a.tin_box_id as tinBoxId,
+			a.name as name,
+			a.qr_code as qrCode,
+			a.description as description,
+			a.warehouse_id as warehouseId,
+			a.slot_id as slotId,
+			a.index as 'index',
+			a.mng_user as mngUser,
+			a.type as type,
+			a.create_user as createUser,
+			a.update_user as updateUser
+		FROM
+			tin_box_group as a 
+		WHERE a.tin_box_id = #{tinBoxId}
+	</select>
+	
+	<!-- getFolderByIdGroup -->
+	<select id="getFolderByIdGroup"
+		parameterType="long"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.FolderDetail">
+		SELECT
+			a.folder_id as folderId,
+			a.name as name,
+			a.qr_code as qrCode,
+			a.create_user as createUser,
+			a.update_user as updateUser
+		FROM
+			folder_group as a 
+		WHERE a.folder_id = #{folderId}
+	</select>
+	
+	<!-- searchTinBoxGroup -->
+	<select id="searchTinBoxGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail">
+		select 
+		A.TIN_BOX_ID as tinBoxId,
+		A.NAME as name,
+		A.QR_CODE as qrCode,
+		A.DESCRIPTION as description,
+		A.STATUS as status,
+		A.WAREHOUSE_ID as warehouseId,
+		A.SLOT_ID as slotId,
+		A.INDEX as `index`,
+		A.MNG_USER as mngUser,
+		A.create_user as createUser,
+		w.NAME as warehouseName,
+		A.typeSearch as type
+		from (
+		select *, 1 as typeSearch from TIN_BOX_GROUP where tin_box_id = 0
+		<if test="name==null">
+			union
+			select *, 1 as typeSearch from TIN_BOX_GROUP where unit = #{unit}
+		</if>
+		<if test="name==null and typeSearch == 0">
+			union
+			select *, 1 as typeSearch from TIN_BOX_GROUP where name like CONCAT('%', #{name}, '%') AND unit = #{unit}
+		</if>
+		<if test="name!=null and typeSearch==1" >
+			union
+			select *, 1 as typeSearch from TIN_BOX_GROUP where name like CONCAT('%', #{name}, '%') AND unit = #{unit}
+		</if>
+		<if test="name!=null and typeSearch==2">
+			union
+			select tb.*, 2 as typeSearch from TIN_BOX_GROUP tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and fd.name like CONCAT('%', #{name}, '%')
+			AND tb.unit = #{unit}
+		</if>
+		<if test="name!=null and typeSearch==3">
+		union
+		select tb.*, 3 as typeSearch from TIN_BOX_GROUP tb inner join FOLDER_GROUP fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+		inner join PROJECT_DOC_GROUP pjd on pjd.folder_id = fd.folder_id
+		inner join PROJECT_GROUP pj on pj.project_id = pjd.project_id and pj.name like CONCAT('%', #{name}, '%')  AND pj.STATUS = 1
+		union
+	    select tb.*, 3 as typeSearch from TIN_BOX_GROUP tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+		inner join PROJECT_DOC_GROUP pjd on pjd.folder_id = fd.folder_id
+		inner join PROJECT_GROUP pj on pj.project_id = pjd.project_id and pj.name like CONCAT('%', #{name}, '%')  AND pj.STATUS = 1
+		</if>
+		<if test="name!=null and typeSearch==4">
+		union
+		select tb.*, 4 as typeSearch from TIN_BOX_GROUP tb inner join FOLDER_GROUP fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+		inner join PACKAGE_DOC_GROUP pkd on pkd.folder_id = fd.folder_id
+		inner join PACKAGE_GROUP pk on pk.package_id = pkd.package_id and pk.name like CONCAT('%', #{name}, '%')
+		union
+		select tb.*, 4 as typeSearch from TIN_BOX_GROUP tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+		inner join PACKAGE_DOC_GROUP pkd on pkd.folder_id = fd.folder_id
+		inner join PACKAGE_GROUP pk on pk.package_id = pkd.package_id and pk.name like CONCAT('%', #{name}, '%')
+		</if>
+		<if test="name!=null and typeSearch==5">
+		union
+		select tb.*, 5 as typeSearch from TIN_BOX_GROUP tb inner join FOLDER_GROUP fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+		inner join CONTRACT_DOC_GROUP ctd on ctd.folder_id = fd.folder_id
+		inner join CONTRACT_GROUP ct on ct.contract_id = ctd.contract_id and ct.name like CONCAT('%', #{name}, '%')
+		union
+		select tb.*, 5 as typeSearch from TIN_BOX_GROUP tb inner join FOLDER_GROUP fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+		inner join CONTRACT_DOC_GROUP ctd on ctd.folder_id = fd.folder_id
+		inner join CONTRACT_GROUP ct on ct.contract_id = ctd.contract_id and ct.name like CONCAT('%', #{name}, '%')
+		</if>
+		<if test="name!=null and typeSearch==6">
+		union
+		select tb.*, 6 as typeSearch from TIN_BOX_GROUP tb inner join FOLDER_GROUP fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+		inner join CONSTRUCTION_DOC_GROUP csd on csd.folder_id = fd.folder_id
+		inner join CONSTRUCTION_GROUP cst on cst.construction_id = csd.construction_id and cst.name like CONCAT('%', #{name}, '%')
+		union
+		select tb.*, 6 as typeSearch from TIN_BOX_GROUP tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+		inner join CONSTRUCTION_DOC_GROUP csd on csd.folder_id = fd.folder_id
+		inner join CONSTRUCTION_GROUP cst on cst.construction_id = csd.construction_id and cst.name like CONCAT('%', #{name}, '%')
+		</if>
+	
+		<if test="name!=null and typeSearch==7">
+		union
+		select tb.*, 7 as typeSearch from TIN_BOX_GROUP tb
+                  inner join FOLDER_GROUP fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+                  inner join official_dispatch_group od on od.folder_id = fd.folder_id
+             and od.name like CONCAT('%', #{name}, '%') and od.type=1
+		union
+		select tb.*, 7 as typeSearch from TIN_BOX_GROUP tb
+                  inner join FOLDER_GROUP fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+                  inner join official_dispatch_group od on od.folder_id = fd.folder_id
+             and od.name like CONCAT('%', #{name}, '%') and od.type=1
+		</if>
+		
+		<if test="name!=null and typeSearch==8">
+		union
+		select tb.*, 8 as typeSearch from TIN_BOX_GROUP tb
+                  inner join FOLDER_GROUP fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+                  inner join official_dispatch_group od on od.folder_id = fd.folder_id
+             and od.name like CONCAT('%', #{name}, '%') and od.type=0
+		union
+		select tb.*, 8 as typeSearch from TIN_BOX_GROUP tb
+                  inner join FOLDER_GROUP fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+                  inner join official_dispatch_group od on od.folder_id = fd.folder_id
+             and od.name like CONCAT('%', #{name}, '%') and od.type=0
+		</if>
+		
+		<if test="name!=null and typeSearch==9">
+		union
+		select tb.*, 9 as typeSearch from TIN_BOX_GROUP tb
+         inner join FOLDER_GROUP fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+         inner join voucher_group v on v.folder_id = fd.folder_id and v.name like CONCAT('%', #{name}, '%') and v.type = 4
+		union
+		select tb.*, 9 as typeSearch from TIN_BOX_GROUP tb
+         inner join FOLDER_GROUP fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+         inner join voucher_group v on v.folder_id = fd.folder_id and v.name like CONCAT('%', #{name}, '%') and v.type = 4
+		</if>
+		
+		<if test="name!=null and typeSearch==10">
+		union
+		select tb.*, 10 as typeSearch from TIN_BOX tb
+         inner join FOLDER_GROUP fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+         inner join voucher_group v on v.folder_id = fd.folder_id and v.name like CONCAT('%', #{name}, '%') and v.type = 6
+		union
+		select tb.*, 10 as typeSearch from TIN_BOX tb
+         inner join FOLDER_GROUP fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+         inner join voucher_group v on v.folder_id = fd.folder_id and v.name like CONCAT('%', #{name}, '%') and v.type = 6
+		</if>
+		
+		<if test="name!=null and typeSearch==11">
+		union
+         select tb.*, 11 as typeSearch from TIN_BOX tb
+         inner join FOLDER_GROUP fd on fd.tin_box_id = tb.tin_box_id and tb.unit = #{unit}
+         inner join payment_summary_group ps on fd.folder_id = ps.folder_id and ps.name like CONCAT('%', #{name}, '%')
+         
+		</if>
+		) A
+		inner join WAREHOUSE_GROUP w on A.warehouse_id = w.warehouse_id
+		And A.DEL_FLAG = 0
+		<if test="viewAll != true">
+			AND A.CREATE_USER = #{queryUser}
+		</if>
+		ORDER BY A.QR_CODE DESC LIMIT #{pageNo}, 20
+	</select>
+	
+	<!-- getRelationProjectContractGroup -->
+	<select id="getRelationProjectContractGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.ContractDetail"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ContractDetail">
+		SELECT 
+		distinct
+		c.CONTRACT_ID as contractId,
+		c.PROJECT_ID as projectId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONTRACT_GROUP c
+		INNER JOIN CONTRACT_PROJECT_GROUP cp
+		on cp.contract_id = c.contract_id and cp.contract_id = #{contractId} and cp.project_id = #{projectId}
+	</select>
+	
+	<!-- insertRelationProjectContractGroup -->
+	<insert id="insertRelationProjectContractGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.ContractDetail">
+		INSERT INTO CONTRACT_PROJECT_GROUP(
+			contract_id,
+			project_id,
+			create_user,
+			create_date
+		)
+		VALUES(
+			#{contractId},
+			#{projectId},
+			#{updateUser},
+			SYSDATE()
+		)
+	</insert>
+	
+	<!-- getRelationProjectConstructionGroup -->
+	<select id="getRelationProjectConstructionGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.ConstructionDetail"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ConstructionDetail">
+		SELECT 
+		distinct
+		c.CONTRACT_ID as contractId,
+		c.CONSTRUCTION_ID as constructionId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONSTRUCTION_GROUP c
+		INNER JOIN CONSTRUCTION_PROJECT_GROUP cp
+		on cp.CONSTRUCTION_ID = c.CONSTRUCTION_ID and cp.CONSTRUCTION_ID = #{constructionId} and cp.project_id = #{projectId}
+		and cp.del_flag = 0
+	</select>
+	
+	<!-- insertRelationProjectConstructionGroup -->
+	<insert id="insertRelationProjectConstructionGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.ConstructionDetail">
+		INSERT INTO CONSTRUCTION_PROJECT_GROUP(
+			construction_id,
+			project_id,
+			create_user,
+			create_date,
+			del_flag
+		)
+		VALUES(
+			#{constructionId},
+			#{projectId},
+			#{updateUser},
+			SYSDATE(),
+			0
+		)
+	</insert>
+	
+	<!-- getConstructionInFolderGroup -->
+	<select id="getConstructionInFolderGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.ConstructionDetail"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ConstructionDetail">
+		SELECT
+		distinct
+		c.CONTRACT_ID as contractId,
+		c.CONSTRUCTION_ID as constructionId,
+		c.NAME as name,
+		c.DESCRIPTION as description,
+		c.STATUS as status,
+		c.ERP_ID as erpId,
+		c.CODE as code
+		FROM CONSTRUCTION_GROUP c
+		INNER JOIN CONSTRUCTION_DOC_GROUP cd
+		on c.CONSTRUCTION_ID = cd.CONSTRUCTION_ID and cd.CONSTRUCTION_ID = #{constructionId} 
+		<!-- and cd.folder_id = #{folderId} -->
+		INNER JOIN CONSTRUCTION_PROJECT_GROUP cp on cp.CONSTRUCTION_ID = c.CONSTRUCTION_ID
+		INNER JOIN PROJECT_IN_FOLDER_GROUP pif on pif.PROJECT_ID = cp.PROJECT_ID and cd.FOLDER_ID = pif.FOLDER_ID
+		AND cd.FOLDER_ID != 0
+	</select>
+	
+	<!-- remoceRelationProjectConstructionGroup -->
+	<update id="remoceRelationProjectConstructionGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.ConstructionDetail">
+		UPDATE CONSTRUCTION_PROJECT_GROUP AS cp
+		SET 
+		cp.del_flag = 1,
+		update_date = SYSDATE(),
+		update_user = #{updateUser}
+		WHERE cp.CONSTRUCTION_ID = #{constructionId}
+		AND cp.PROJECT_ID = #{projectId}
+	</update>
+	
+	
+	<!-- getContractIdFromDocIdGroup -->
+	<select id="getContractIdFromDocIdGroup"
+		parameterType="long"
+		resultType="long">
+		SELECT
+		distinct
+		CONTRACT_ID 
+		FROM CONTRACT_DOC_GROUP cd
+		WHERE cd.CONTRACT_DOC_ID = #{contractDocId}
+	</select>
+	
+	<!-- getConstructionIdFromDocIdGroup -->
+	<select id="getConstructionIdFromDocIdGroup"
+		parameterType="long"
+		resultType="long">
+		SELECT
+		distinct
+		CONSTRUCTION_ID 
+		FROM CONSTRUCTION_DOC_GROUP cd
+		WHERE cd.CONSTRUCTION_DOC_ID = #{constructionDocId}
+	</select>
+	
+	<!-- getContractIdFromConstructionIdGroup -->
+	<select id="getContractIdFromConstructionIdGroup"
+		parameterType="long"
+		resultType="long">
+		SELECT
+		distinct
+		CONTRACT_ID 
+		FROM CONSTRUCTION_GROUP c
+		WHERE c.CONSTRUCTION_ID = #{constructionId}
+	</select>
+	
+	<select id="countTotalTinBoxGroup"
+		parameterType="int"
+		resultType="int">
+		SELECT 
+			COUNT(*)
+		FROM
+			TIN_BOX_GROUP
+		WHERE
+			DEL_FLAG = 0
+		AND
+			WAREHOUSE_ID = #{warehouseId}
+		
+	</select>
+	
+	<select id="countOccupiedSlotGroup"
+		parameterType="int"
+		resultType="int">
+		SELECT 
+			COUNT(*)
+		FROM
+			SLOT_GROUP SL		
+		JOIN
+			RACK_GROUP R 
+		WHERE 
+			SL.DEL_FLAG = 0 AND SL.QR_CODE != ""	
+		AND
+			SL.RACK_ID = R.RACK_ID		
+		AND
+			R.WAREHOUSE_ID = #{warehouseId}
+		
+	</select>
+	
+	<!-- getListFolderByQrCodeGroup -->
+	<select id="getListFolderByQrCodeGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.FolderDetail">
+		SELECT 
+		f.FOLDER_ID as folderId,
+		f.TIN_BOX_ID as tinBoxId,
+		f.NAME as name,
+		f.QR_CODE as qrCode,
+		f.STATUS as status,
+		f.BORROW_ID as borrowId
+		FROM FOLDER_GROUP f
+		WHERE 
+		f.QR_CODE = #{qrCode}
+		AND f.UNIT = #{unit}
+		AND f.DEL_FLAG = 0
+		ORDER BY NAME ASC LIMIT 0, 1
+	</select>
+	
+	<select id="searchFolderByNameOrQrCodeGroup" 
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.SearchFolderResponse">
+		SELECT f.folder_id AS 'folderId', f.tin_box_id AS 'tinBoxId', f.name as 'folderName', 
+			f.qr_code AS 'folderQrCode', t.name AS 'tinBoxName', t.qr_code AS 'tinBoxQrCode'
+		FROM FOLDER_GROUP f
+		JOIN TIN_BOX_GROUP t
+		ON f.tin_box_id = t.tin_box_id and f.unit = #{unit}
+		WHERE f.del_flag = 0 AND t.del_flag = 0
+		AND (
+			f.qr_code LIKE CONCAT('%', #{keyword}, '%') 
+			OR 
+			f.name LIKE CONCAT('%', #{keyword}, '%') 
+			OR 
+			t.qr_code LIKE CONCAT('%', #{keyword}, '%')
+			OR 
+			t.name LIKE CONCAT('%', #{keyword}, '%')
+			)
+		ORDER BY f.name
+		LIMIT #{offset}, #{pageSize}
+	</select>
+	
+	<select id="searchFolderByNameOrQrCodeTotalRecordGroup" resultType="int">
+		SELECT count(*)
+		FROM FOLDER_GROUP f
+		JOIN TIN_BOX_GROUP t
+		ON f.tin_box_id = t.tin_box_id and f.unit = #{unit}
+		WHERE f.del_flag = 0 AND t.del_flag = 0
+		AND (
+			f.qr_code LIKE CONCAT('%', #{keyword}, '%') 
+			OR 
+			f.name LIKE CONCAT('%', #{keyword}, '%') 
+			OR 
+			t.qr_code LIKE CONCAT('%', #{keyword}, '%')
+			OR 
+			t.name LIKE CONCAT('%', #{keyword}, '%')
+			)
+		ORDER BY f.name
+	</select>
+	
+	<select id="getProjectsInFolderGroup"
+		parameterType ="long"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ProjectDetail">
+		SELECT p.project_id as 'projectId', p.name as 'name', p.code as 'code' FROM PROJECT_GROUP p
+		JOIN PROJECT_IN_FOLDER_GROUP pif
+		ON p.project_id = pif.project_id AND p.STATUS = 1
+		WHERE pif.folder_id = #{folderId} AND pif.del_flag = 0
+	</select>
+	
+	<select id="getProjectsNotInFolderGroup"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.ProjectDetail">
+		SELECT project_id as 'projectId', name as 'name', code as 'code' FROM project_group
+		WHERE unit=#{unit} and `status` = 1
+		AND project_id NOT IN 
+			(SELECT pj.project_id FROM PROJECT_GROUP pj
+			JOIN PROJECT_IN_FOLDER_GROUP pif
+			ON pj.project_id = pif.project_id AND pj.STATUS = 1
+			WHERE pif.folder_id = #{folderId} AND  pif.del_flag = 0)
+			
+		AND (
+			project_id IN 
+				(SELECT DISTINCT project_id from PROJECT_DOC_GROUP where folder_id = 0)
+			OR project_id IN
+				(SELECT DISTINCT project_id FROM PACKAGE_GROUP pk
+				JOIN PACKAGE_DOC_GROUP pkd ON pkd.package_id = pk.package_id
+				WHERE pkd.folder_id = 0)
+			OR project_id IN
+				(SELECT DISTINCT ct.project_id FROM CONTRACT_GROUP ct
+				JOIN CONTRACT_DOC_GROUP cd ON cd.contract_id = ct.contract_id
+				WHERE cd.folder_id = 0)
+			OR project_id IN 
+				(SELECT DISTINCT cp.project_id FROM CONTRACT_PROJECT_GROUP cp 
+				JOIN CONSTRUCTION_GROUP cons ON cons.contract_id = cp.contract_id
+				JOIN CONSTRUCTION_DOC_GROUP cond ON cond.construction_id = cons.construction_id
+				WHERE cond.folder_id = 0)
+			)
+	</select>
+	
+	<select id="getType1WarehousesGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseDetail"
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseDetail">
+		SELECT
+			a.warehouse_id as warehouseId,
+			a.name as name,
+			a.address as address,
+			a.type as type,
+			a.status as status,
+			a.acreage as acreage,
+			a.del_flag as delFlag,
+			a.row_num as rowNum,
+			a.column_num as columnNum,
+			a.height_num as heightNum			
+		FROM
+			warehouse_group as a 		
+		<where>
+			 a.del_flag = '0'
+			 AND a.status = '1'
+			 AND a.type = '1'
+			 <if test="name != null">
+				<bind name="name" value="'%' + name + '%'" />
+				AND a.name like #{name}
+			</if> 
+		</where> 
+ 
+		 
+		ORDER BY a.name ASC
+
+	</select>
+	
+	<select id="getTinBoxInType1WarehouseGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail">
+		SELECT
+			a.tin_box_id as tinBoxId,
+			a.name as name,
+			a.qr_code as qrCode,
+			a.description as description,
+			a.warehouse_id as warehouseId,
+			a.slot_id as slotId,
+			w.NAME as warehouseName,
+			a.index as 'index',
+			a.mng_user as mngUser,
+			a.type as type
+		FROM
+			tin_box_group as a 
+		INNER JOIN WAREHOUSE_GROUP w
+		ON w.WAREHOUSE_ID = a.WAREHOUSE_ID
+		
+		<where>
+			w.del_flag='0' and w.type = '1'
+			AND a.del_flag='0'
+			<if test="index != 0">
+				AND a.index = #{index}
+			</if> 
+			<if test="warehouseId != 0">
+				AND a.warehouse_id = #{warehouseId}
+			</if>
+			<if test="mngUser != null">
+				<bind name="mngUser" value="'%' + mngUser + '%'" />
+				AND a.mng_user like #{mngUser}
+			</if> 
+			<if test="name != null">
+				<bind name="name" value="'%' + name + '%'" />
+				AND a.name like #{name}
+			</if> 
+		</where> 
+ 
+		 
+		ORDER BY a.update_date DESC, a.create_date DESC
+
+	</select>
+	
+	<select id="searchDocumentGroup"
+		resultType = "com.viettel.vtnet360.vt07.vt070002.entity.DocumentReportRecord">
+		SELECT * FROM 
+			(SELECT pd.folder_id AS folderId, pd.name AS documentName, p.name AS projectName, '' as packageName, '' AS contractName, '' AS constructionName
+			
+			from PROJECT_DOC_GROUP pd
+			JOIN PROJECT_GROUP p ON p.project_id = pd.project_id  AND p.STATUS = 1
+			WHERE pd.folder_id !=0
+			
+			UNION
+			
+			SELECT pkgd.folder_id AS folderId, pkgd.name AS documentName, p.name AS projectName, pkg.name AS packageName, '' AS contractName, '' AS constructionName
+			from PACKAGE_DOC_GROUP pkgd
+			JOIN PACKAGE_GROUP pkg ON  pkg.package_id = pkgd.package_id
+			JOIN PROJECT_GROUP p ON p.project_id = pkg.project_id  AND p.STATUS = 1
+			WHERE pkgd.folder_id !=0
+			
+			UNION
+			
+			SELECT cd.folder_id AS folderId, cd.name AS documentName, p.name AS projectName, '' AS packageName, c.name AS contractName, '' AS constructionName
+			from CONTRACT_DOC_GROUP cd
+			JOIN CONTRACT_GROUP c ON  c.contract_id = cd.contract_id
+			JOIN CONTRACT_PROJECT_GROUP cp ON c.contract_id = cp.contract_id
+			JOIN PROJECT_GROUP p ON p.project_id = cp.project_id  AND p.STATUS = 1
+			WHERE cd.folder_id !=0
+			
+			UNION
+			
+			SELECT cond.folder_id AS folderId, cond.name AS documentName, p.name AS projectName, '' AS packageName, '' AS contractName, con.name AS constructionName
+			from CONSTRUCTION_DOC_GROUP cond
+			JOIN CONSTRUCTION_GROUP con ON  con.construction_id = cond.construction_id
+			JOIN CONSTRUCTION_PROJECT_GROUP conp ON conp.construction_id = con.construction_id
+			JOIN PROJECT_GROUP p ON p.project_id = conp.project_id  AND p.STATUS = 1
+			WHERE cond.folder_id !=0
+			) TABLE1
+			
+		JOIN 
+			(SELECT f.folder_id AS folderId, tb.qr_code as tinBoxQRCode, tb.name as tinBoxName, f.qr_code as folderQRCode, f.name AS folderName,
+				w.name AS warehouseName, CONCAT(r.`row`,"/",r.`column`,"/",s.height) AS `position`, s.qr_code as `positionQRCode`
+			FROM WAREHOUSE_GROUP w JOIN TIN_BOX_GROUP tb ON tb.warehouse_id = w.warehouse_id AND w.`status` = 1
+			JOIN FOLDER_GROUP f ON tb.tin_box_id = f.tin_box_id and f.unit = #{unit}
+			JOIN SLOT_GROUP s ON s.slot_id = tb.slot_id AND s.`status` = 1 AND s.del_flag = 0
+			JOIN RACK_GROUP r ON r.rack_id = s.rack_id AND r.del_flag = 0 AND r.`type` = 2 ORDER BY r.`row`, r.`column`, s.height) TABLE2
+					
+		ON TABLE1.folderId = TABLE2.folderId
+		<if test="keyword != null">
+			AND TABLE1.documentName like CONCAT('%', #{keyword}, '%')
+		</if>
+		
+		<if test="pageSize > 0">
+			LIMIT #{pageSize}
+			<if test="offset > 0 ">
+				 OFFSET #{offset}
+			</if>
+		</if>
+			
+	</select>
+	
+	<select id="getProjectsInTinBoxGroup" resultType="com.viettel.vtnet360.vt07.vt070002.entity.ProjectDetail">
+		SELECT distinct p.project_id as 'projectId', p.name FROM PROJECT_GROUP p
+			JOIN PROJECT_IN_FOLDER_GROUP pif ON pif.project_id = p.project_id
+			JOIN FOLDER_GROUP f ON f.folder_id = pif.folder_id 
+			JOIN TIN_BOX_GROUP tb ON tb.tin_box_id = f.tin_box_id
+			
+			WHERE tb.tin_box_id = #{tinBoxId}
+			AND tb.unit = #{unit}
+			AND f.unit = #{unit}
+			AND p.unit = #{unit}
+			AND f.del_flag = 0 AND pif.del_flag = 0 AND tb.del_flag = 0
+	</select>
+	
+	<select id="searchDocumentsByKeywordGroup" resultType="com.viettel.vtnet360.vt07.vt070002.entity.SearchDocumentResponse">
+	Select * from (
+		SELECT 
+			pd.project_doc_id AS 'documentId', pd.name AS 'documentName', pd.folder_id AS 'folderId', f.name AS 'folderName', tb.tin_box_id AS 'tinBoxId', tb.name AS 'tinBoxName', pj.project_id AS 'projectId', pj.name AS 'projectName', 'Project Document' AS 'documentType'
+		FROM PROJECT_DOC_GROUP pd
+		JOIN FOLDER_GROUP f ON pd.folder_id = f.folder_id
+		JOIN PROJECT_GROUP pj ON pd.project_id = pj.project_id
+		JOIN TIN_BOX_GROUP tb ON tb.tin_box_id = f.tin_box_id
+		
+		WHERE pd.folder_id != 0 and pd.name LIKE CONCAT('%', #{keyword}, '%')
+		AND f.unit = #{unit} AND pj.unit = #{unit} AND tb.unit = #{unit}
+		AND f.del_flag = 0 AND tb.del_flag = 0
+		
+		UNION
+		
+		SELECT 
+			pkgd.package_doc_id AS 'documentId', pkgd.name AS 'documentName', pkgd.folder_id AS 'folderId', f.name AS 'folderName', tb.tin_box_id AS 'tinBoxId', tb.name AS 'tinBoxName', pj.project_id AS 'projectId', pj.name AS 'projectName', 'Package Document' AS 'documentType'
+		FROM PACKAGE_DOC_GROUP pkgd
+		JOIN FOLDER_GROUP f ON pkgd.folder_id = f.folder_id
+		JOIN PACKAGE_GROUP pkg ON pkgd.package_id = pkg.package_id
+		JOIN PROJECT_GROUP pj ON pj.project_id = pkg.project_id
+		JOIN TIN_BOX_GROUP tb ON tb.tin_box_id = f.tin_box_id
+		
+		WHERE pkgd.folder_id != 0 and pkgd.name LIKE CONCAT('%', #{keyword}, '%')
+		AND f.unit = #{unit} AND pj.unit = #{unit} AND tb.unit = #{unit}
+		AND f.del_flag = 0 AND tb.del_flag = 0
+		
+		UNION
+		
+		SELECT 
+			cd.contract_doc_id AS 'documentId', cd.name AS 'documentName', cd.folder_id AS 'folderId', f.name AS 'folderName', tb.tin_box_id AS 'tinBoxId', tb.name AS 'tinBoxName', pj.project_id AS 'projectId', pj.name AS 'projectName', 'Contract Document' AS 'documentType'
+		FROM CONTRACT_DOC_GROUP cd
+		JOIN FOLDER_GROUP f ON cd.folder_id = f.folder_id
+		JOIN CONTRACT_GROUP ct ON ct.contract_id = cd.contract_id
+		JOIN PROJECT_GROUP pj ON pj.project_id = ct.project_id
+		JOIN TIN_BOX_GROUP tb ON tb.tin_box_id = f.tin_box_id
+		
+		WHERE cd.folder_id != 0 and cd.name LIKE CONCAT('%', #{keyword}, '%')
+		AND f.unit = #{unit} AND pj.unit = #{unit} AND tb.unit = #{unit}
+		AND f.del_flag = 0 AND tb.del_flag = 0
+		
+		
+		UNION
+		
+		SELECT
+			cond.construction_doc_id AS 'documentId', cond.name AS 'documentName', cond.folder_id AS 'folderId',  f.name AS 'folderName',  tb.tin_box_id AS 'tinBoxId', tb.name AS 'tinBoxName', pj.project_id AS 'projectId', pj.name AS 'projectName', 'Construction Document' AS 'documentType'
+		FROM CONSTRUCTION_DOC_GROUP cond
+		JOIN CONSTRUCTION_GROUP cons ON cond.construction_id = cons.construction_id
+		JOIN CONTRACT_GROUP ct ON ct.contract_id = cons.contract_id
+		JOIN PROJECT_GROUP pj ON pj.project_id = ct.project_id
+		JOIN FOLDER_GROUP f ON cond.folder_id = f.folder_id
+		JOIN TIN_BOX_GROUP tb ON tb.tin_box_id = f.tin_box_id
+		
+		WHERE cond.folder_id != 0 and cond.name LIKE CONCAT('%', #{keyword}, '%')
+		AND f.unit = #{unit} AND pj.unit = #{unit} AND tb.unit = #{unit}
+		AND f.del_flag = 0 AND tb.del_flag = 0
+		
+	) allResultTable LIMIT #{pageSize} OFFSET #{offset}
+		
+	</select>
+</mapper>

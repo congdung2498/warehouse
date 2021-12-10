@@ -1,0 +1,196 @@
+
+ <div id="custom-container" class="container">
+  <div class="container-fluid text-center mt-5">
+    <h1 class="text-center">TẠO MÃ VẠCH</h1>
+  </div>
+  <div class="row ">
+    <div class="col-sm-12 " style="margin: auto;">
+      <form ngNoForm onsubmit="return false;">
+        <p-fieldset legend="Thông tin dải mã">
+          <div class="row">
+            <div class="col-sm-6">
+             
+              <div class="form-group row">
+                <div class="col-sm-2"></div>
+                <label class="col-sm-3 ">Loại
+                  
+                  <span style="color: red;">*</span>:
+                </label>
+                <div class="col-sm-7 ui-fluid ">
+                  <p-autoComplete #inputTypeBarcode [(ngModel)]="typeBarcode" [suggestions]="listTypeBarcode" (completeMethod)="filterTypeBarcode($event)" [size]="200" [minLength]="1" (blur)="removeBlank()"
+                                  placeholder="--Loại mã vạch--" [dropdown]="true" field="name" class="fix-drop-down" emptyMessage="Loại mã không tồn tại"
+                                  (onSelect)="getDriver($event)"
+                                  (onBlur)="isSelected()" >
+                                     <!-- (onSelect)="getDriver($event)" -->
+                                  <!-- <ng-template let-listTypeBarcode pTemplate="item">
+                                    {{typeBarcode.bar_code_range_id}} 
+                                  </ng-template>
+                                  <ng-template let-listTypeBarcode pTemplate="selectedItem">
+                                    {{typeBarcode.bar_code_range_id}}
+                                  </ng-template> -->
+                  </p-autoComplete>
+                </div>
+              </div>
+
+              <div class="form-group row">
+                <div class="col-sm-2"></div>
+                <label class="col-sm-3 ">Mục đích
+                  <span style="color: red;">*</span>:</label>
+                <div class="col-sm-7">
+                  <input #inputDescription id="input" type="text" size="30" name="description" placeholder="Mục đích" (ngModelChange)="changeDescription()" 
+                          onblur="this.value=this.value.trim();"      
+                          maxlength="255" style="width: 100%;"  pInputText [(ngModel)]="description"  >
+                 
+                </div>
+                <!-- <input id="input" type="text" size="30" placeholder="Mục đích" disabled
+                name="position" pInputText [(ngModel)]="squadMatching.squadName"
+                style="width: 100%;"> -->
+              </div>
+             
+
+              <div class="form-group row">
+                <div class="col-sm-2"></div>
+                <label class="col-3 ">In
+                  <span style="color: red;">*</span>:</label>
+                <!-- <input type="checkbox" [(ngModel)]="isChecked" [ngModelOptions]="{standalone: false}" binary="true" class="col-sm-1"/> -->
+                <p-checkbox  [(ngModel)]="isChecked" [ngModelOptions]="{standalone: false}" binary="true" class="col-2"></p-checkbox>
+                <!-- <div class="col-sm-10" style="padding-left: 25px !important;">
+                    <p-checkbox label="In" [(ngModel)]="isChecked" [ngModelOptions]="{standalone: false}" binary="true"></p-checkbox>
+                  </div>
+                  <div class="col-sm-2"></div> -->
+              </div>
+            </div>
+
+            <div class="col-sm-6">
+              <div class="form-group row">
+                <div class="col-sm-2"></div>
+                <label class="col-sm-3 ">Số lượng
+                  <span style="color: red;">*</span>:</label>
+                <div class="col-sm-7">
+                    <input #inputNumOfBarcode type="number"  min="1" max="100" 
+                    onmouseout="if(this.value > 100){this.value='100';}else if(this.value < 1){this.value=null;}else{this.value=parseInt(this.value);}"
+                    onKeyUp="if(this.value > 100){this.value='100';}else if(this.value < 1){this.value=null;}else{this.value=parseInt(this.value);}"
+                    onblur="if(this.value > 100){this.value='100';}else if(this.value < 1){this.value=null;}else{this.value=parseInt(this.value);}"
+                    pKeyFilter="pint"
+                    style="width:100%" pInputText [(ngModel)]="numOfBarcode"  />
+                </div>
+
+              </div>
+              
+            </div>
+          </div>
+        </p-fieldset>
+        <div class="row row-button">
+          <div class="col-lg-3"></div>
+          <div class="col-lg-6">
+            <p-button style="margin-top:5px;" label="Tìm kiếm" icon="pi pi-search" (click)="handleSearch()"></p-button>
+            <p-button style="margin-top:5px;" class="ui-button-danger" *ngIf="!isEdit" icon="pi pi-plus" label="Tạo mới" (click)="handleAdd()">
+            </p-button>
+            <button type="button" tabindex="0" pButton icon="fa fa-refresh" iconPos="left" label="Làm mới"
+              style="text-align: center; margin-top:5px" (click)="resetButton()"></button>
+          </div>
+          <div class="col-lg-3"></div>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="table-container">
+  <div class="row">
+    <div class="col-sm-12">
+      <p-table [style]="{'min-width':'768px'}" [columns]="cols" [value]="listBarcodeRange" [totalRecords]="totalRecords" [paginator]="true"
+               [rows]= "10" [resizableColumns]="true" (onPage)="paginate($event)" #myTable>
+              
+        <ng-template pTemplate="colgroup" let-columns>
+          <colgroup>
+            <col *ngFor="let col of columns" [style.width]="col.width">
+          </colgroup>
+        </ng-template>
+        <ng-template pTemplate="header" let-columns>
+          <tr>
+            <th *ngFor="let col of columns" pResizableColumn style="text-align: center; font-weight: bold;">
+              {{col.header}}
+            </th>
+          </tr>
+        </ng-template>
+        <ng-template let-ri="rowIndex" pTemplate="body" let-rowData let-columns="columns">
+          <tr>
+            <td>{{ri+1}}</td>
+            <td>
+              <div class="row">
+                <div class="col-sm-7" style="margin: auto;">
+                  <p-button [disabled]="isEdit" icon="fa fa-print" (onClick)="doEdit(rowData)" pTooltip="Chọn in"></p-button>
+                </div>
+              </div>
+            </td>
+            <td style="text-align: left !important;">{{rowData["prefix"]}}</td>
+            <td style="text-align: left !important;">{{rowData["quantity"]}}</td>
+            <td style="text-align: left !important;" [innerHTML]="rowData.description"> </td>
+            
+            <td style="text-align: left !important;" *ngIf="rowData['printed']==true;">Đã in</td>
+            <td style="text-align: left !important;" *ngIf="rowData['printed']==false;">Chưa in</td>
+            <td style="text-align: left !important;">{{rowData["createDate"] | date: 'dd/MM/yyyy'}}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage" let-columns>
+          <tr>
+            <td [attr.colspan]="columns.length" style="text-align: center;">
+              Không có dữ liệu
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="paginatorright">
+          <span style="position: absolute; right: 30px; bottom: 6px;">{{totalRecords == 0 ? pageNumber : pageNumber + 1}} - {{pageNumber + pageSize > totalRecords ? totalRecords : pageNumber
+            + pageSize}} / {{totalRecords}}</span>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+  </div>
+  
+  <p-dialog [modal]="true" [width]="1000" [(visible)]="isShowUpdateDialog"
+  [style]="{'position':'absolute', 'top':'30vh'}" [contentStyle]="{'max-height':'70vh'}">
+      <!-- (onHide)="onHideEditDialog()" [contentStyle]="isCheckingEarlyOrLate" -->
+      
+    <p-header>
+      {{fieldSetTitle}}
+    </p-header>
+    <p-scrollPanel [style]="{width: '80%', height: '80%'}">
+    <div class="container" >
+      <div class="row" id="exportPDF" #exportPDF>
+        <div class="col-xl-12 mb-2" style="display: contents; text-align: center; "  >
+          
+              <ng-container *ngFor="let item of listBarcodeDetail let i = index" [attr.data-index]="i">
+                  <div style="page-break-before: always;" *ngIf="i%18==0&&i>0;"></div>
+
+                  <div  id="exportPDF{{i}}" style="margin-left: 50px;margin-right: 50px;text-align: center;" media = "print">
+                     
+                      <!-- <ngx-barcode [bc-value]="item['code']" [bc-display-value]="true"  [bc-width]="1" [bc-height]="30"
+                      [bc-font-size]="17"></ngx-barcode> -->
+                      <div style="display: inline-block;">
+                        <!-- <ngx-qrcode  [qrc-element-type]="'img'" [qrc-value] = "item['code']"  qrc-class = "qrcBarcode">
+                        </ngx-qrcode> -->
+                        <qrcode [qrdata]="item['code']" [size]="50" [level]="'M'"></qrcode>
+                      </div>
+                      <p  style="font-size: 12px; margin-bottom: 20px;">
+                        {{item["code"]}}
+                      </p>
+                     
+                  </div>
+                  
+              </ng-container>
+           
+        </div>
+       
+      </div>
+    </div>
+  </p-scrollPanel>
+  <div class="col-xl-12">
+    <div style="text-align: right; margin-right: 10px;">
+      <button  tabindex="8" type="button" pButton label="In toàn bộ" (click)="doPrint()" style="text-align: center;"></button>
+      <button  tabindex="8" type="button" pButton label="Đóng" (click)="close()" style="text-align: center;"></button>
+
+    </div>
+  </div>
+  </p-dialog>
+
+</div> 

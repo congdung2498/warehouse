@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt03.vt030006.dao.VT030006DAO">
+	<!-- cap nhap trang thai cho don yeu cau dat xe -->
+	<update id="updateRequest"
+		parameterType="com.viettel.vtnet360.vt03.vt030006.entity.VT030006UpdateBookCar">
+		UPDATE
+		CAR_BOOKING
+		SET
+		<if test="status == 1">
+			<if test="role == 'PMQT_QL' or role == 'PMQT_ADMIN' or role == 'PMQT_CVP'">
+				<choose>
+					<when test="role == 'PMQT_ADMIN'">
+					   <if test="qltt != null and qltt.length > 0 and flagQltt == 0">
+                            FLAG_QLTT = 1,
+                        </if>
+                        <if test="lddv != null and (qltt == null or flagQltt == 1) and flagLddv == 0">
+                            FLAG_LDDV = 1,
+                            <if test="cvp == null">
+                                STATUS = #{status},
+                            </if>
+                        </if>
+                        <if test="cvp != null and flasCvp == 0 and flagLddv == 1">
+                            FLAG_CVP = 1,
+                            STATUS = #{status},
+                        </if>
+					</when>
+					<otherwise>
+						<if test="userName == qltt">
+							FLAG_QLTT = 1,
+							<if test="lddv != null">
+								FLAG_LDDV = 0,
+							</if>
+							<if test="lddv == null">
+								FLAG_CVP = 0,
+							</if>
+						</if>
+						<if test="userName == lddv">
+							FLAG_LDDV = 1,
+							FLAG_CVP = 0,
+							<if test="userName == cvp">
+								FLAG_CVP = 1,
+								STATUS = #{status},
+							</if>
+							<if test="cvp == null">
+								STATUS = #{status},
+							</if>
+						</if>
+						<if test="userName == cvp">
+							FLAG_CVP = 1,
+							STATUS = #{status},
+						</if>
+					</otherwise>
+				</choose>
+			</if>
+		</if>
+		<if test="status == 2">	
+			REASON_REFUSE = IF(STATUS = 0 OR STATUS = 10, #{reasonRefuse}, REASON_REFUSE ),
+			REASON_ASSIGNER = IF(STATUS = 1 or STATUS = 4, #{reasonRefuse}, REASON_ASSIGNER ),
+			<if test="role == 'PMQT_QL' or role == 'PMQT_ADMIN'">
+				<choose>
+	                    <when test="role == 'PMQT_ADMIN'">
+	                       <if test="qltt != null and qltt.length > 0 and flagQltt == 0">
+	                            FLAG_QLTT = 2,
+	                        </if>
+	                        <if test="lddv != null and (qltt == null or flagQltt == 1) and flagLddv == 0">
+	                            FLAG_LDDV = 2,
+	                        </if>
+	                        <if test="cvp != null and flasCvp == 0 and flagLddv == 1">
+	                            FLAG_CVP = 2,
+	                        </if>
+	                    </when>
+	                    <otherwise>
+	                        <if test="userName == qltt">
+			                    FLAG_QLTT = CASE WHEN STATUS = 0 THEN #{status} ELSE FLAG_QLTT END,
+			                </if>
+			                <if test="userName == lddv ">
+			                    FLAG_LDDV = CASE WHEN STATUS = 0 THEN #{status} ELSE FLAG_LDDV END,
+			                </if>
+			                <if test="userName == cvp">
+			                    FLAG_CVP = CASE WHEN STATUS = 0 THEN #{status} ELSE FLAG_CVP END,
+			                </if>
+	                    </otherwise>
+	                </choose>
+			</if>
+			STATUS = #{status} ,
+		</if>
+		<if test="status == 9">	
+			REASON_ASSIGNER = #{reasonAssigner},
+			<if test="role == 'PMQT_QL' or role == 'PMQT_ADMIN'">
+				<if test="userName == qltt">
+					FLAG_QLTT = IF(STATUS = 0, #{status}, FLAG_QLTT),
+				</if>
+				<if test="userName == lddv ">
+					FLAG_LDDV = IF(STATUS = 0, #{status}, FLAG_LDDV),
+				</if>
+				<if test="userName == cvp">
+					FLAG_CVP = IF(STATUS = 0, #{status}, FLAG_CVP),
+				</if>
+			</if>
+			STATUS = #{status} ,
+		</if>
+		UPDATE_USER=#{userName},
+		UPDATE_DATE=now()
+		WHERE
+		CAR_BOOKING_ID= #{bookCarId}
+	</update>
+
+	<!-- Tim kiem tat ca quan ly co quyen phe duyet ung voi mot yeu cau dat 
+		xe cu the -->
+	<select id="findAllLevelManager" parameterType="java.lang.String"
+		resultType="com.viettel.vtnet360.vt03.vt030006.entity.VT030006UpdateBookCar">
+		SELECT
+		APPOVER_QLTT as qltt,
+		FLAG_QLTT as flagQltt,
+		APPOVER_LDDV as lddv,
+		FLAG_LDDV as flagLddv,
+		APPOVER_CVP as cvp,
+		FLAG_CVP as flasCvp
+		FROM CAR_BOOKING
+		WHERE CAR_BOOKING_ID = #{bookCarId}
+	</select>
+
+	<select id="findUserRequest" parameterType="java.lang.String"
+		resultType="java.lang.String">
+		SELECT EMPLOYEE_USER_NAME
+		FROM CAR_BOOKING
+		WHERE CAR_BOOKING_ID = #{bookCarId}
+	</select>
+
+	<select id="findNextApprover" resultType="java.lang.String"
+		parameterType="java.lang.String">
+		SELECT IF(FLAG_LDDV = 0 OR FLAG_LDDV IS NULL, APPOVER_LDDV, APPOVER_CVP)
+		FROM
+		CAR_BOOKING
+		WHERE CAR_BOOKING_ID = #{bookCarId}
+	</select>
+
+	<!-- find manager of car's squad -->
+	<select id="findManagerCarSquad" parameterType="java.lang.String"
+		resultType="java.lang.String">
+		SELECT EMPLOYEE_USER_NAME FROM DRIVES_SQUAD WHERE DRIVE_SQUAD_ID  = (SELECT DRIVER_SQUAD_ID FROM CAR_BOOKING WHERE CAR_BOOKING_ID = #{bookCarId})
+	</select>
+	
+	<select id="getDateEndOfReqest" resultType="java.lang.Long" parameterType="java.lang.String">
+		SELECT UNIX_TIMESTAMP(END) FROM CAR_BOOKING WHERE CAR_BOOKING_ID = #{bookCarId}
+	</select>
+
+</mapper>

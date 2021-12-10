@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt04.vt040003.dao.VT040003DAO">
+	
+	<insert id="issuesService"  parameterType="java.util.Map">
+	
+	<selectKey keyProperty="returnedId" resultType="String" order="BEFORE">
+            SELECT CONCAT( 'VTN_SR_',NEXT VALUE FOR VTN_S) as returnedId
+	</selectKey>
+	
+		INSERT
+	INTO
+		ISSUES_SERVICE ( 
+		ISSUES_SERVICE_ID,
+		ISSUES_USERNAME,
+		ISSUESE_LOCATION,
+		SERVICE_ID,
+		NOTE,
+		APPOVER_QLTT,
+		FLAG_QLTT,
+		APPOVER_LDDV,
+		FLAG_LDDV,
+		APPOVER_CVP,
+		FLAG_CVP,
+		STATUS,
+		ISSUESE_RECEIVEER,
+		TIME_START_PLAN,
+		TIME_FINISH_PLAN,
+		TIME_START_ACTUAL,
+		TIME_FINISH_ACTUAL,
+		TIME_RESUME,
+		REAL_TIME_TOTAL,
+		POSTPONE_TO_TIME,
+		POSTPONE_REASON,
+		REASON,
+		RATTING,
+		FEEDBACK,
+		CREATE_USER,
+		CREATE_DATE,
+		UPDATE_USER,
+		UPDATE_DATE )
+	VALUES( 
+	#{returnedId},/*ISSUES_SERVICE_ID*/
+	#{userName},/*ISSUES_USERNAME user cua nguoi giui*/
+	#{requestParam.issueseLocation},/*ISSUESE_LOCATION*/
+	#{requestParam.serviceId},/*SERVICE_ID*/
+	#{requestParam.note},/*NOTE*/
+	<if test="requestParam.appoverQLTT != null">
+	#{requestParam.appoverQLTT},/*APPOVER_QLTT*/
+	0,/*FLAG_QLTT*/
+	</if>
+	<if test="requestParam.appoverQLTT == null">
+	#{requestParam.appoverQLTT},/*APPOVER_QLTT*/
+	1,/*FLAG_QLTT*/
+	</if>
+
+	<if test="requestParam.appoverLDDV != null">
+	#{requestParam.appoverLDDV},/*APPOVER_LDDV*/
+	0,/*FLAG_LDDV*/
+	</if>
+	
+	<if test="requestParam.appoverLDDV == null">
+	#{requestParam.appoverLDDV},/*APPOVER_LDDV*/
+	1,/*FLAG_LDDV*/
+	</if>
+	
+	<if test="requestParam.appoverCVP != null">
+	#{requestParam.appoverCVP},/*APPOVER_CVP*/
+	0,/*FLAG_CVP*/
+	</if>
+	
+	<if test="requestParam.appoverCVP == null">
+	#{requestParam.appoverCVP},/*APPOVER_CVP*/
+	1,/*FLAG_CVP*/
+	</if>
+	<if test="requestParam.requireSign != null">
+		<if test="requestParam.requireSign == 1">
+			0,/*STATUS*/
+		</if>
+		<if test="requestParam.requireSign == 0">
+			<if test="requestParam.appoverQLTT == null and requestParam.appoverLDDV == null and requestParam.appoverCVP == null">
+				1,/*STATUS*/
+			</if>
+			<if test="requestParam.appoverQLTT != null or requestParam.appoverLDDV != null or requestParam.appoverCVP != null">
+				0,/*STATUS*/
+			</if>
+		</if>
+	</if>
+	<if test="requestParam.requireSign == null">
+		<if test="requestParam.appoverQLTT != null or requestParam.appoverLDDV != null or requestParam.appoverCVP != null">
+			0,/*STATUS*/
+		</if>
+		<if test="requestParam.appoverQLTT == null and requestParam.appoverLDDV == null and requestParam.appoverCVP == null">
+			1,/*STATUS*/
+		</if>
+	</if>
+	NULL,/*ISSUESE_RECEIVEER*/
+	<if test="requestParam.requireSign != null">
+		<if test="requestParam.requireSign == 1">
+			NULL,/*TIME_START_PLAN*/
+			NULL,/*TIME_FINISH_PLAN*/
+		</if>
+		<if test="requestParam.requireSign == 0">
+			<if test="requestParam.appoverQLTT == null and requestParam.appoverLDDV == null and requestParam.appoverCVP == null">
+				 #{startTime}, /*TIME_START_PLAN*/
+				 #{finishTime}, /*TIME_FINISH_PLAN*/
+			</if>
+			<if test="requestParam.appoverQLTT != null or requestParam.appoverLDDV != null or requestParam.appoverCVP != null">
+				NULL,/*TIME_START_PLAN*/
+				NULL,/*TIME_FINISH_PLAN*/
+			</if>
+		</if>
+	</if>
+	<if test="requestParam.requireSign == null">
+		<if test="requestParam.appoverQLTT != null or requestParam.appoverLDDV != null or requestParam.appoverCVP != null">
+			NULL,/*TIME_START_PLAN*/
+			NULL,/*TIME_FINISH_PLAN*/
+		</if>
+		<if test="requestParam.appoverQLTT == null and requestParam.appoverLDDV == null and requestParam.appoverCVP == null">
+			#{startTime}, /*TIME_START_PLAN*/
+            #{finishTime}, /*TIME_FINISH_PLAN*/
+		</if>
+	</if>
+	NULL,/*TIME_START_ACTUAL*/
+	NULL,/*TIME_FINISH_ACTUAL*/
+	NULL,/*TIME_RESUME*/
+	NULL,/*REAL_TIME_TOTAL*/
+	NULL,/*POSTPONE_TO_TIME*/
+	NULL,/*POSTPONE_REASON*/
+	NULL,/*REASON*/
+	0,/*RATTING*/
+	NULL,/*FEEDBACK*/
+	#{userName},/*CREATE_USER*/
+	#{dateNow},/*CREATE_DATE*/
+	#{userName},/*UPDATE_USER*/
+	#{dateNow} /*UPDATE_DATE*/
+	);
+	</insert>
+	
+	<select id="isValid" parameterType="java.util.Map" resultType="java.util.Map" >
+	
+	SELECT
+	ISSUES_SERVICE_ID,
+	ISSUES_USERNAME,
+	ISSUESE_LOCATION,
+	SERVICE_ID,
+	NOTE,
+	APPOVER_QLTT,
+	FLAG_QLTT,
+	APPOVER_LDDV,
+	FLAG_LDDV,
+	APPOVER_CVP,
+	FLAG_CVP,
+	STATUS,
+	ISSUESE_RECEIVEER,
+	CREATE_USER,
+	CREATE_DATE,
+	UPDATE_USER,
+	UPDATE_DATE
+	FROM
+	 ISSUES_SERVICE
+	WHERE 
+	
+	( (STATUS = 0 OR STATUS = 1 OR STATUS = 3 OR STATUS = 4 ) AND SERVICE_ID = #{requestParam.serviceId} AND ISSUES_USERNAME = #{userName} ) 
+	
+	</select>
+	
+
+	
+	
+	<select id="isServiceValid" parameterType="java.util.Map" resultType="java.util.Map" >
+	SELECT SERVICE_ID, SERVICE_NAME, SERVICE_LOCATION, UNIT_ID, FULL_FILL_TIME, STATUS, DELETE_FLAG, CREATE_USER, CREATE_DATE, UPDATE_USER, UPDATE_DATE
+	FROM SERVICES
+	WHERE SERVICE_ID= #{requestParam.serviceId} AND DELETE_FLAG = 0 AND STATUS =1
+
+	</select> 
+	
+	
+	<select id="inValidIssuesService" parameterType="java.util.Map" resultType="java.util.Map" >
+	
+	SELECT
+	ISSUES_SERVICE_ID,
+	ISSUES_USERNAME,
+	ISSUESE_LOCATION,
+	SERVICE_ID,
+	NOTE,
+	APPOVER_QLTT,
+	FLAG_QLTT,
+	APPOVER_LDDV,
+	FLAG_LDDV,
+	APPOVER_CVP,
+	FLAG_CVP,
+	STATUS,
+	ISSUESE_RECEIVEER,
+	CREATE_USER,
+	CREATE_DATE,
+	UPDATE_USER,
+	UPDATE_DATE
+	FROM
+	 ISSUES_SERVICE
+	WHERE 
+	STATUS = 6 AND ISSUES_USERNAME = #{userName} 
+	
+	</select>
+	
+	
+	<select id="findReceiverIssue"
+		parameterType="java.lang.String"
+		resultType="java.lang.String">
+		SELECT
+		SERVICE_RECEIVEER_USERNAME
+		FROM
+		SERVICE_RECEIVEER 
+		<where>
+			AND SERVICE_ID = #{serviceId}
+		</where>
+	</select>
+
+</mapper>

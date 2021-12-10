@@ -1,0 +1,1327 @@
+<div class="container">
+    <div class="container-fluid text-center mt-3">
+        <h1>THỐNG KÊ YÊU CẦU DỊCH VỤ</h1>
+    </div>
+    <div class="row mb-3">
+        <div class="col-xl-12 mb-3">
+            <p-fieldset legend="Thông tin đăng ký">
+                <div class="row">
+                    <div class="col-sm-7">
+                        <!-- place field -->
+                        <div class="row mb-2">
+                            <div class="row col-sm-12" style="margin-left: 5px; margin-right:10px;">
+                                <div class="col-sm-3" style="text-align: left; padding-top: 5px;">Vị trí:</div>
+                                <div class="col-sm-9 ui-fluid">
+                                    <p-autoComplete #inputPlace [(ngModel)]="placeInfo" [suggestions]="filterPlace"
+                                                    (completeMethod)="loadPlace($event)"
+                                                    dropdown="true" [pKeyFilter]="onlyChar" field="placeName"
+                                                    (ngModelChange)="changePlace()"
+                                                    placeholder="VD: Tòa nhà Keangnam"></p-autoComplete>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- time start to do field -->
+                        <div class="row mb-2">
+                            <div class="row col-sm-12" style="margin-left: 5px; margin-right:10px;">
+                                <div class="col-sm-3" style="text-align: left; padding-top: 5px;">Thời gian bắt đầu:
+                                </div>
+                                <div class="col-sm-9">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="row" style="max-width: 224px;">
+                                                <div style="position: relative;" class="col-sm-12 ui-fluid">
+                                                    <p-calendar dateFormat="dd/mm/yy" placeholder="DD/MM/YYYY"
+                                                                [(ngModel)]="fromDate" [showIcon]="true"
+                                                                [readonlyInput]="true" showButtonBar="true"
+                                                                [locale]="vn" [monthNavigator]="true"
+                                                                [yearNavigator]="true" yearRange="2000:2030"
+                                                                (ngModelChange)="selectFromDate()"></p-calendar>
+                                                    <span *ngIf="fromDate != null" class="customIcon pi pi-times"
+                                                          (click)="clearFromDate($event)"></span>
+                                                    <span class="fa fa-minus"
+                                                          style="position: absolute; top: 12px; right: -12px; color: #848484"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="row" style="max-width: 224px;">
+                                                <div style="position: relative; margin-left: 2px;"
+                                                     class="col-sm-12 ui-fluid">
+                                                    <p-calendar dateFormat="dd/mm/yy" placeholder="DD/MM/YYYY"
+                                                                [(ngModel)]="toDate" [showIcon]="true"
+                                                                [readonlyInput]="true" showButtonBar="true"
+                                                                [locale]="vn" [monthNavigator]="true"
+                                                                [yearNavigator]="true" yearRange="2000:2030"
+                                                                (ngModelChange)="selectToDate()"></p-calendar>
+                                                    <span *ngIf="toDate != null" class="customIcon pi pi-times"
+                                                          (click)="clearToDate($event)"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- status field -->
+                        <div class="row mb-2">
+                            <div class="row col-sm-12" style="margin-left: 5px; margin-right:10px;">
+                                <div class="col-sm-3" style="text-align: left; padding-top: 5px;">Trạng thái yêu cầu:</div>
+                                <div class="col-sm-9 ui-fluid">
+                                    <p-multiSelect #myDrop [options]="status" [(ngModel)]="selectedStatus"
+                                                  defaultLabel="-- Chọn trạng thái --" (onChange)="onChange()" >
+                                       <!-- <ng-template let-item pTemplate="item">
+                                            <span>{{item.label}}</span>
+                                        </ng-template>-->
+                                    </p-multiSelect>
+                                    <!--<div class="customDiv" [@animation]="isDisplay" (click)="selectedAll($event)">
+                                        {{textShow}}
+                                    </div>-->
+                                </div>
+                            </div>
+                        </div>
+                        <!-- status field -->
+                        <div class="row mb-2">
+                            <div class="row col-sm-12" style="margin-left: 5px; margin-right:10px;">
+                                <div class="col-sm-3" style="text-align: left; padding-top: 5px;">Trạng thái BCCT:</div>
+                                <div class="col-sm-9 ui-fluid">
+                                    <p-multiSelect #myDropDetail [options]="statusDetail" [(ngModel)]="selectedStatusDetail"
+                                                    defaultLabel="-- Chọn trạng thái --" (onChange)="onChangeDetail()">
+                                    </p-multiSelect>
+
+                                </div>
+                            </div>
+                        </div>
+                        <!-- status field -->
+                        <div class="row mb-2">
+                            <div class="row col-sm-12" style="margin-left: 5px; margin-right:10px;">
+                                <div class="col-sm-3" style="text-align: left; padding-top: 5px;">Trạng thái BCTH:</div>
+                                <div class="col-sm-9 ui-fluid">
+                                    <p-multiSelect #myDropSysthetic [options]="statusSysthetic" [(ngModel)]="selectedStatusSysthetic"
+                                                   defaultLabel="-- Chọn trạng thái --" (onChange)="onChangeSysthetic()" >
+                                    </p-multiSelect>
+
+                                </div>
+                            </div>
+                        </div>
+                        <!-- service field -->
+                        <div class="row mb-2">
+                            <div class="row col-sm-12" style="margin-left: 5px; margin-right:10px;">
+                                <div class="col-sm-3" style="text-align: left; padding-top: 5px;">Tên dịch vụ:</div>
+                                <div class="col-sm-9 ui-fluid">
+                                    <p-autoComplete #inputService [(ngModel)]="serviceInfo"
+                                                    [suggestions]="filterService"
+                                                    (completeMethod)="loadService($event)" dropdown="true"
+                                                    [pKeyFilter]="onlyChar" field="serviceName"
+                                                    (ngModelChange)="changeService()" maxlength="50"
+                                                    placeholder="VD: Thay màn hình"></p-autoComplete>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- receiver field -->
+                        <div class="row mb-2">
+                            <div class="row col-sm-12" style="margin-left: 5px; margin-right:10px;">
+                                <div class="col-sm-3" style="text-align: left; padding-top: 5px;">Người thực hiện:</div>
+                                <div class="col-sm-9 ui-fluid">
+                                    <p-autoComplete [(ngModel)]="receiverInfo" [suggestions]="filterReceiver"
+                                                    (completeMethod)="loadReceiver($event)"
+                                                    dropdown="true" field="receiverName" placeholder="VD: Đặng Văn Công">
+                                        <ng-template let-item pTemplate="item">
+                                            <span>{{item.receiverName + " - " + item.receiverUserName}}</span>
+                                        </ng-template>
+                                    </p-autoComplete>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- is stationery field -->
+                        <div class="row mb-2">
+                            <div class="row col-sm-12" style="margin-left: 5px; margin-right:10px;">
+                                <div class="col-sm-3" style="text-align: left; padding-top: 5px;">Có VTTB:</div>
+                                <div class="col-sm-9 ui-fluid">
+                                    <p-checkbox  [(ngModel)]="isStationary" binary="true"></p-checkbox>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- tree unit -->
+                    <div class="col-sm-5" style="margin-top: -30px;">
+                        <div class="col-sm-12 ui-fluid">
+                            <p-fieldset legend="Đơn vị" [style]="{'height': '300px'}">
+                                <p-scrollPanel [style]="{width: '100%', height: '230px'}">
+                                    <p-tree [value]="sectors" selectionMode="checkbox" [propagateSelectionUp]="false"
+                                            [propagateSelectionDown]="false" [(selection)]="selectedSector"
+                                            (onNodeExpand)="nodeExpand($event)"
+                                            [loading]="loadingTree" class="no-border"></p-tree>
+                                </p-scrollPanel>
+                            </p-fieldset>
+                        </div>
+                    </div>
+                </div>
+            </p-fieldset>
+        </div>
+        <div class="col-xl-12">
+            <div class="text-center">
+                <!-- search button -->
+                <button type="button" pButton icon="fa fa-search" iconPos="left" label="Tìm kiếm" (click)="searchData()"
+                        style="text-align: center;"></button>
+                <!-- refresh button -->
+                <button type="button" pButton icon="fa fa-refresh" iconPos="left" label="Làm mới"
+                        (click)="resetButton()" style="text-align: center;"></button>
+                <!-- export excel button -->
+                <button type="button" pButton icon="fa fa-file-excel-o" iconPos="left" label="Xuất file"
+                        (click)="exportToExcel()"
+                        style="text-align: center;"></button>
+                <!-- export excel VTTB button, not use for employee -->
+                <button  type="button" pButton icon="fa fa-file-excel-o" iconPos="left"
+                        label="Xuất file VTTB" *ngIf="!isEmployee &&( isAdmin || isHcvp ||isCvp||isQl)"
+                        (click)="exportExcelVTTB()" style="text-align: center;"></button>
+
+                <button *ngIf="isEmployee || isAdmin || isHcvp ||isCvp||isQl" type="button" pButton icon="fa fa-plus" iconPos="left" label="Thêm mới"
+                        (click)="showAddForm()" style="text-align: center;"></button>
+
+
+                <button *ngIf="!isEmployee && (isAdmin || isCvp || isQl)" type="button" pButton label="Phê duyệt"
+                        (click)="approveIssuedService()" style="text-align: center;"></button>
+
+                <button *ngIf="!isEmployee && (isAdmin || isHcdv|| isHcvp)" type="button" pButton icon="fa fa-file-excel-o" iconPos="left"
+                        label="Báo cáo chi tiết"
+                        (click)="createReportDetail()" style="text-align: center;"></button>
+
+                <button *ngIf="!isEmployee && (isAdmin  || isHcvp)" type="button" pButton icon="fa fa-file-excel-o" iconPos="left"
+                        label="Báo cáo tổng hợp"
+                        (click)="createReportSynthetic()" style="text-align: center;"></button>
+
+
+            </div>
+        </div>
+    </div>
+    <!-- create table -->
+    <div class="row">
+        <div class="col-xl-12">
+            <!-- if has data -->
+
+                <p-table #myTable [value]="listRegisService" [lazy]="true" (onPage)="paginate($event)"
+                         [paginator]="true"
+                         [rows]="10" [totalRecords]="totalRecord" [loading]="loading">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th style="width: 2rem; font-weight: bold;">STT</th>
+                            <th rowspan="2" style="width: 3rem; font-weight: bold;">Phê duyệt
+                                <p-checkbox [(ngModel)]="checkedAllApprove" binary="true"
+                                            (onChange)="checkedAllItemApprove(listRegisService)"></p-checkbox>
+                            </th>
+                            <th style="width: 5rem; font-weight: bold;">Thao Tác</th>
+                            <th style="width: 4rem; font-weight: bold;">Tên dịch vụ</th>
+                            <th style="width: 3rem; font-weight: bold;">Thời gian kế hoạch</th>
+                            <th style="width: 5rem; font-weight: bold;">Bắt đầu</th>
+                            <th style="width: 5rem; font-weight: bold;">Kết thúc</th>
+                            <th style="width: 7rem; font-weight: bold;">Đơn vị</th>
+                            <th style="width: 4rem; font-weight: bold;">Người yêu cầu</th>
+                            <th style="width: 4rem; font-weight: bold;">Người thực hiện</th>
+                            <th style="width: 4rem; font-weight: bold;">Trạng thái</th>
+                            <th style="width: 4rem; font-weight: bold;">Trạng thái BC chi tiết</th>
+                            <th style="width: 4rem; font-weight: bold;">Trạng thái BC tổng hợp</th>
+                            <th style="width: 4rem; font-weight: bold;">VTTB kèm theo</th>
+                            <th class="vt-align-center"  style="width: 3rem; ">BC chi tiết <p-checkbox [(ngModel)]="checkedAllDetail" binary="true"
+                                                                                                      (onChange)="checkedAllItemDetail(listRegisService)"></p-checkbox>
+                            </th>
+                            <th class="vt-align-center" style="width: 3rem; ">BC tổng hợp<p-checkbox [(ngModel)]="checkedAllSynthetic" binary="true"
+                                                                                                     (onChange)="checkedAllItemSynthetic(listRegisService)"></p-checkbox>
+
+                            </th>
+
+                        </tr>
+                    </ng-template>
+                    <ng-template let-ri="rowIndex" pTemplate="body" let-item>
+                        <tr>
+                            <td style="width: 3rem; padding: 5px 4px;">{{ri+1}}</td>
+                            <td style="width: 6rem">
+                                <p-checkbox *ngIf="(item.status ==0) &&(isAdmin==true || item.isApprove==1)" [(ngModel)]="item.isCheckedApprove" binary="true"
+                                            (onChange)="checkedItemApprove(item)"></p-checkbox>
+                            </td>
+
+                            <td style="width: 3rem; padding: 2.5px 11.5px !important;">
+
+                                <p-button icon="fa fa-book" title="Thực hiện yêu cầu"
+                                          *ngIf="(item.status ==1 || item.status ==3 || item.status ==4)&&(isAdmin==true || item.isRecei==1)"
+                                          (onClick)="showStartIssuesService(item)"></p-button>
+
+                                <p-button icon="fa fa-times-circle" title="Hủy yêu cầu"
+                                          *ngIf="(item.status ==0 || item.status ==1 )&&(isAdmin==true || item.issuesUsername== uf.userName)"
+                                          (onClick)="showCanncelIssuesService(item)"></p-button>
+
+                                <p-button icon="fa fa-ban" title="Từ chối phê duyệt"
+                                          *ngIf="(item.status ==0  )&&(isAdmin==true || item.isApprove==1)"
+                                          (onClick)="showRefuseIssuesService(item)"></p-button>
+
+                                <p-button icon="fa fa-check-circle-o" title="Xác nhận bàn giao"
+                                          *ngIf="(item.status ==6) &&(item.issuesUsername==uf.userName)"
+                                          (onClick)="showApproveHandoverIssuesService(item)"></p-button>
+
+                                <p-button icon="fa fa-thumbs-o-up" title="Người thực hiện đánh giá"
+                                          *ngIf="(item.status ==5 ||item.status ==6 ||item.status ==8 ||item.status ==9) &&(isAdmin==true ||  item.isRecei==1)&&(item.rattingToUser == null || item.rattingToUser == 0)"
+                                          (onClick)="showRattingRequest(item)"></p-button>
+
+                                <p-button icon="fa fa-thumbs-up" title="Người yêu cầu đánh giá"
+                                          *ngIf="(item.status ==8 ||item.status ==9  ) &&(isAdmin==true || item.issuesUsername==uf.userName)&&(item.rating == null || item.rating == 0)"
+                                          (onClick)="showRattingPerform(item)"></p-button>
+                            </td>
+
+                            <td class="wrapText click-link" pTextEllipsis [pTooltip]="item.serviceName"
+                                (click)="showDetailIssuesService(item)"
+                                style="width: 7rem; padding: 5px 4px; text-align: left !important;">
+                                {{item.serviceName}}
+                            </td>
+
+                            <td style="width: 3rem; padding: 5px 4px; text-align: right !important;">{{item.fullFillTime}}
+                            </td>
+
+                            <td style="width: 8rem; padding: 5px 4px;" pTextEllipsis [pTooltip]="item.startDatePlan | date: 'dd/MM/yyyy HH:mm'">
+                                {{item.startDatePlan | date: 'dd/MM/yyyy'}}
+                            </td>
+
+                            <td style="width: 8rem; padding: 5px 4px;"pTextEllipsis [pTooltip]="item.endDatePlan | date: 'dd/MM/yyyy HH:mm'">
+                                {{item.endDatePlan | date: 'dd/MM/yyyy'}}
+                            </td>
+
+                            <td  class="wrapText" pTextEllipsis [pTooltip]="item.detailUnit"
+                                style="width: 7rem; padding: 5px 4px; text-align: left !important;">
+                                {{item.unitName}}
+                            </td>
+
+                            <td class="wrapText" pTextEllipsis [pTooltip]="item.empName"
+                                style="width: 5rem; padding: 5px 4px; text-align: left !important;">
+                                {{item.empName}}
+                            </td>
+
+                            <td class="wrapText" pTextEllipsis [pTooltip]="item.receiName"
+                                style="width: 5rem; padding: 5px 4px; text-align: left !important;">
+                                {{item.receiName}}
+                            </td>
+
+                            <td class="wrapText" pTextEllipsis [pTooltip]="convertStatus[item.status]"
+                                style="width: 9rem; padding: 5px 4px; text-align: left !important;">
+                                {{convertStatus[item.status]}}
+                            </td>
+                            <td class="wrapText" pTextEllipsis [pTooltip]="convertStatusVoffice[item.statusDetail]" >
+                                {{convertStatusVoffice[item.statusDetail]}}
+                            </td>
+
+                            <td class="wrapText" pTextEllipsis [pTooltip]="convertStatusVoffice[item.statusSynthetic]"
+                                style="width: 3rem; padding: 5px 4px; text-align: left !important;">
+                                {{convertStatusVoffice[item.statusSynthetic]}}
+                            </td>
+                            <td style="width: 3rem; padding: 2px 1.5px !important;">
+                                <p-button icon="fa fa-file-text-o" (onClick)="showStationery(item)"></p-button>
+                            </td>
+                            <td style="width: 3rem; padding: 2px 1.5px !important;">
+                                <p-checkbox *ngIf="(item.statusDetail == 0 || item.statusDetail == 5 || item.statusDetail == 4) && (item.status ==6 || item.status ==8 || item.status ==9) && item.stationeryID != null && !isEmployee && (isAdmin || isHcdv|| isHcvp)" [(ngModel)]="item.isCheckedDetail" binary="true"
+                                            [(ngModel)]="item.isCheckedDetail"
+                                            (onChange)="checkedItemDetail(item)"></p-checkbox>
+                            </td>
+                            <td>
+                                <p-checkbox *ngIf="(item.statusSynthetic == 0 || item.statusSynthetic == 5 || item.statusSynthetic == 4) && (item.status ==6 || item.status ==8 || item.status ==9) && item.stationeryID != null && !isEmployee && (isAdmin  || isHcvp)"
+                                            [(ngModel)]="item.isCheckedSynthetic" binary="true"
+                                            (onChange)="checkedItemSynthetic(item)"></p-checkbox>
+                            </td>
+
+                        </tr>
+
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td [attr.colspan]="16">
+                                Không có dữ liệu
+                            </td>
+                        </tr>
+                    </ng-template>
+                    <ng-template *ngIf="totalRecord != -1" pTemplate="paginatorright">
+            <span *ngIf="totalRecord == 0" style="position: absolute; right: 30px; bottom: 6px;">
+              0 - 0 / {{totalRecord}}</span>
+            <span *ngIf="totalRecord != 0 " style="position: absolute; right: 30px; bottom: 6px;">
+              {{startRow + 1}} - {{startRow + rowSize}} / {{totalRecord}}</span>
+                    </ng-template>
+                </p-table>
+        </div>
+    </div>
+
+
+    <!-- modal VTTB -->
+    <p-dialog *ngIf="itemStationery" header="{{headerStationery}}" [(visible)]="displayStationery" [modal]="true"
+              [responsive]="true" [width]="912" [dismissableMask]="true" [draggable]="false">
+        <div class="container">
+            <div class="row">
+                <div class="col-xl-12 mb-3">
+                    <div class="row mb-3" style="margin-left: 20px;">
+                        <div class="col-sm-5">
+                            <div class="row">
+                                <div class="col-sm-4" style="text-align: left; padding-top: 5px;">Tên dịch vụ:</div>
+                                <div class="col-sm-8 ui-fluid" style="margin-left: 0px; position: relative;">
+                                    <input type="text" pInputText [(ngModel)]="itemStationery.serviceName"
+                                           disabled="true"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-1"></div>
+                        <div class="col-sm-6">
+                            <div class="row">
+                                <div class="col-sm-4" style="text-align: left; padding-top: 5px;">Người yêu cầu:</div>
+                                <div class="col-sm-7 ui-fluid" style="margin-left: 0px; position: relative;">
+                                    <input type="text" pInputText [(ngModel)]="itemStationery.empName" disabled="true"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3" style="margin-left: 20px;">
+                        <div class="col-sm-5">
+                            <div class="row">
+                                <div class="col-sm-4" style="text-align: left; padding-top: 5px;">Trạng thái:</div>
+                                <div class="col-sm-8 ui-fluid" style="margin-left: 0px; position: relative;">
+                                    <input type="text" pInputText [(ngModel)]="convertStatus[itemStationery.status]"
+                                           disabled="true"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-1"></div>
+                        <div class="col-sm-6">
+                            <div class="row">
+                                <div class="col-sm-4" style="text-align: left; padding-top: 5px;">Người thực hiện:</div>
+                                <div class="col-sm-7 ui-fluid" style="margin-left: 0px; position: relative;">
+                                    <input type="text" pInputText [(ngModel)]="itemStationery.receiName"
+                                           disabled="true"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <p-table [value]="listStationery" [lazy]="true" (onPage)="paginateStationery($event)" [paginator]="true"
+                         [rows]="5"
+                         [totalRecords]="totalRecordStationery" [loading]="loading3">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th style="width: 3rem; font-weight: bold;">STT</th>
+                            <th style="width: 8rem; font-weight: bold;">Tên VTTB</th>
+                            <th style="width: 6rem; font-weight: bold;">Chủng loại</th>
+                            <th style="width: 6rem; font-weight: bold;">Số lượng</th>
+                            <th style="width: 6rem; font-weight: bold;">Đơn vị</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template let-ri="rowIndex" pTemplate="body" let-item>
+                        <tr>
+                            <td style="width: 3rem;">{{ri+1}}</td>
+                            <td class="wrapText" pTextEllipsis [pTooltip]="item.stationeryName"
+                                style="width: 10rem; padding: 5px 4px; text-align: left !important;">
+                                {{item.stationeryName}}
+                            </td>
+                            <td style="width: 6rem; padding: 5px 4px; text-align: left !important;">
+                                {{item.stationeryType}}
+                            </td>
+                            <td style="width: 4rem; padding: 5px 4px; text-align: right !important;">
+                                {{item.stationeryQuan}}
+                            </td>
+                            <td style="width: 4rem; padding: 5px 4px; text-align: left !important;">
+                                {{item.stationeryUnitCal}}
+                            </td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="paginatorright">
+            <span style="position: absolute; right: 30px; bottom: 6px;">
+              {{totalRecordStationery > 0 ? startRowSta + 1 : startRowSta}} - {{startRowSta + rowSizeSta}} /
+              {{totalRecordStationery}}
+            </span>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td [attr.colspan]="5">
+                                Không có dữ liệu
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
+        </div>
+    </p-dialog>
+
+    <p-dialog  position="center center" [(visible)]="displayAddIssuesService" [modal]="true" [width]="1000"
+              (onHide)="cancelShowAddForm()"
+              [maximizable]="true" [draggable]="false">
+
+        <div class="container-fluid text-center mt-3 mb-3">
+            <h1>{{titleDetailIssuesService}}</h1>
+        </div>
+        <div class="container">
+            <div class="row ">
+                <div class="col-sm-12 " style="margin: auto;">
+                    <form ngNoForm onsubmit="return false;">
+                            <div class="row" style="margin-top: 12px">
+                                <div class="col-sm-6">
+                                    <div class="form-group row">
+                                        <label class="col-sm-4 ">Họ tên:
+                                        </label>
+                                        <div class="col-sm-7 ui-fluid ">
+                                            <input type="text"
+                                                   class="ui-inputtext ui-widget ui-state-default ui-corner-all"
+                                                   pInputText
+                                                   [value]="userShowDetail.fullName" disabled="true"/>
+                                        </div>
+                                        <div class="col-sm-1"></div>
+                                    </div>
+
+                                    <div class="form-group row">
+                                        <label class="col-sm-4 ">Số điện thoại:
+                                        </label>
+                                        <div class="col-sm-7 ui-fluid ">
+                                            <input type="text"
+                                                   class="ui-inputtext ui-widget ui-state-default ui-corner-all"
+                                                   pInputText
+                                                   [value]="userShowDetail.phoneNumber" disabled="true"/>
+                                        </div>
+                                    </div>
+
+                                    <div *ngIf="statusShow == 8" class="form-group row">
+                                        <label class="col-sm-4 ">Ngày bắt đầu:
+                                        </label>
+                                        <div class="col-sm-7 ui-fluid ">
+                                            <input type="text"
+                                                   class="ui-inputtext ui-widget ui-state-default ui-corner-all"
+                                                   pInputText
+                                                   [value]="userShowDetail.timeStartPlan | date: 'dd/MM/yyyy HH:mm'" disabled="true"/>
+                                        </div>
+                                        <div class="col-sm-1"></div>
+                                    </div>
+
+                                    <div class="form-group row">
+                                        <label class="col-sm-4 ">Vị trí
+                                            <span style="color: red;">*</span></label>
+                                        <div class="col-sm-7 ui-fluid">
+                                            <p-autoComplete [disabled]="statusShow==1 || statusShow==7 || statusShow==8 || statusShow==12"
+                                                            #inputPlaceSave
+                                                            [(ngModel)]="placeInfoSave"
+                                                            [suggestions]="filterPlaceSave"
+                                                            (completeMethod)="loadPlaceSave($event)"
+                                                            dropdown="true" [pKeyFilter]="onlyChar" field="placeName"
+                                                            (ngModelChange)="changePlaceSave()"
+                                                            placeholder="VD: Tòa nhà Keangnam"></p-autoComplete>
+                                        </div>
+                                        <div class="col-sm-1"></div>
+                                    </div>
+
+                                    <div class="form-group row">
+                                        <label class="col-sm-4 ">Trạng thái
+                                        </label>
+                                        <div class="col-sm-7 ui-fluid ">
+                                            <input type="text"
+                                                   class="ui-inputtext ui-widget ui-state-default ui-corner-all"
+                                                   pInputText
+                                                   value="{{convertStatus[userShowDetail.status]}}" disabled="true"
+                                                   style="font-weight: bold; color: red"/>
+                                        </div>
+                                        <div class="col-sm-1"></div>
+                                    </div>
+
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group row">
+                                        <div class="col-sm-1"></div>
+                                        <label class="col-sm-4 ">Đơn vị:
+                                        </label>
+                                        <div class="col-sm-7 ui-fluid">
+                                            <input type="text"
+                                                   class="ui-inputtext ui-widget ui-state-default ui-corner-all"
+                                                   pInputText
+                                                   [value]="userShowDetail.unitName" disabled="true"/>
+                                        </div>
+                                        <div class="col-sm-1"></div>
+                                    </div>
+
+                                    <div class="form-group row">
+                                        <div class="col-sm-1"></div>
+                                        <label class="col-sm-4 ">Email:
+                                        </label>
+                                        <div class="col-sm-7 ui-fluid ">
+                                            <input type="text"
+                                                   class="ui-inputtext ui-widget ui-state-default ui-corner-all"
+                                                   pInputText
+                                                   [value]="userShowDetail.email" disabled="true"/>
+                                        </div>
+                                    </div>
+
+                                    <div  *ngIf="statusShow == 8" class="form-group row">
+                                        <div class="col-sm-1"></div>
+                                        <label class="col-sm-4 ">Ngày kết thúc:
+                                        </label>
+                                        <div class="col-sm-7 ui-fluid ">
+                                            <input type="text"
+                                                   class="ui-inputtext ui-widget ui-state-default ui-corner-all"
+                                                   pInputText
+                                                   [value]="userShowDetail.timeFinishPlan | date: 'dd/MM/yyyy HH:mm'" disabled="true"/>
+                                        </div>
+                                        <div class="col-sm-1"></div>
+                                    </div>
+
+                                    <div class="form-group row">
+
+                                        <div class="col-sm-1"></div>
+                                        <label class="col-sm-4 ">Tên dịch vụ
+                                            <span style="color: red;">*</span></label>
+                                        <div class="col-sm-7 ui-fluid ">
+                                            <strong>
+                                                <p-autoComplete
+                                                        [disabled]="statusShow==1|| statusShow==7 || statusShow==8 || statusShow==12"
+                                                        #inputServiceSave
+                                                        [(ngModel)]="serviceInfoSave"
+                                                        [suggestions]="filterServiceSave"
+                                                        (completeMethod)="loadServiceSave($event)" dropdown="true"
+                                                        [pKeyFilter]="onlyChar" field="serviceName"
+                                                        (ngModelChange)="changeServiceSave()" maxlength="50"
+                                                        (onSelect)="selectSeviceSave($event)"
+                                                        placeholder="VD: Thay màn hình"></p-autoComplete>
+                                            </strong>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="form-group row">
+                                        <div class="col-sm-1"></div>
+                                        <label class="col-sm-4">Thời gian đáp ứng:
+                                        </label>
+                                        <div class="col-sm-7 ui-fluid ">
+                                            <input type="text"
+                                                   class="ui-inputtext ui-widget ui-state-default ui-corner-all"
+                                                   pInputText
+                                                   [value]="fullFillTime" disabled="true"/>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div class="col-sm-2">
+                                    <div class="form-group row">
+                                        <label class="col-sm-12 ">Tình trạng:
+                                            <span style="color: red;">*</span>
+                                        </label>
+
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-10">
+                                    <div class="form-group row">
+                                        <div class="col-sm-12 ui-fluid ">
+                                            <textarea #noteIssuesServiceF [disabled]="statusShow==1 || statusShow==7 || statusShow==8 || statusShow==12 "
+                                                      tabindex="0" maxlength='500'
+                                                      class="ng-tns-c20-142 ng-pristine ng-valid ui-inputtext ui-corner-all ui-state-default ui-widget ng-touched"
+                                                      pInputTextarea pInputTextarea rows="4"
+                                                      [(ngModel)]="noteIssuesService" maxLength="1000"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group row">
+                                        <label class="col-sm-4 ">Quản lý trực tiếp
+                                            <span style="color: red;" *ngIf="serviceInfoSave === null || (serviceInfoSave !== null && serviceInfoSave.requireSign === 1)">*</span></label>
+                                        <div class="col-sm-7 ui-fluid ">
+                                            <p-autoComplete [disabled]="statusShow==1|| statusShow==7 || statusShow==8 || statusShow==12"
+                                                            #inputEmployeeManager
+                                                            [(ngModel)]="employeeManagerInfo"
+                                                            [suggestions]="filterEmployeeManager"
+                                                            (completeMethod)="loadEmployeeManager($event)"
+                                                            dropdown="true" [pKeyFilter]="onlyChar"
+                                                            field="fullNameEmployee"
+                                                            (ngModelChange)="changeEmployeeManager()"
+                                                            maxlength="50"
+                                                            placeholder="VD: Hoàng Văn A"></p-autoComplete>
+                                        </div>
+                                        <div class="col-sm-1"></div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group row">
+                                        <div class="ui-fluid">
+                                        <button type="button" [disabled]="true" *ngIf="(statusShow==1 || statusShow==7 || statusShow==8|| statusShow==12) && employeeManagerInfo != null && employeeManagerInfo.fullNameEmployee != ' '"
+                                                pButton
+                                                label={{convertStatus[userShowDetail.flagQLTT]}}
+                                                style="text-align: center;"></button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group row">
+                                        <label class="col-sm-4 ">Quản lý đơn vị:
+                                        </label>
+                                        <div class="col-sm-7 ui-fluid ">
+                                            <p-autoComplete [disabled]="statusShow==1|| statusShow==7 || statusShow==8 || statusShow==12"
+                                                            #inputEmployeeUnit
+                                                            [suggestions]="filterEmployeeUnit"
+                                                            [(ngModel)]="employeeUnitInfo"
+                                                            (completeMethod)="loadEmployeeUnit($event)"
+                                                            dropdown="true" [pKeyFilter]="onlyChar"
+                                                            field="fullNameEmployee"
+                                                            (ngModelChange)="changeEmployeeUnit()"
+                                                            maxlength="50"
+                                                            placeholder="VD: Hoàng Văn A"></p-autoComplete>
+                                        </div>
+                                        <div class="col-sm-1"></div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group row">
+                                        <button type="button" [disabled]="true" *ngIf="(statusShow==1 || statusShow==7 || statusShow==8|| statusShow==12) && employeeManagerInfo != null && employeeUnitInfo.fullNameEmployee != ' '"
+                                                pButton
+                                                label={{convertStatus[userShowDetail.flagLDVV]}}
+                                                style="text-align: center;"></button>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group row">
+                                        <label class="col-sm-4 ">Phòng hành chính TCT:
+                                        </label>
+                                        <div class="col-sm-7 ui-fluid ">
+                                            <p-autoComplete [disabled]="statusShow==1 || statusShow==7 || statusShow==8 || statusShow==12"
+                                                            #inputEmployeeOffice
+                                                            [suggestions]="filterEmployeeOffice"
+                                                            [(ngModel)]="employeeOfficeInfo"
+                                                            (completeMethod)="loadEmployeeOffice($event)"
+                                                            dropdown="true" [pKeyFilter]="onlyChar"
+                                                            field="fullNameEmployee"
+                                                            (ngModelChange)="changeEmployeeOffice()"
+                                                            maxlength="50"
+                                                            placeholder="VD: Hoàng Văn A"></p-autoComplete>
+                                        </div>
+                                        <div class="col-sm-1"></div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group row">
+                                        <button type="button" [disabled]="true" *ngIf="(statusShow==1 || statusShow==7 || statusShow==8|| statusShow==12) && employeeManagerInfo != null  && employeeOfficeInfo.fullNameEmployee != ' '"
+                                                pButton
+                                                label={{convertStatus[userShowDetail.flagCVP]}}
+                                                style="text-align: center;"></button>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-12" *ngIf="statusShow == 12">
+                                    <div class="col-sm-6">
+                                        <div class="form-group row">
+                                            <label class="col-sm-12 "><strong>Người yêu cầu đánh giá dịch
+                                                vụ</strong></label>
+                                        </div>
+
+                                        <div class="form-group row">
+                                            <div class="col-sm-12 ui-fluid ">
+                                                <p-rating [(ngModel)]="rattingRequest" [disabled]="true"  [iconOnStyle]="{'color': 'orange', 'font-size': '40px'}"
+                                                          [iconOffStyle]="{'font-size': '40px'}"
+                                                          [cancel]="false"></p-rating>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="form-group row">
+                                            <label class="col-sm-12 ">Góp ý
+                                            </label>
+
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-10">
+                                        <div class="form-group row">
+                                            <div class="col-sm-12 ui-fluid ">
+                                            <textarea [disabled]="true"
+                                                      tabindex="0" maxlength='500'
+                                                      class="ng-tns-c20-142 ng-pristine ng-valid ui-inputtext ui-corner-all ui-state-default ui-widget ng-touched"
+                                                      pInputTextarea pInputTextarea rows="4"
+                                                      [(ngModel)]="feedBackRequest" maxLength="1000"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group row">
+                                            <label class="col-sm-12 "><strong>Người thực hiện đánh giá người yêu
+                                                cầu</strong></label>
+                                        </div>
+
+                                        <div class="form-group row">
+                                            <div class="col-sm-12 ui-fluid ">
+                                                <p-rating [(ngModel)]="rattingPerform" [disabled]="true" [iconOnStyle]="{'color': 'orange', 'font-size': '40px'}"
+                                                          [iconOffStyle]="{'font-size': '40px'}"
+                                                          [cancel]="false"></p-rating>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="form-group row">
+                                            <label class="col-sm-12 ">Góp ý
+                                            </label>
+
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-10">
+                                        <div class="form-group row">
+                                            <div class="col-sm-12 ui-fluid ">
+                                            <textarea [disabled]="true"
+                                                      tabindex="0" maxlength='500'
+                                                      class="ng-tns-c20-142 ng-pristine ng-valid ui-inputtext ui-corner-all ui-state-default ui-widget ng-touched"
+                                                      pInputTextarea pInputTextarea rows="4"
+                                                      [(ngModel)]="feedBackPerform" maxLength="1000"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+        <div class="btn-block"  style="text-align: center; margin-top: 10px">
+            <button type="button" *ngIf="statusShow==0"  pButton  label="Thêm mới"
+                    (click)="saveIssuesService()" style="text-align: center;"></button>
+            <button type="button" *ngIf="statusShow==1" pButton label="Từ chối"
+                    class="ui-button-raised ui-button-danger"
+                    (click)="refuseDetailIssuesService()" style="text-align: center;"></button>
+            <button type="button" *ngIf="statusShow==1" pButton label="Phê duyệt"
+                    (click)="approveDetailIssuesService()" style="text-align: center;"></button>
+            <button type="button" *ngIf="statusShow==7" pButton label="Hủy yêu cầu"
+                    (click)="cancelIssuesService()" style="text-align: center;"></button>
+            <button type="button" *ngIf="statusShow==8" pButton label="Từ chối"
+                    class="ui-button-raised ui-button-danger"
+                    (click)="refuseHandoverIssuesService()" style="text-align: center;"></button>
+            <button type="button" *ngIf="statusShow==8" pButton label="Xác nhận"
+                    (click)="approveHandoverIssuesService()" style="text-align: center;"></button>
+            <button type="button" *ngIf="statusShow==12" pButton label="Đóng"
+                    (click)="closeDetailIssuesService()" style="text-align: center;"></button>
+        </div>
+
+    </p-dialog>
+
+    <!--(blockScroll)="true"-->
+    <p-dialog [(visible)]="displayStartIssuesService" [modal]="true"
+              [width]="1000" position="center center" ngClass="issuesDialog"
+              (onHide)="cancelStartIssuesService()"
+              [maximizable]="true" [draggable]="false">
+        <div class="container-fluid text-center mt-3 mb-3">
+            <h1>{{titleDetailIssuesService}}</h1>
+        </div>
+        <div class="container">
+            <div class="row ">
+                <div class="col-sm-12 " style="margin: auto;">
+                    <form ngNoForm onsubmit="return false;">
+                            <div class="row"style="margin-top: 12px">
+                                <div class="col-sm-6">
+
+                                    <div class="form-group row">
+                                        <label class="col-sm-4 ">Người yêu cầu:
+                                        </label>
+                                        <div class="col-sm-7 ui-fluid ">
+                                            <input type="text"
+                                                   class="ui-inputtext ui-widget ui-state-default ui-corner-all"
+                                                   pInputText
+                                                   [value]="userShowDetail.fullName" disabled="true"/>
+                                        </div>
+                                        <div class="col-sm-1"></div>
+                                    </div>
+
+                                    <div class="form-group row" *ngIf="statusShow !=11 ">
+                                        <label class="col-sm-4 ">Số điện thoại:
+                                        </label>
+                                        <div class="col-sm-7 ui-fluid ">
+                                            <input type="text"
+                                                   class="ui-inputtext ui-widget ui-state-default ui-corner-all"
+                                                   pInputText
+                                                   [value]="userShowDetail.phoneNumber" disabled="true"/>
+                                        </div>
+                                        <div class="col-sm-1"></div>
+                                    </div>
+
+                                    <div class="form-group row"*ngIf="statusShow !=11 ">
+                                        <label class="col-sm-4 ">Ngày bắt đầu:
+                                        </label>
+                                        <div class="col-sm-7 ui-fluid ">
+                                            <input type="text"
+                                                   class="ui-inputtext ui-widget ui-state-default ui-corner-all"
+                                                   pInputText
+                                                   [value]="userShowDetail.timeStartPlan | date: 'dd/MM/yyyy HH:mm'" disabled="true"/>
+                                        </div>
+                                        <div class="col-sm-1"></div>
+                                    </div>
+
+                                    <div class="form-group row">
+                                        <label class="col-sm-4">Thời gian đáp ứng:
+                                        </label>
+                                        <div class="col-sm-7 ui-fluid ">
+                                            <input type="text"
+                                                   class="ui-inputtext ui-widget ui-state-default ui-corner-all"
+                                                   pInputText
+                                                   [value]="fullFillTime" disabled="true"/>
+                                        </div>
+                                        <div class="col-sm-1"></div>
+                                    </div>
+                                    <div class="form-group row"></div>
+                                    <div class="form-group row">
+                                        <div class="col-sm-12">
+                                            <label ><span class="click-link" (click)="showHistoryIssueseSerive()">Lịch sử yêu cầu dịch vụ </span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+
+                                <div class="col-sm-6">
+                                    <div class="form-group row" *ngIf="statusShow ==11 ">
+                                        <div class="col-sm-1"></div>
+                                        <label class="col-sm-4 ">Số điện thoại:
+                                        </label>
+                                        <div class="col-sm-7 ui-fluid">
+                                            <input type="text"
+                                                   class="ui-inputtext ui-widget ui-state-default ui-corner-all"
+                                                   pInputText
+                                                   [value]="userShowDetail.phoneNumber" disabled="true"/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row"*ngIf="statusShow !=11 ">
+                                        <div class="col-sm-1"></div>
+                                        <label class="col-sm-4 ">Đơn vị:
+                                        </label>
+                                        <div class="col-sm-7 ui-fluid">
+                                            <input type="text"
+                                                   class="ui-inputtext ui-widget ui-state-default ui-corner-all"
+                                                   pInputText
+                                                   [value]="userShowDetail.unitName" disabled="true"/>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group row">
+                                        <div class="col-sm-1"></div>
+                                        <label class="col-sm-4 ">Tên dịch vụ
+                                         </label>
+                                        <div class="col-sm-7 ui-fluid ">
+                                            <p-autoComplete [disabled]="true" #inputServiceSave
+                                                            [(ngModel)]="serviceInfoSave"
+                                                            [suggestions]="filterServiceSave"
+                                                            (completeMethod)="loadServiceSave($event)" dropdown="true"
+                                                            [pKeyFilter]="onlyChar" field="serviceName"
+                                                            (ngModelChange)="changeServiceSave()" maxlength="50"
+                                                            (onSelect)="selectSeviceSave($event)"
+                                                            placeholder="VD: Thay màn hình"></p-autoComplete>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group row"*ngIf="statusShow !=11 ">
+                                        <div class="col-sm-1"></div>
+                                        <label class="col-sm-4 ">Ngày kết thúc:
+                                        </label>
+                                        <div class="col-sm-7 ui-fluid ">
+                                            <input type="text"
+                                                   class="ui-inputtext ui-widget ui-state-default ui-corner-all"
+                                                   pInputText
+                                                   [value]="userShowDetail.timeFinishPlan  | date: 'dd/MM/yyyy HH:mm'" disabled="true"/>
+                                        </div>
+                                        <div class="col-sm-1"></div>
+                                    </div>
+
+                                    <div class="form-group row" *ngIf="statusShow!=10 && statusShow!=11">
+                                        <div class="col-sm-1"></div>
+                                        <label class="col-sm-4 ">Tình trạng:
+                                         </label>
+                                        <div class="col-sm-7 ui-fluid ">
+                                                <textarea [disabled]="true" tabindex="0" maxlength='500'
+                                                          pInputTextarea
+                                                          class="ng-tns-c20-142 ng-pristine ng-valid ui-inputtext ui-corner-all ui-state-default ui-widget ng-touched"
+                                                          [(ngModel)]="noteIssuesService" maxLength="1000"></textarea>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group row" *ngIf="statusShow==10">
+                                        <div class="col-sm-1"></div>
+                                        <label class="col-sm-4 ">Trạng thái
+                                        </label>
+                                        <div class="col-sm-7 ui-fluid ">
+                                            <input type="text"
+                                                   class="ui-inputtext ui-widget ui-state-default ui-corner-all"
+                                                   pInputText
+                                                   value="{{convertStatus[userShowDetail.status]}}" disabled="true"
+                                                   style="font-weight: bold; color: red"/>
+                                        </div>
+                                        <div class="col-sm-1"></div>
+                                    </div>
+                                </div>
+
+                            </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+        <div style="text-align: center; margin-top: 10px ; margin-bottom: 10px" *ngIf="statusShow == 3 && userShowDetail.status == 1">
+
+            <button type="button" pButton label="Bắt đầu thực hiện"
+                    (click)="startIssuesService()" style="text-align: center;"></button>
+        </div>
+
+        <div style="margin-top: 10px ; margin-bottom: 10px" *ngIf="statusShow == 3 && (userShowDetail.status == 1 ||userShowDetail.status == 3 || userShowDetail.status == 4)">
+            <div class="form-group row" >
+                <div class="col-sm-4">
+                    <label class="col-sm-12">Lý do hoãn thực hiện
+                        <span style="color: red;">*:</span></label>
+                </div>
+            </div>
+            <div class="form-group row" >
+                <div class="col-sm-2">
+                </div>
+                <div class="col-sm-10">
+                    <div class="col-sm-12 ui-fluid ">
+                        <textarea #reasonPostponeF [disabled]="statusShow==1 ||userShowDetail.status == 4 " tabindex="0" maxlength='500'
+                                  class="ng-tns-c20-142 ng-pristine ng-valid ui-inputtext ui-corner-all ui-state-default ui-widget ng-touched"
+                                  pInputTextarea rows="5"
+                                  [(ngModel)]="reasonPostpone" maxLength="255"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group row" >
+                <div class="col-sm-2">
+                    <label class="col-sm-12 ">Thời gian hẹn<span style="color: red;">*:</span></label>
+                </div>
+                <div class="col-sm-10">
+                    <div class="col-sm-12">
+                        <p-calendar dateFormat="dd/mm/yy" placeholder="DD/MM/YYYY HHMM" [showTime]="true" [minDate]="minDate"
+                                    [disabled]="userShowDetail.status == 4 "
+                                    [(ngModel)]="postponeDate" [showIcon]="true"
+                                    [readonlyInput]="true" showButtonBar="true"
+                                    [locale]="vn" [monthNavigator]="true"
+                                    [yearNavigator]="true" yearRange="2000:2030"
+                                    (ngModelChange)="selectFromDate()"></p-calendar>
+                    </div>
+                </div>
+            </div>
+            <div style="text-align: center; margin-bottom: 10px">
+                <button type="button" pButton label="Hoãn thực hiện" *ngIf="userShowDetail.status != 4"
+                        (click)="postponeIssuesService()" style="text-align: center;"></button>
+            </div>
+            <div style="text-align: center; margin-bottom: 10px" *ngIf="userShowDetail.status == 4">
+                <button type="button" pButton label="Tiếp tục thực hiện"
+                        (click)="startIssuesService()" style="text-align: center;"></button>
+            </div>
+        </div>
+        <div class="form-group row"></div>
+        <div style=" margin-top: 10px ; margin-bottom: 10px"*ngIf="statusShow == 3 " >
+            <div class="form-group row">
+                <div class="col-sm-4">
+                    <label class="col-sm-12 ">Lý do không thực hiện
+                        <span style="color: red;">*</span></label>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-2">
+                </div>
+                <div class="col-sm-10">
+                    <div class="col-sm-12 ui-fluid ">
+                      <textarea #resonCantExecutiveF [disabled]="statusShow==1" tabindex="0" maxlength='500'
+                                class="ng-tns-c20-142 ng-pristine ng-valid ui-inputtext ui-corner-all ui-state-default ui-widget ng-touched"
+                                pInputTextarea rows="5"
+                                [(ngModel)]="resonCantExecutive" maxLength="255"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-bottom: 10px">
+                <button type="button" pButton label="Không thực hiện được"
+                        (click)="cantExecutiveIssuesService()" style="text-align: center;"></button>
+            </div>
+
+
+        </div>
+
+        <div style=" margin-top: 10px ; margin-bottom: 10px" *ngIf="statusShow == 10 || statusShow==11">
+            <div class="form-group row">
+                <div class="col-sm-4">
+                    <label class="col-sm-12 ">Tình trạng:
+                        </label>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-2">
+                </div>
+                <div class="col-sm-10">
+                    <div class="col-sm-12 ui-fluid ">
+                       <textarea [disabled]="true" tabindex="0" maxlength='500'
+                                 pInputTextarea rows="4"
+                                 class="ng-tns-c20-142 ng-pristine ng-valid ui-inputtext ui-corner-all ui-state-default ui-widget ng-touched"
+                                 [(ngModel)]="noteIssuesService" ></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style=" margin-top: 10px ; margin-bottom: 10px" *ngIf="userShowDetail.status === 9">
+            <div class="form-group row">
+                <div class="col-sm-4">
+                    <label class="col-sm-12 ">Lý do từ chối bàn giao:
+                    </label>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-2">
+                </div>
+                <div class="col-sm-10">
+                    <div class="col-sm-12 ui-fluid ">
+                       <textarea [disabled]="true" tabindex="0" maxlength='500'
+                                 pInputTextarea rows="4"
+                                 class="ng-tns-c20-142 ng-pristine ng-valid ui-inputtext ui-corner-all ui-state-default ui-widget ng-touched"
+                                 [(ngModel)]="userShowDetail.userReason" ></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style=" margin-top: 10px ; margin-bottom: 10px" *ngIf="userShowDetail.status === 5">
+            <div class="form-group row">
+                <div class="col-sm-4">
+                    <label class="col-sm-12 ">Lý do không thực hiện được:
+                    </label>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-2">
+                </div>
+                <div class="col-sm-10">
+                    <div class="col-sm-12 ui-fluid ">
+                       <textarea [disabled]="true" tabindex="0" maxlength='500'
+                                 pInputTextarea rows="4"
+                                 class="ng-tns-c20-142 ng-pristine ng-valid ui-inputtext ui-corner-all ui-state-default ui-widget ng-touched"
+                                 [(ngModel)]="userShowDetail.reason" ></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style=" margin-top: 10px " *ngIf="(userShowDetail.status == 3 || statusShow === 11|| userShowDetail.status === 8|| userShowDetail.status === 9) && (userShowDetail.status != 5)">
+            <div class="form-group row">
+                <div class="col-sm-4">
+                    <label class="col-sm-12 ">Danh sách vật tư thiết bị sử dụng</label>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-2">
+                </div>
+                <div class="col-sm-10">
+                    <div class="col-sm-12 ui-fluid ">
+                        <p-scrollPanel>
+                            <div #inputGroup>
+                                <div class="row mb-3" *ngFor="let item of listSelectedStationery; let i=index"
+                                     style="margin-top: .5em;">
+
+                                    <div *ngIf="statusShow==3" class="col-sm-1">
+                                        <button pButton type="button" icon="pi pi-minus" title="Xóa một TBVT"
+                                                (click)="removeTextbox(i)"
+                                                [disabled]="listSelectedStationery != null && listSelectedStationery.length === 1"></button>
+                                    </div>
+
+                                    <div class="col-sm-5 ">
+                                        <p-autoComplete [forceSelection]="true"
+                                                        [(ngModel)]="listSelectedStationery[i]"
+                                                        [suggestions]="filterStationery"
+                                                        (completeMethod)="loadStationery($event)"
+                                                        emptyMessage="Không có VTTB nào" dropdown="true"
+                                                        field="stationeryName" (onKeyUp)="changeStationery(i)"
+                                                        (onSelect)="selectStationery(i,$event)" [disabled]="statusShow === 10 || statusShow === 11 "></p-autoComplete>
+                                    </div>
+                                    <div class="col-sm-3 ui-fluid">
+                                        <input type="text" [disabled]="statusShow == 10 || statusShow == 11"
+                                               *ngIf="listSelectedStationery[i] != null"
+                                               class="ui-inputtext ui-widget ui-state-default ui-corner-all"
+                                               [(ngModel)]="listSelectedStationery[i].stationeryQuantity"
+                                               (ngModelChange)="changeQuantity()"
+                                               pKeyFilter="pint" pInputText/>
+                                    </div>
+                                    <div class="col-sm-2 ui-fluid">
+                                        <input *ngIf="listSelectedStationery[i] != null" type="text"
+                                               class="ui-inputtext ui-widget ui-state-default ui-corner-all"
+                                               pInputText [value]="listSelectedStationery[i].calculationUnit"
+                                               [disabled]="true"/>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div *ngIf="statusShow==3" class="row">
+                                <div class="col-sm-10">
+                                    <button pButton type="button" icon="pi pi-plus" title="Thêm một TBVT"
+                                            (click)="addTextbox()"
+                                            style="margin-right: .5em"></button>
+                                </div>
+                                <div class="col-sm-2"></div>
+                            </div>
+
+                        </p-scrollPanel>
+                    </div>
+                </div>
+            </div>
+
+            <div *ngIf="statusShow==3" style="text-align: center; margin-bottom: 10px">
+                <button type="button" pButton label="Hoàn thành"
+                        (click)="succesIssuesService()" style="text-align: center;"></button>
+            </div>
+
+        </div>
+
+        <div style="margin-bottom: 10px" *ngIf="statusShow == 10 || statusShow == 11">
+            <!--<div class="form-group row">
+                <div class="col-sm-4">
+                    <label class="col-sm-12"></label>
+                </div>
+            </div>-->
+            <div class="form-group row">
+                <div class="col-sm-2">
+                </div>
+                <div class="col-sm-10">
+                    <div class="col-sm-12 ui-fluid " align="center">
+                        <p-rating [(ngModel)]="ratting" [iconOnStyle]="{'color': 'orange', 'font-size': '40px'}"
+                                  [iconOffStyle]="{'font-size': '40px'}" [cancel]="false"></p-rating>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <div class="col-sm-4">
+                    <label class="col-sm-12 ">Góp ý: </label>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-2">
+                </div>
+                <div class="col-sm-10">
+                    <div class="col-sm-12 ui-fluid ">
+                      <textarea [disabled]="statusShow==1" tabindex="0" maxlength='500'
+                                class="ng-tns-c20-142 ng-pristine ng-valid ui-inputtext ui-corner-all ui-state-default ui-widget ng-touched"
+                                pInputTextarea rows="4"
+                                [(ngModel)]="feedback" maxLength="255"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div style="text-align: center; margin-bottom: 10px">
+                <button type="button" pButton label="Đánh giá"
+                        (click)="evaluateIssuesService()" style="text-align: center;"></button>
+            </div>
+        </div>
+
+    </p-dialog>
+
+    <p-dialog header='Nhập lý do từ chối' [(visible)]="displayReasonRefuse" [modal]="true"
+              [width]="500"
+              (onHide)="cancelShowReasonRefuse()"
+              [draggable]="false">
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-12 ui-fluid ">
+                 <textarea tabindex="0" maxlength='1000'
+                           class="ng-tns-c20-142 ng-pristine ng-valid ui-inputtext ui-corner-all ui-state-default ui-widget ng-touched"
+                           pInputTextarea rows="3"
+                           [(ngModel)]="noteReasonRefuseHandoverIssuesService"></textarea>
+
+                </div>
+            </div>
+
+            <div style="margin-top: 10px">
+                <button pButton (click)="canncelRefuseHandoverIssuesService()" type="button" label="Hủy"
+                        class="pull-right"></button>
+                <button pButton (click)="confirmRefuseHandoverIssuesService()" type="button" label="Chọn"
+                        class="pull-right"></button>
+            </div>
+        </div>
+
+    </p-dialog>
+
+    <p-dialog header="THÔNG TIN LỊCH SỬ YÊU CẦU DỊCH VỤ" [(visible)]="displayHistoryIssuesService" [modal]="true"
+              [responsive]="true" [width]="912" [dismissableMask]="true" [draggable]="false">
+
+        <div class="row">
+            <div class="col-sm-12">
+                <p-table [value]="listHistoryIssuesService" >
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th style="width: 3rem; font-weight: bold;">STT</th>
+                            <th style="width: 8rem; font-weight: bold;">Tên dịch vụ</th>
+                            <th style="width: 6rem; font-weight: bold;">Ngày tiếp nhận bàn giao</th>
+                            <th style="width: 6rem; font-weight: bold;">Tình trạng</th>
+                            <th style="width: 6rem; font-weight: bold;">VTTB</th>
+                            <th style="width: 6rem; font-weight: bold;">Trạng thái</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template let-ri="rowIndex" pTemplate="body" let-item>
+                        <tr>
+                            <td style="width: 3rem;">{{ri+1}}</td>
+                            <td class="wrapText" pTextEllipsis [pTooltip]="item.stationeryName"
+                                style="width: 10rem; padding: 5px 4px; text-align: left !important;">
+                                {{item.serviceName}}
+                            </td>
+                            <td style="width: 6rem; padding: 5px 4px; text-align: left !important;">
+                                {{item.timeReceive | date:'dd-MM-yyyy HH:mm'}}
+                            </td>
+                            <td style="width: 4rem; padding: 5px 4px; text-align: right !important;">
+                                {{item.note}}
+                            </td>
+                            <td style="width: 4rem; padding: 5px 4px; text-align: left !important;">
+                                {{item.stationeryName}}
+                            </td>
+                            <td style="width: 4rem; padding: 5px 4px; text-align: left !important;">
+                                {{convertStatus[item.status]}}
+                            </td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td [attr.colspan]="5">
+                                Không có dữ liệu
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
+        </div>
+    </p-dialog>
+
+    <p-dialog header='BÁO CÁO VTTB THEO THÁNG' [(visible)]="displayAddReport" [modal]="true"
+              [width]="1000" (onHide)="cancelAddReport()"
+              [draggable]="false">
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-12 " style="margin: auto;">
+                    <form ngNoForm onsubmit="return false;">
+                        <p-fieldset legend="Thông tin báo cáo">
+                            <div class="row">
+                                <label class="col-sm-3 ">Nội dung văn bản:
+                                </label>
+                                <div class="col-sm-9 ui-fluid ">
+                                    <textarea #noteContentF [disabled]="statusShow==1" tabindex="0" maxlength='500'
+                                              class="ng-tns-c20-142 ng-pristine ng-valid ui-inputtext ui-corner-all ui-state-default ui-widget ng-touched"
+                                              pInputTextarea rows="3" [(ngModel)]="noteContentReport"></textarea>
+                                </div>
+                            </div>
+                        </p-fieldset>
+                    </form>
+                </div>
+            </div>
+
+            <div style="margin-top: 10px"class="text-center">
+                <button pButton (click)="cancelAddReport()" type="button" label="Hủy bỏ" ></button>
+                <button pButton (click)="confirmAddReport()" type="button" label="Đồng ý" ></button>
+            </div>
+        </div>
+
+    </p-dialog>
+</div>

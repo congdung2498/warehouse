@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.viettel.vtnet360.vt01.vt010011.dao.VT010011DAO">
+
+	<!-- get list of employees -->
+	<select id="findListEmployee" parameterType="com.viettel.vtnet360.vt01.vt010011.entity.VT010011ListEmployee"
+		resultType="com.viettel.vtnet360.vt01.vt010011.entity.VT010011ListEmployee">
+		SELECT
+			e.FULL_NAME AS result,
+			e.USER_NAME AS userName
+		FROM
+			QLDV_EMPLOYEE e
+		LEFT JOIN QLDV_UNIT u ON
+			e.UNIT_ID = u.UNIT_ID
+		WHERE
+			u.`PATH` LIKE CONCAT('%','234841','%')
+		<if test = "result != null and result.length &gt; 0">
+		<bind name="pattern" value="'%' + result + '%'"/>
+				AND e.FULL_NAME LIKE #{pattern}
+				<if test="listUnit != null and listUnit.length &gt; 0">
+					AND e.UNIT_ID IN
+					<foreach item="item1" collection="listUnit" open = "(" separator=" UNION " close = ")">
+						SELECT
+							UNIT_ID
+						FROM
+							QLDV_UNIT
+						WHERE
+							QLDV_UNIT.`PATH` LIKE CONCAT('%', #{item1}, '%')
+					</foreach>
+				</if>
+				AND e.STATUS = 1
+			UNION SELECT
+				e.CODE AS result,
+				e.USER_NAME AS userName
+			FROM
+				QLDV_EMPLOYEE e
+			LEFT JOIN QLDV_UNIT u ON
+				e.UNIT_ID = u.UNIT_ID
+			WHERE
+				u.`PATH` LIKE CONCAT('%','234841','%')
+				AND e.CODE LIKE #{pattern}
+				<if test="listUnit != null and listUnit.length &gt; 0">
+					AND e.UNIT_ID IN
+					<foreach item="item2" collection="listUnit" open = "(" separator=" UNION " close = ")">
+						SELECT
+							UNIT_ID
+						FROM
+							QLDV_UNIT
+						WHERE
+							QLDV_UNIT.`PATH` LIKE CONCAT('%', #{item2}, '%')
+					</foreach>
+				</if>
+				AND e.STATUS = 1
+			UNION SELECT
+				e.PHONE_NUMBER AS result,
+				e.USER_NAME AS userName
+			FROM
+				QLDV_EMPLOYEE e
+			LEFT JOIN QLDV_UNIT u ON
+				e.UNIT_ID = u.UNIT_ID
+			WHERE
+				u.`PATH` LIKE CONCAT('%','234841','%')
+				AND e.PHONE_NUMBER LIKE #{pattern}
+				<if test="listUnit != null and listUnit.length &gt; 0">
+					AND e.UNIT_ID IN
+					<foreach item="item3" collection="listUnit" open = "(" separator=" UNION " close = ")">
+						SELECT
+							UNIT_ID
+						FROM
+							QLDV_UNIT
+						WHERE
+							QLDV_UNIT.`PATH` LIKE CONCAT('%', #{item3}, '%')
+					</foreach>
+				</if>
+				AND e.STATUS = 1
+			UNION SELECT
+				e.EMAIL AS result,
+				e.USER_NAME AS userName
+			FROM
+				QLDV_EMPLOYEE e
+			LEFT JOIN QLDV_UNIT u ON
+				e.UNIT_ID = u.UNIT_ID
+			WHERE
+				u.`PATH` LIKE CONCAT('%','234841','%')
+				AND e.EMAIL LIKE #{pattern}
+				<if test="listUnit != null and listUnit.length &gt; 0">
+					AND e.UNIT_ID IN
+					<foreach item="item4" collection="listUnit" open = "(" separator=" UNION " close = ")">
+						SELECT
+							UNIT_ID
+						FROM
+							QLDV_UNIT
+						WHERE
+							QLDV_UNIT.`PATH` LIKE CONCAT('%', #{item4}, '%')
+					</foreach>
+				</if>
+				AND e.STATUS = 1
+			UNION SELECT
+				e.USER_NAME AS result,
+				e.USER_NAME AS userName
+			FROM
+				QLDV_EMPLOYEE e
+			LEFT JOIN QLDV_UNIT u ON
+				e.UNIT_ID = u.UNIT_ID
+			WHERE
+				u.`PATH` LIKE CONCAT('%','234841','%')
+				AND e.USER_NAME LIKE #{pattern}
+				<if test="listUnit != null and listUnit.length &gt; 0">
+					AND e.UNIT_ID IN
+					<foreach item="item5" collection="listUnit" open = "(" separator=" UNION " close = ")">
+						SELECT
+							UNIT_ID
+						FROM
+							QLDV_UNIT
+						WHERE
+							QLDV_UNIT.`PATH` LIKE CONCAT('%', #{item5}, '%')
+					</foreach>
+				</if>
+				AND e.STATUS = 1
+		</if>
+		ORDER BY result ASC 
+		LIMIT 50
+	</select>
+
+	<!-- get all list in out -->
+	<select id="findListInOut" parameterType="com.viettel.vtnet360.vt01.vt010011.entity.VT010011ListCondition"
+		resultType="com.viettel.vtnet360.vt01.vt010011.entity.VT010011ListInOut">
+		SELECT
+			i.IN_OUT_REGISTER_ID AS inOutId,
+			i.STATUS AS status,
+			e.FULL_NAME AS empName,
+			e.PHONE_NUMBER AS empPhone,
+			e.CODE AS empCode,
+			e.EMAIL AS empEmail,
+			u.UNIT_NAME AS unitName,
+			CASE 
+				WHEN u.UNIT_ID = 234841 THEN IFNULL(u.UNIT_NAME, '')
+				WHEN b.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''))
+				WHEN c.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''), IFNULL(CONCAT(' / ', c.UNIT_NAME), ''))
+				ELSE CONCAT(IFNULL(b.UNIT_NAME, ''), IFNULL(CONCAT(' / ', c.UNIT_NAME), ''), IFNULL(CONCAT(' / ', d.UNIT_NAME), ''))
+			END AS detailUnit,
+			i.STATUS AS status,
+			i.START_TIME_BY_PLAN AS startDate,
+			i.END_TIME_BY_PLAN AS endDate,
+			i.START_TIME_BY_ACTUAL AS startDateReal,
+			i.END_TIME_BY_ACTUAL AS endDateReal,
+			i.DESTINATION AS destination,
+			ea.FULL_NAME AS approverName,
+			<!-- them approverUserName, inOutEmployeeList start-->
+			i.APPROVER_USER_NAME AS approverUserName,
+			i.IN_OUT_EMPLOYEE_LIST AS inOutEmployeeList,
+			<!-- them approverUserName, inOutEmployeeList end-->
+			i.REASON_REGISTION AS reason,
+			i.REASON_DETAIL as resonDetail,
+			i.REASON_OF_APPROVER as resonApprover,
+			i.REASON_OF_GUARD as resonGuard,
+			i.IS_LATE as isLate
+		FROM
+			IN_OUT_REGISTER i
+		LEFT JOIN QLDV_EMPLOYEE e ON
+			i.EMPLOYEE_USER_NAME = e.USER_NAME
+		LEFT JOIN QLDV_EMPLOYEE ea ON
+			i.APPROVER_USER_NAME = ea.USER_NAME
+		LEFT JOIN QLDV_UNIT u ON
+			e.UNIT_ID = u.UNIT_ID
+		LEFT JOIN QLDV_UNIT b ON
+			u.PARENT_UNIT_ID = b.UNIT_ID
+		LEFT JOIN QLDV_UNIT c ON
+			b.PARENT_UNIT_ID = c.UNIT_ID
+		LEFT JOIN QLDV_UNIT d ON
+			c.PARENT_UNIT_ID = d.UNIT_ID
+		<where>
+			<if test="listStatus != null and listStatus.length &gt; 0">
+				<foreach item="item" collection="listStatus" open = "AND (" separator=" OR " close = ")">
+					i.STATUS = #{item}					
+				</foreach>
+			</if>
+			<!-- if test="manager != 1 and listUnit != null and listUnit.length &gt; 0">
+				<foreach item="item1" collection="listUnit" open = "AND (" separator=" OR " close = ")">
+					u.UNIT_ID = #{item1}
+				</foreach>
+			</if> -->
+			<if test="listUnit != null and listUnit.length &gt; 0">
+				AND e.UNIT_ID IN
+				<foreach item="item1" collection="listUnit" open="(" separator=" UNION " close = ")">
+					SELECT
+						UNIT_ID
+					FROM
+						QLDV_UNIT
+					WHERE
+						QLDV_UNIT.`PATH` LIKE CONCAT('%', #{item1}, '%')
+				</foreach>
+			</if>
+			<if test="startDate != null">
+				AND i.START_TIME_BY_PLAN &gt;= CAST(#{startDate} AS DATETIME)		<!-- >= -->
+			</if>
+			<if test="endDate != null">
+				AND i.START_TIME_BY_PLAN &lt;= CAST(#{endDate} AS DATETIME) 		<!-- <= -->
+			</if>
+			<if test="personInfo != null and personInfo.length &gt; 0">
+			<bind name="pattern2" value="'%' + personInfo + '%'"/>
+				AND ( e.CODE LIKE #{pattern2}
+				OR e.FULL_NAME LIKE #{pattern2}
+				OR e.EMAIL LIKE #{pattern2}
+				OR e.PHONE_NUMBER LIKE #{pattern2}
+				OR e.USER_NAME LIKE #{pattern2} )
+			</if>
+			<if test="userName != null and userName.length &gt; 0">
+				AND e.USER_NAME = #{userName}
+			</if>
+			<if test="loginRole != null and loginRole == 'PMQT_NV'">
+				AND i.EMPLOYEE_USER_NAME = #{loginUserName}
+			</if>
+		</where>
+		ORDER BY
+			i.START_TIME_BY_PLAN DESC
+		<if test="startRow != -1 and rowSize != -1">
+			LIMIT #{startRow}, #{rowSize}
+		</if>
+	</select>
+
+	<!-- count total record -->
+	<select id="countTotalRecord" parameterType="com.viettel.vtnet360.vt01.vt010011.entity.VT010011ListCondition"
+		resultType="java.lang.Integer">
+		SELECT
+			COUNT(*)
+		FROM
+			IN_OUT_REGISTER i
+		LEFT JOIN QLDV_EMPLOYEE e ON
+			i.EMPLOYEE_USER_NAME = e.USER_NAME
+		<where>
+			<if test="listStatus != null and listStatus.length &gt; 0">
+				<foreach item="item" collection="listStatus" open = "AND (" separator=" OR " close = ")">
+					
+					<if test=" item == 4 ">
+					i.STATUS = 4 OR i.STATUS = 8
+					</if>
+					
+					<if test=" item != 4 ">
+					i.STATUS = #{item}
+					</if>
+					
+				</foreach>
+			</if>
+			<!-- <if test="manager != 1 and listUnit != null and listUnit.length &gt; 0">
+				<foreach item="item1" collection="listUnit" open = "AND (" separator=" OR " close = ")">
+					u.UNIT_ID = #{item1}
+				</foreach>
+			</if> -->
+			<if test="listUnit != null and listUnit.length &gt; 0">
+				AND e.UNIT_ID IN
+				<foreach item="item1" collection="listUnit" open="(" separator=" UNION " close = ")">
+					SELECT
+						UNIT_ID
+					FROM
+						QLDV_UNIT
+					WHERE
+						QLDV_UNIT.`PATH` LIKE CONCAT('%', #{item1}, '%')
+				</foreach>
+			</if>
+			<if test="startDate != null">
+				AND i.START_TIME_BY_PLAN &gt;= CAST(#{startDate} AS DATETIME)		<!-- >= -->
+			</if>
+			<if test="endDate != null">
+				AND i.START_TIME_BY_PLAN &lt;= CAST(#{endDate} AS DATETIME) 			<!-- <= -->
+			</if>
+			<if test="personInfo != null and personInfo.length &gt; 0">
+			<bind name="pattern2" value="'%' + personInfo + '%'"/>
+				AND ( e.CODE LIKE #{pattern2}
+				OR e.FULL_NAME LIKE #{pattern2}
+				OR e.EMAIL LIKE #{pattern2}
+				OR e.PHONE_NUMBER LIKE #{pattern2}
+				OR e.USER_NAME LIKE #{pattern2} )
+			</if>
+			<if test="userName != null and userName.length &gt; 0">
+				AND e.USER_NAME = #{userName}
+			</if>
+			<if test="loginRole != null and loginRole == 'PMQT_NV'">
+				AND i.EMPLOYEE_USER_NAME = #{loginUserName}
+			</if>
+		</where>
+	</select>
+
+</mapper>

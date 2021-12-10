@@ -1,0 +1,161 @@
+<div class="container">
+  <div class="container-fluid text-center mt-5">
+    <h1 class="text-center">THÊM MỚI DANH MỤC XE</h1>
+  </div>
+  <div class="row ">
+    <div class="col-sm-12 " style="margin: auto;">
+      <form ngNoForm onsubmit="return false;">
+        <p-fieldset legend="Thông tin danh mục xe">
+          <div class="row">
+            <div class="col-sm-6">
+              <div class="form-group row" *ngIf="isEdit">
+                <div class="col-sm-1"></div>
+                <label class="col-sm-4 col-form-label">Mã xe: </label>
+                <div class="col-sm-7">
+                  <input id="input" type="text" disabled size="30" pInputText [(ngModel)]="driveId" style="width: 100%;">
+                </div>
+                <div class="col-sm-1"></div>
+              </div>
+              <div class="form-group row">
+                <div class="col-sm-1"></div>
+                <label class="col-sm-4 ">Tên đội xe
+                  <span style="color: red;">*</span>:</label>
+                <div class="col-sm-7 ui-fluid">
+                  <p-autoComplete #inputSquad [(ngModel)]="squad" [suggestions]="filteredCountriesSingleSquad" (completeMethod)="filterCountrySingle($event)"
+                    [size]="30" [minLength]="1" placeholder="--Chọn đội xe--" [dropdown]="true" field="squadName" [minLength]="1" 
+                    [dropdown]="true" emptyMessage="Đội xe không tồn tại, xin kiểm tra lại" class="fix-drop-down" (onBlur) = "isSelect()">
+                  </p-autoComplete>
+
+                </div>
+                <div class="col-sm-1"></div>
+              </div>
+
+
+              <div class="form-group row">
+                <div class="col-sm-1"></div>
+                <label class="col-sm-4 ">Biển kiểm soát
+                  <span style="color: red;">*</span>:</label>
+                <div class="col-sm-7">
+                  <input #inputPlate id="input" (ngModelChange)="onChangePlate()" type="text" maxlength="20" size="30" name="position" pInputText [(ngModel)]="plate" style="width: 100%;">
+                </div>
+                <div class="col-sm-1"></div>
+              </div>
+
+
+
+            </div>
+            <div class="col-sm-6">
+              <div class="form-group row">
+                <div class="col-sm-1"></div>
+                <label class="col-sm-3 ">Loại xe
+                  <span style="color: red;">*</span>:</label>
+                <div class="col-sm-6">
+                  <p-dropdown #inputType [options]="ListCarType" [(ngModel)]="type" placeholder="--Chọn loại xe--" filter="true" filterBy="value.type"
+                    optionLabel="type" (ngModelChange)="setType()" [showClear]="true" [style]="{'width':'99.9%'}"></p-dropdown>
+                </div>
+                <div class="col-sm-1"></div>
+              </div>
+
+              <div class="form-group row">
+                <div class="col-sm-1"></div>
+                <label class="col-sm-3 ">Số chỗ
+                  <span style="color: red;">*</span>:</label>
+                <div class="col-sm-6">
+                  <p-dropdown [options]="ListCarSeat" [(ngModel)]="seat" placeholder="--Chọn số chỗ--" [showClear]="true" filter="true" filterBy="value.seat"
+                    optionLabel="seat" (ngModelChange)="setSeat()" [style]="{'width':'99.9%'}"></p-dropdown>
+                </div>
+                <div class="col-sm-1"></div>
+              </div>
+
+              <div class="form-group row">
+                <div class="col-sm-1"></div>
+                <label class="col-sm-3 ">Trạng thái:</label>
+                <div class="col-sm-7">
+                  <div class="row">
+                    <div class="col-sm-5">
+                      <p-radioButton name="group1" value="1" label="Hoạt động" [(ngModel)]="status" inputId="opt1"></p-radioButton>
+                    </div>
+                    <div class="col-sm-7">
+                      <p-radioButton name="group1" value="0" label="Không hoạt động" [(ngModel)]="status" inputId="opt2"></p-radioButton>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-sm-1"></div>
+              </div>
+
+            </div>
+          </div>
+        </p-fieldset>
+        <div class="row row-button">
+          <div class="col-sm-4"></div>
+          <div class="col-sm-4">
+            <p-button style="padding: 0px; margin: auto; text-align: center;" label="Tìm kiếm" icon="pi pi-search" (click)="handleSearch()"></p-button>
+            <p-button style="padding: 0px; margin: auto; text-align: center;" class="ui-button-danger" icon="pi pi-plus" label="Lưu"
+              (click)="handleAdd()"></p-button>
+            <button type="button" tabindex="0" pButton icon="fa fa-refresh" iconPos="left" label="Làm mới" (click)="resetButton()" style="text-align: center;"></button>
+          </div>
+          <div class="col-sm-4"></div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-sm-12">
+      <p-table [columns]="cols" [value]="ListCar" [totalRecords]="total_record" [paginator]="true" [rows]="10" [resizableColumns]="true"
+        (onPage)="paginate($event)" #myTable>
+        <ng-template pTemplate="colgroup" let-columns>
+          <colgroup>
+            <col *ngFor="let col of columns" [style.width]="col.width">
+          </colgroup>
+        </ng-template>
+        <ng-template pTemplate="header" let-columns>
+          <tr>
+            <th *ngFor="let col of columns" pResizableColumn style="text-align: center; font-weight: bold;">
+              {{col.header}}
+            </th>
+          </tr>
+        </ng-template>
+        <ng-template let-ri="rowIndex" pTemplate="body" let-rowData let-columns="columns">
+          <tr>
+            <td>{{ri+1}}</td>
+            <td>
+              <div class="row ">
+                <div class="col-sm-5 item">
+                  <p-button style="size: 2px !important;" icon="pi pi-trash" [disabled]="isEdit" (onClick)="doDelete(rowData)" pTooltip="Xóa"></p-button>
+                </div>
+
+                <div class="col-sm-7 item">
+                  <p-button style="size: 2px !important;" icon="pi pi-pencil" [disabled]="isEdit" (onClick)="doEdit(rowData)" pTooltip="Chỉnh sửa"></p-button>
+                </div>
+              </div>
+
+            </td>
+            <td style="width: 2rem; padding: 2px 1.5px !important;" style="text-align: left !important;">{{rowData["squadName"]}}</td>
+            <td style="text-align: left !important;">{{rowData["licensePlate"]}}</td>
+            <td style="text-align: left !important;">{{rowData["type"]}}</td>
+            <td style="text-align: right !important;">{{rowData["seat"]}}</td>
+            <td style="text-align: left !important;" *ngIf="rowData['status']; else Flag">Hoạt động</td>
+            <ng-template #Flag>
+              <td style="text-align: left !important;">Ngừng hoạt động</td>
+            </ng-template>
+
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage" let-columns>
+          <tr>
+            <td [attr.colspan]="columns.length" style="text-align: center;">
+              Không có dữ liệu
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="paginatorright">
+          <span style="position: absolute; right: 30px; bottom: 6px;">{{total_record == 0 ? pageNumber : pageNumber + 1}} - {{pageNumber+pageSize>total_record ? total_record : pageNumber+pageSize}}
+            / {{total_record}}</span>
+        </ng-template>
+      </p-table>
+
+    </div>
+  </div>
+
+</div>

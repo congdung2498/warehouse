@@ -1,0 +1,138 @@
+<div class="container">
+  <div class="container-fluid text-center mt-3">
+    <h1>CẤU HÌNH PHIÊN BẢN MOBILE</h1>
+  </div>
+  <div class="row mb-3">
+    <div class="col-xl-12 mb-3">
+      <p-fieldset legend="Thông tin phiên bản">
+        <div class="row">
+          <div class="col-sm-1"></div>
+          <div class="col-sm-10">
+            <div class="row mb-3" style="margin-left: 20px;">
+              <div class="col-sm-2" style="max-width: 80px;"></div>
+              <!-- place code field -->
+                <div class="col-sm-3" style="text-align: left; padding-top: 5px; max-width: 180px;">
+                  Kiểu thiết bị<span style="color: red;">*</span>:
+                </div>
+                <div class="col-sm-7 ui-fluid" style="margin-left: -10px; position: relative;">
+                    <p-dropdown #inputType optionLabel="label" [options]="suggest" [autoWidth]="false"  [(ngModel)]="versionType"></p-dropdown>
+              </div>
+            </div>
+            <!-- place version field -->
+            <div class="row mb-3" style="margin-left: 20px;">
+              <div class="col-sm-2" style="max-width: 80px;"></div>
+              <div class="col-sm-3" style="text-align: left; padding-top: 5px; max-width: 180px;">
+                Số hiệu phiên bản<span style="color: red;">*</span>:
+              </div>
+              <div class="col-sm-7 ui-fluid" style="margin-left: -10px;">
+                <p-autoComplete #inputVersion [(ngModel)]="version" [suggestions]="filterPlace" (completeMethod)="loadPlace($event, 2)"
+                 maxlength='100' [pKeyFilter]="onlyChar" placeholder="VD: 1.0.1"></p-autoComplete>
+              </div>
+            </div>
+            <!-- place link field -->
+            <div class="row mb-3" style="margin-left: 20px;">
+              <div class="col-sm-2" style="max-width: 80px;"></div>
+              <div class="col-sm-3" style="text-align: left; padding-top: 5px; max-width: 180px;">
+                Link tải<span style="color: red;">*</span>:
+              </div>
+              <div class="col-sm-7 ui-fluid" style="margin-left: -10px;">
+                <p-autoComplete #inputLink maxlength='500' [(ngModel)]="versionLink" [suggestions]="filterPlace" (completeMethod)="loadPlace($event, 2)" placeholder="VD: https:appstore.com"></p-autoComplete>
+              </div>
+            </div>
+            <!-- description field -->
+            <div class="row mb-3" style="margin-left: 20px;">
+              <div class="col-sm-2" style="max-width: 80px;"></div>
+              <div class="col-sm-3" style="text-align: left; padding-top: 5px; max-width: 180px;">Mô tả:</div>
+              <div class="col-sm-7 ui-fluid" style="margin-left: -10px;">
+                <textarea tabindex="0" maxlength='500' pInputTextarea [(ngModel)]="versionDesc" maxLength="1000"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-1"></div>
+        </div>
+      </p-fieldset>
+    </div>
+    <div class="col-xl-12">
+      <div class="text-center">
+        <!-- search button -->
+        <button type="button" tabindex="0" pButton icon="fa fa-search" iconPos="left" label="Tìm kiếm" (click)="searchData()"></button>
+        <!-- refresh button -->
+        <button type="button" tabindex="0" pButton icon="fa fa-refresh" iconPos="left" label="Làm mới" (click)="resetButton()"></button>
+        <!-- add button -->
+        <button *ngIf="disabledSave; else isUpdate" type="button" tabindex="0" pButton icon="fa fa-plus" iconPos="left"
+          label="Thêm" (click)="addData()"></button>
+        <ng-template #isUpdate>
+          <!-- update button -->
+          <button type="button" tabindex="0" pButton icon="fa fa-save" iconPos="left" label="Lưu" (click)="saveData()"></button>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+  <!-- create table -->
+  <div class="row">
+    <div class="col-xl-12">
+      <div *ngIf="isEmpty; else showData" class="errorMsg">
+        <!-- if no data is reasonable -->
+        <p-table>
+          <ng-template pTemplate="header">
+            <tr style="font-weight: bold;">
+              <th style="width: 2rem; font-weight: bold;">STT</th>
+              <th style="width: 6rem; font-weight: bold;">Ngày tạo</th>
+              <th style="width: 4rem; font-weight: bold;">Kiểu thiết bị</th>
+              <th style="width: 5rem; font-weight: bold;">Số hiệu phiên bản</th>
+              <th style="width: 7rem; font-weight: bold;">Link tải</th>
+              <th style="width: 8rem; font-weight: bold;">Mô tả</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td [attr.colspan]="6">
+                Không có dữ liệu
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+      <!-- if has data -->
+      <ng-template #showData>
+        <p-table #myTable [value]="listVersionDetail" [paginator]="true" [rows]="10" [loading]="loading" [(selection)]="selectedCar3" selectionMode="single" (onRowSelect)="doEdit($event)">
+          <ng-template pTemplate="header">
+            <tr style="font-weight: bold;">
+              <th style="width: 2rem; font-weight: bold;">STT</th>
+              <th style="width: 6rem; font-weight: bold;">Ngày tạo</th>
+              <th style="width: 4rem; font-weight: bold;">Kiểu thiết bị</th>
+              <th style="width: 5rem; font-weight: bold;">Số hiệu phiên bản</th>
+              <th style="width: 7rem; font-weight: bold;">Link tải</th>
+              <th style="width: 8rem; font-weight: bold;">Mô tả</th>
+            </tr>
+          </ng-template>
+          <ng-template let-ri="rowIndex" pTemplate="body" let-item>
+            <tr [pSelectableRow]="rowData">
+              <td style="width: 2rem; padding: 2px 1.5px !important;">{{ri+1}}</td>
+              <td [class.wrapText]="item.createDate != null && (item.createDate | date: 'yyyy-MM-dd h:mm:ss a').length > 10" pTextEllipsis [pTooltip]="item.createDate | date: 'yyyy-MM-dd h:mm:ss a'"
+                style="width: 6rem; text-align: left !important;">
+                {{item.createDate | date: 'yyyy-MM-dd h:mm:ss a'}}
+              </td>
+              <td [class.wrapText]="item.versionType != null && item.versionType.length > 10" pTextEllipsis [pTooltip]="item.versionType"
+                style="width: 4rem; text-align: left !important;">
+                {{item.versionType}}
+              </td>
+              <td [class.wrapText]="item.version != null && item.version.length > 15" pTextEllipsis [pTooltip]="item.version"
+                style="width: 5rem; text-align: left !important;">
+                {{item.version}}
+              </td>
+              <td [class.wrapText]="item.versionLink != null && item.versionLink.length > 15" pTextEllipsis [pTooltip]="item.versionLink"
+                style="width: 7rem; text-align: left !important;">
+                {{item.versionLink}}
+              </td>
+              <td [class.wrapText]="item.versionDesc != null && item.versionDesc.length > 20" pTextEllipsis
+                [pTooltip]="item.versionDesc" style="width: 8rem; text-align: left !important;">
+                {{item.versionDesc}}
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </ng-template>
+    </div>
+  </div>
+</div>

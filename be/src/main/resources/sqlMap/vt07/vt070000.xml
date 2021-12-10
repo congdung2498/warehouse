@@ -1,0 +1,4259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper
+	namespace="com.viettel.vtnet360.vt07.vt070000.dao.VT070000DAO">
+
+	<!-- API GetListWareHouse -->
+
+	<resultMap
+		type="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseRequestParam"
+		id="resultGetListWarehouseDetail">
+		<result property="warehouseId" column="warehouse_id" />
+		<result property="name" column="name" />
+		<result property="address" column="address" />
+		<result property="type" column="type" />
+		<result property="status" column="status" />
+		<result property="acreage" column="acreage" />
+		<result property="delFlag" column="del_flag" />
+		<result property="rowNum" column="row_num" />
+		<result property="columnNum" column="column_num" />
+		<result property="heightNum" column="height_num" />
+		<result property="createDate" column="create_date" />
+		<result property="updateDate" column="update_date" />
+	</resultMap>
+
+	<select id="getListWareHouseDetail"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseRequestParam"
+		resultMap="resultGetListWarehouseDetail">
+		SELECT
+		*
+		FROM
+		WAREHOUSE
+		WHERE
+		`DEL_FLAG`=0 
+		<if test="name != null">
+			AND `name` LIKE CONCAT("%",#{name} ,"%")
+		</if>
+		<if test="address != null">
+			AND `address` LIKE CONCAT("%",#{address} ,"%")
+		</if>
+		<if test="type != null">
+			AND `type` = #{type} 
+		</if>
+		<if test="status != null">
+			AND `status` = #{status} 
+		</if>
+		<if test="acreage != null">
+			AND `acreage` = #{acreage} 
+		</if>
+		<if test="rowNum != null">
+			AND `row_num` = #{rowNum} 
+		</if>
+		<if test="columnNum != null">
+			AND `column_num` = #{columnNum} 
+		</if>
+		<if test="heightNum != null">
+			AND `height_num` = #{heightNum} 
+		</if>
+		ORDER BY `UPDATE_DATE` DESC
+		LIMIT #{pageNumber}, #{pageSize}
+	</select>
+
+	<!-- Get total records -->
+	<select id="getTotalRecord" parameterType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseRequestParam"
+	 resultType="int">
+		SELECT COUNT(*)
+		FROM WAREHOUSE
+		WHERE `DEL_FLAG` = 0
+		<if test="name != null">
+			AND `name` LIKE CONCAT("%",#{name} ,"%")
+		</if>
+		<if test="address != null">
+			AND `address` LIKE CONCAT("%",#{address} ,"%")
+		</if>
+		<if test="type != null">
+			AND `type` = #{type}
+		</if>
+		<if test="status != null">
+			AND `status` = #{status}
+		</if>
+		<if test="acreage != null">
+			AND `acreage` = #{acreage}
+		</if>
+		<if test="rowNum != null">
+			AND `row_num` = #{rowNum}
+		</if>
+		<if test="columnNum != null">
+			AND `column_num` = #{columnNum}
+		</if>
+		<if test="heightNum != null">
+			AND `height_num` = #{heightNum}
+		</if>
+	</select>
+
+	<!-- Check delete -->
+	<select id="isDelete" parameterType="String" resultType="int">
+		Select
+		DEL_FLAG from WAREHOUSE where warehouse_id =
+		#{warehouseId}
+	</select>
+
+	<!-- Check delete -->
+	<select id="checkExistsWarehouse" parameterType="String"
+		resultType="int">
+		Select COUNT(*) from WAREHOUSE where
+		warehouse_id = #{warehouseId} and DEL_FLAG = 0
+	</select>
+
+	<!-- Insert Warehouse -->
+	<insert id="insertWarehouse"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseRequestParam"
+		keyProperty="warehouseId" keyColumn="warehouse_id">
+		Insert into WAREHOUSE(name, address, type, status, acreage, del_flag,
+		row_num, column_num, height_num, create_date, update_date,
+		create_user, update_user)
+		values(#{name}, #{address}, #{type},
+		#{status},
+		#{acreage}, 0, #{rowNum}, #{columnNum}, #{heightNum},
+		now(),
+		now(), #{createUser}, #{createUser})
+		<selectKey keyProperty="warehouseId" resultType="String"
+			order="AFTER">
+			SELECT LAST_INSERT_ID();
+		</selectKey>
+	</insert>
+
+	<!-- Update Warehouse -->
+	<update id="updateWarehouse"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseRequestParam">
+		update WAREHOUSE set name = #{name}, address =
+		#{address},
+		type = #{type}, status = #{status}, acreage = #{acreage},
+		row_num = #{rowNum},
+		column_num = #{columnNum}, height_num = #{heightNum},
+		update_user = #{createUser}, update_date = now()
+		where
+		warehouse_id = #{warehouseId}
+	</update>
+
+	<!-- Delete Warehouse -->
+	<update id="deleteWarehouse"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseRequestParam">
+		update WAREHOUSE set del_flag = #{delFlag}, update_user
+		= #{createUser}, update_date = now()
+		where
+		warehouse_id = #{warehouseId}
+	</update>
+
+	<!-- Insert Rack -->
+	<insert id="insertRack"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.RackDetail"
+		keyProperty="rackId" keyColumn="rack_id">
+		Insert into RACK(`row`, warehouse_id, `column`, `type`, del_flag,
+		create_date, update_date, create_user, update_user)
+		values(#{row},
+		#{warehouseId}, #{column}, #{type},
+		#{delFlag}, now(), now(),
+		#{createUser}, #{createUser})
+		<selectKey keyProperty="rackId" resultType="long"
+			order="AFTER">
+			SELECT LAST_INSERT_ID();
+		</selectKey>
+	</insert>
+
+	<!-- Insert Slot -->
+	<insert id="insertSlot"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.SlotDetail"
+		keyProperty="slotId" keyColumn="slot_id">
+		Insert into SLOT(rack_id, `height`, qr_code, status, del_flag,
+		create_date, update_date, create_user, update_user)
+		values(#{rackId},
+		#{height}, #{qrCode}, #{status},
+		#{delFlag}, now(), now(),
+		#{createUser}, #{createUser})
+		<selectKey keyProperty="slotId" resultType="long"
+			order="AFTER">
+			SELECT LAST_INSERT_ID();
+		</selectKey>
+	</insert>
+
+	<!-- Delete Rack With Row Column -->
+	<update id="deleteRackWithRowColumn">
+		update RACK set del_flag = 1
+		where
+		warehouse_id = #{warehouseId} and
+		del_flag = 0
+		<if test="rowNum != -1">
+			AND `row` = #{rowNum}
+		</if>
+		<if test="colNum != -1">
+			AND `column` = #{colNum}
+		</if>
+	</update>
+
+	<!-- Delete Slot with Row Column -->
+	<update id="deleteSlotWithRowColumn">
+		update SLOT set del_flag = 1
+		where
+		rack_id in (select rack_id from
+		RACK
+		where warehouse_id = #{warehouseId}
+		<if test="rowNum != -1">
+			AND `row` = #{rowNum}
+		</if>
+		<if test="colNum != -1">
+			AND `column` = #{colNum}
+		</if>
+		) and del_flag = 0
+	</update>
+	
+	<!-- Delete Slot with Height and RackId -->
+	<update id="deleteSlotHeightWithRackId">
+		update SLOT set del_flag = 1
+		where
+		rack_id = #{rackId} and height = #{heightNum} and del_flag = 0
+	</update>
+
+	<!-- Select Slot with Row Column -->
+	<select id="getListSlotWithRowColumn"
+		resultMap="resultGetListSlotDetail">
+		select * from SLOT
+		where
+		rack_id in (select rack_id from
+		RACK where
+		warehouse_id = #{warehouseId}
+		<if test="rowNum != -1 ">
+			<if test="rowNum != oldRowNum">
+				AND `row` > #{rowNum} AND #{oldRowNum} >= `row`
+			</if>
+		</if>
+		<if test="columnNum != -1">
+			<if test="columnNum != oldColumnNum">
+				AND `column` > #{columnNum} AND #{oldColumnNum} >= `column`
+			</if>
+		</if>
+		) and del_flag = 0 and status = 1
+	</select>
+	
+	<!-- Select Slot with Row Column -->
+	<select id="getRackWithRowColumnOfWarehouse"
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.RackDetail">
+		select r.rack_id as rackId from RACK r
+		where r.warehouse_id = #{warehouseId} and r.`row` = #{rowNum} and r.`column` = #{columnNum}
+		and r.del_flag = 0
+	</select>
+
+	<!-- Delete Rack after change WarehouseDetail -->
+	<update id="deleteRackAfterChangeWarehouse"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseRequestParam">
+		update RACK set del_flag = 1
+		where
+		warehouse_id =
+		#{warehouseId}
+	</update>
+
+	<!-- Delete Slot after change WarehouseDetail -->
+	<update id="deleteSlotAfterChangeWarehouse"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseRequestParam">
+		update SLOT set del_flag = 1
+		where rack_id in (Select
+		rack_id from RACK where warehouse_id = #{warehouseId})
+
+	</update>
+
+	<!-- Get Warehouse by id -->
+	<select id="getWarehouseDetailById" parameterType="String"
+		resultMap="resultGetListWarehouseDetail">
+		SELECT
+		*
+		FROM
+		WAREHOUSE
+		WHERE
+		DEL_FLAG = 0
+		AND WAREHOUSE_ID =
+		#{warehouseId}
+	</select>
+	
+	<!-- get listRACK by WAREHOUSE id -->
+	<select id="getListSlotUseInWarehouse"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseRequestParam" resultMap="resultGetListWarehouseRackSlot">
+		SELECT s.slot_id, w.name, r.`row`, r.`column`, s.height, s.qr_code, s.`status` FROM WAREHOUSE w 
+		JOIN RACK r ON w.warehouse_id = r.warehouse_id
+		JOIN SLOT s ON s.rack_id = r.rack_id 
+		WHERE w.warehouse_id = #{warehouseId} AND w.del_flag = 0 AND s.del_flag = 0 ORDER BY r.`row`, r.`column`, s.height
+		LIMIT #{pageNumber}, #{pageSize}
+	</select>
+	
+	<!-- get full listRACK by WAREHOUSE id -->
+	<select id="getFullListSlotUseInWarehouse"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseRequestParam" resultMap="resultGetListWarehouseRackSlot">
+		SELECT s.slot_id, w.name, r.`row`, r.`column`, s.height, s.qr_code, s.`status` FROM WAREHOUSE w 
+		JOIN RACK r ON w.warehouse_id = r.warehouse_id
+		JOIN SLOT s ON s.rack_id = r.rack_id 
+		WHERE w.warehouse_id = #{warehouseId} AND w.del_flag = 0 AND s.del_flag = 0 ORDER BY r.`row`, r.`column`, s.height
+	</select>
+
+	<!-- count SLOT are in use -->
+	<select id="countSlotUse" parameterType="long" resultType="int">
+		Select count(*) from SLOT where rack_id = #{rackId} and status=1 and
+		del_flag = 0
+	</select>
+	
+	<!-- get total SLOT -->
+	<select id="getTotalRecordWarehouseSlot" parameterType="String" resultType="int">
+		SELECT count(*) FROM WAREHOUSE w 
+		JOIN RACK r ON w.warehouse_id = r.warehouse_id
+		JOIN SLOT s ON s.rack_id = r.rack_id 
+		WHERE w.warehouse_id = #{warehouseId} AND w.del_flag = 0 AND s.del_flag = 0
+	</select>
+	
+	<!-- count SLOT are in use of WAREHOUSE -->
+	<select id="countSlotActive" parameterType="String" resultType="int">
+		SELECT count(*) FROM WAREHOUSE w 
+		JOIN RACK r ON w.warehouse_id = r.warehouse_id
+		JOIN SLOT s ON s.rack_id = r.rack_id 
+		WHERE w.warehouse_id = #{warehouseId} AND w.del_flag = 0 AND s.del_flag = 0 AND s.status = 1
+	</select>
+
+	<!-- API FindEmployee -->
+	<resultMap id="resultGetListRackDetail"
+		type="com.viettel.vtnet360.vt07.vt070000.entity.RackDetail">
+
+		<result property="column" column="column" />
+		<result property="delFlag" column="del_flag" />
+		<result property="rackId" column="rack_id" />
+		<result property="row" column="row" />
+		<result property="type" column="type" />
+		<result property="warehouseId" column="warehouse_id" />
+
+	</resultMap>
+
+	<!-- getListSlotDetailByRackId -->
+	<select id="getListSlotDetailByRackId"
+		parameterType="long"
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.SlotDetail">
+		SELECT
+		s.SLOT_ID as slotId,
+		s.RACK_ID as rackId,
+		s.HEIGHT as height,
+		s.QR_CODE as qrCode,
+		s.STATUS as status,
+		s.DEL_FLAG as delFlag
+		FROM SLOT s 
+		WHERE s.RACK_ID = #{rackId}		
+		ORDER BY HEIGHT ASC
+	</select>
+	
+	<!-- getListRackDetail -->
+	<select id="getListRackDetail"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.RequestParam"
+		resultMap="resultGetListRackDetail">
+		SELECT * FROM RACK r
+		<!-- WHERE r.WAREHOUSE_ID = #{warehouseId} ORDER BY ROW ASC, 'COLUMN' ASC -->
+	</select>
+	
+	<!-- getListRackDetailByWarehouseId -->
+	<select id="getListRackDetailByWarehouseId"
+		parameterType="long"
+		resultMap="resultGetListRackDetail"
+		>
+		SELECT r.* FROM RACK r 
+		WHERE r.WAREHOUSE_ID = #{warehouseId} AND r.del_flag = 0
+		ORDER BY ROW ASC, 'COLUMN' ASC
+	</select>
+	
+	<select id="findRack" parameterType="com.viettel.vtnet360.vt07.vt070000.entity.RackDetail"
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.RackDetail">
+		SELECT 
+		r.rack_id as rackId,
+		r.row as row,
+		r.warehouse_id as warehouseId,
+		w.NAME as warehouseName,
+		r.column as 'column',
+		r.type as type,
+		r.printed_time as printTime
+		
+		FROM RACK r INNER JOIN WAREHOUSE w
+		ON w.WAREHOUSE_ID = r.WAREHOUSE_ID
+		WHERE r.WAREHOUSE_ID = #{warehouseId} AND r.del_flag = 0
+			<if test="type != -2">
+				AND r.type = #{type}
+			</if>
+			<if test="row != 0">
+				AND r.row = #{row}
+			</if>
+			<if test="column != 0">
+				AND r.column = #{column}
+			</if>
+		ORDER BY r.ROW ASC, r.COLUMN ASC
+	</select>
+	
+	<update id="updatePrintTimeRack"  parameterType="java.util.List" >
+		UPDATE RACK AS r
+		SET 	r.printed_time = r.printed_time+1
+		WHERE r.rack_id IN 
+	    <foreach item="item" index="index" collection="list" open="(" separator="," close=")">
+		    #{item}
+		</foreach>
+					
+	</update>
+	
+	<!-- getListWarehouse -->
+	<select id="getListWarehouse"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseDetail">
+		SELECT 
+		w.WAREHOUSE_ID as warehouseId,
+		w.NAME as name,
+		w.ADDRESS as address,
+		w.TYPE as type,
+		w.STATUS as status,
+		w.ACREAGE as acreage,
+		w.DEL_FLAG as delFlag,
+		w.ROW_NUM as rowNum,
+		w.COLUMN_NUM as columnNum,
+		w.HEIGHT_NUM as heightNum		 
+		FROM WAREHOUSE w
+		WHERE w.DEL_FLAG = 0 AND w.STATUS = 1
+		
+		<if test="warehouseName != null">
+			AND w.NAME LIKE CONCAT('%', #{warehouseName}, '%')
+		</if>
+		<if test="warehouseId != 0">
+			AND w.WAREHOUSE_ID = #{warehouseId}
+		</if>
+		
+		ORDER BY UPDATE_DATE DESC LIMIT #{pageNo}, 20
+	</select>
+	
+	<!-- getListMainWarehouseDetail -->
+	<select id="getListMainWarehouseDetail"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseDetail">
+		SELECT 
+		w.WAREHOUSE_ID as warehouseId,
+		w.NAME as name,
+		w.ADDRESS as address,
+		w.TYPE as type,
+		w.STATUS as status,
+		w.ACREAGE as acreage,
+		w.DEL_FLAG as delFlag,
+		w.ROW_NUM as rowNum,
+		w.COLUMN_NUM as columnNum,
+		w.HEIGHT_NUM as heightNum		 
+		FROM WAREHOUSE w
+		WHERE w.DEL_FLAG = 0 AND w.TYPE = 1 AND w.STATUS = 1
+		
+		<if test="warehouseName != null">
+			AND w.NAME LIKE CONCAT('%', #{warehouseName}, '%')
+		</if>
+		<if test="warehouseId != 0">
+			AND w.WAREHOUSE_ID = #{warehouseId}
+		</if>
+		
+		ORDER BY UPDATE_DATE DESC LIMIT #{pageNo}, 20
+	</select>
+	
+	<!-- getListSlotDetailByQrCode -->
+	<select id="getListSlotDetailByQrCode"
+		parameterType="String"
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.SlotDetail">
+		SELECT
+		s.SLOT_ID as slotId,
+		s.RACK_ID as rackId,
+		s.HEIGHT as height,
+		s.QR_CODE as qrCode,
+		s.STATUS as status,
+		s.DEL_FLAG as delFlag
+		FROM SLOT s 
+		WHERE s.QR_CODE = #{qrCode}
+	</select>
+	
+	<!-- getListRackDetailByQrCode -->
+	<select id="getListRackDetailByQrCode"
+		parameterType="String"
+		resultMap="resultGetListRackDetail"
+		>
+		SELECT r.* FROM RACK r 
+		INNER JOIN SLOT s on s.RACK_ID = r.RACK_ID
+		AND s.QR_CODE = #{qrCode}		
+	</select>
+	
+	<!-- getListWarehouseDetailByQrCode -->
+	<select id="getListWarehouseDetailByQrCode"
+		parameterType="String"
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseDetail">
+		SELECT 
+		w.WAREHOUSE_ID as warehouseId,
+		w.NAME as name,
+		w.ADDRESS as address,
+		w.TYPE as type,
+		w.STATUS as status,
+		w.ACREAGE as acreage,
+		w.DEL_FLAG as delFlag,
+		w.ROW_NUM as rowNum,
+		w.COLUMN_NUM as columnNum,
+		w.HEIGHT_NUM as heightNum		 
+		FROM WAREHOUSE w
+		INNER JOIN RACK r on r.WAREHOUSE_ID = w.WAREHOUSE_ID
+		INNER JOIN SLOT s on s.RACK_ID=r.RACK_ID
+		AND s.QR_CODE = #{qrCode}
+	</select>
+	
+	
+	<!-- getNumberOfWarehouse -->
+	<select id="getNumberOfWarehouse"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.RequestParam"
+		resultType="int">
+		SELECT 
+		count(*)		 
+		FROM WAREHOUSE w
+		WHERE w.DEL_FLAG = 0
+		<if test="warehouseName != null">
+			AND w.NAME LIKE CONCAT('%', #{warehouseName}, '%')
+		</if>
+		<if test="warehouseId != 0">
+			AND w.WAREHOUSE_ID = #{warehouseId}
+		</if>
+	</select>
+	
+	<!-- getNumberOfMainWarehouse -->
+	<select id="getNumberOfMainWarehouse"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.RequestParam"
+		resultType="int">
+		SELECT 
+		count(*)		 
+		FROM WAREHOUSE w
+		WHERE w.DEL_FLAG = 0 AND w.TYPE = 1
+		<if test="warehouseName != null">
+			AND w.NAME LIKE CONCAT('%', #{warehouseName}, '%')
+		</if>
+		<if test="warehouseId != 0">
+			AND w.WAREHOUSE_ID = #{warehouseId}
+		</if>
+	</select>
+	
+	<!-- updateRackDetail -->
+	<update id="updateRackDetail"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.RackDetail">
+		UPDATE RACK
+		SET
+		TYPE=#{type},
+		UPDATE_USER= #{updateUser}, UPDATE_DATE=SYSDATE()
+		WHERE
+		RACK_ID=#{rackId};
+	</update>
+	
+	<!-- updateSlotDetail -->
+	<update id="updateSlotDetail"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.SlotDetail">
+		UPDATE SLOT
+		SET
+		STATUS=#{status},
+		QR_CODE=#{qrCode},
+		UPDATE_USER= #{updateUser}, UPDATE_DATE=SYSDATE()
+		WHERE
+		SLOT_ID=#{slotId};
+	</update>
+	
+	<select id="getAllListWarehouseDetail"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseRequestParam"
+		resultMap="resultGetListWarehouseDetail">
+		SELECT
+		*
+		FROM
+		WAREHOUSE
+		WHERE
+		DEL_FLAG=0 AND STATUS = 1 AND TYPE = 1
+		ORDER BY name ASC
+	</select>
+	
+	<select id="getAllActiveWarehouse"
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseDetail">
+		SELECT
+			WAREHOUSE_ID AS warehouseId, WAREHOUSE.*
+		FROM
+			WAREHOUSE
+		WHERE
+			DEL_FLAG = 0 AND STATUS = 1
+		ORDER BY 
+			NAME ASC
+	</select>
+	
+	<select id="searchFolderContainsKeyword"
+		parameterType="String" 
+		resultType="long">
+		
+		SELECT
+			FOLDER_ID
+		FROM
+			CONSTRUCTION_DOC
+		WHERE
+			NAME LIKE #{pattern}
+			
+		UNION
+		
+		SELECT
+			FOLDER_ID
+		FROM
+			CONTRACT_DOC
+		WHERE
+			NAME LIKE #{pattern}
+			
+		UNION
+		
+		SELECT
+			FOLDER_ID
+		FROM
+			PACKAGE_DOC
+		WHERE
+			NAME LIKE #{pattern}
+			
+		UNION
+		
+		SELECT
+			FOLDER_ID
+		FROM
+			PROJECT_DOC
+		WHERE
+			NAME LIKE #{pattern};
+		
+	</select>	
+	
+	<select id="searchContractByConstruction"
+		parameterType="String" 
+		resultType="long">
+		
+		SELECT
+			CONTRACT_ID
+		FROM
+			CONSTRUCTION
+		WHERE
+			NAME LIKE #{pattern}
+			
+	</select>
+		
+	<select id="searchProjectByContractIdList"	
+	 	parameterType="java.util.List"
+		resultType="long">
+		SELECT
+			PROJECT_ID
+		FROM
+			CONTRACT
+		WHERE
+			CONTRACT_ID IN
+			<foreach item="contractId" index="index" collection="collection" open="(" separator="," close=")">
+		        #{contractId}
+		    </foreach>
+	</select>
+	
+	<select id="searchProjectByPackageIdList"	
+	 	parameterType="java.util.List"
+		resultType="long">
+		SELECT
+			PROJECT_ID
+		FROM
+			PACKAGE
+		WHERE
+			PACKAGE_ID IN
+			<foreach item="packageId" index="index" collection="collection" open="(" separator="," close=")">
+		        #{packageId}
+		    </foreach>
+	</select>	
+	
+	<select id="searchFolderByProjectIdList"	
+	 	parameterType="java.util.List"
+		resultType="long">
+		SELECT
+			FOLDER_ID
+		FROM
+			PROJECT_DOC
+		WHERE
+			PROJECT_ID IN
+			<foreach item="projectId" index="index" collection="collection" open="(" separator="," close=")">
+		        #{projectId}
+		    </foreach>
+		AND
+			FOLDER_ID != 0
+	</select>
+		
+	<select id="searchFolderByPackageIdList"	
+	 	parameterType="java.util.List"
+		resultType="long">
+		SELECT
+			FOLDER_ID
+		FROM
+			PACKAGE_DOC
+		WHERE
+			PACKAGE_ID IN
+			<foreach item="packageId" index="index" collection="collection" open="(" separator="," close=")">
+		        #{packageId}
+		    </foreach>
+		AND
+			FOLDER_ID != 0
+	</select>
+		
+	<select id="searchFolderByConstructionIdList"	
+	 	parameterType="java.util.List"
+		resultType="long">
+		SELECT
+			FOLDER_ID
+		FROM
+			CONSTRUCTION_DOC
+		WHERE
+			CONSTRUCTION_ID IN
+			<foreach item="constructionId" index="index" collection="collection" open="(" separator="," close=")">
+		        #{constructionId}
+		    </foreach>
+		AND
+			FOLDER_ID != 0
+	</select>
+	
+	<select id="searchProjectByKeyword"	
+	 	parameterType="String" 
+		resultType="long">
+				
+		SELECT
+			PROJECT_ID
+		FROM
+			CONTRACT
+		WHERE
+			NAME LIKE #{pattern}
+			
+		UNION
+		
+		SELECT
+			PROJECT_ID
+		FROM
+			PACKAGE
+		WHERE
+			NAME LIKE #{pattern}
+			
+		UNION
+		
+		SELECT
+			PROJECT_ID
+		FROM
+			PROJECT
+		WHERE
+			NAME LIKE #{pattern}
+			
+	</select>
+		
+	<select id="searchProjectByPackageName"
+		parameterType="String" 
+		resultType="long">
+		
+		SELECT
+			PROJECT_ID
+		FROM
+			PACKAGE
+		WHERE
+			NAME LIKE #{pattern}
+			
+	</select>
+	
+	<select id="searchTinBoxByName"	
+	 	parameterType="String" 
+		resultType="long">
+				
+		SELECT
+			TIN_BOX_ID
+		FROM
+			TIN_BOX
+		WHERE
+			NAME LIKE #{pattern}
+		AND
+			DEL_FLAG = 0
+	</select>
+	
+	<select id="searchFolderByName"	
+	 	parameterType="String" 
+		resultType="long">
+				
+		SELECT
+			FOLDER_ID
+		FROM
+			FOLDER
+		WHERE
+			NAME LIKE #{pattern}
+		AND
+			DEL_FLAG = 0
+	</select>			
+	
+	<select id="searchProjectByName"	
+	 	parameterType="String" 
+		resultType="long">
+				
+		SELECT
+			PROJECT_ID
+		FROM
+			PROJECT
+		WHERE
+			NAME LIKE #{pattern}			
+	</select>
+	
+	<select id="searchPackageByName"	
+	 	parameterType="String" 
+		resultType="long">
+				
+		SELECT
+			PACKAGE_ID
+		FROM
+			PACKAGE
+		WHERE
+			NAME LIKE #{pattern}			
+	</select>
+	
+	<select id="searchContractByName"	
+	 	parameterType="String" 
+		resultType="long">
+				
+		SELECT
+			CONTRACT_ID
+		FROM
+			CONTRACT
+		WHERE
+			NAME LIKE #{pattern}			
+	</select>	
+	
+	<select id="searchConstructionByName"	
+	 	parameterType="String" 
+		resultType="long">
+				
+		SELECT
+			CONSTRUCTION_ID
+		FROM
+			CONSTRUCTION
+		WHERE
+			NAME LIKE #{pattern}			
+	</select>	
+	
+	<select id="searchFolderByProjectDoc"	
+	 	parameterType="String" 
+		resultType="long">
+				
+		SELECT
+			FOlDER_ID
+		FROM
+			PROJECT_DOC
+		WHERE
+			NAME LIKE #{pattern}
+		AND
+			FOLDER_ID != 0
+	</select>
+	
+	<select id="searchFolderByPackageDoc"	
+	 	parameterType="String" 
+		resultType="long">
+				
+		SELECT
+			FOlDER_ID
+		FROM
+			PACKAGE_DOC
+		WHERE
+			NAME LIKE #{pattern}
+		AND
+			FOLDER_ID != 0		
+	</select>
+	
+	<select id="searchFolderByContractDoc"	
+	 	parameterType="String" 
+		resultType="long">
+				
+		SELECT
+			FOlDER_ID
+		FROM
+			CONTRACT_DOC
+		WHERE
+			NAME LIKE #{pattern}
+		AND
+			FOLDER_ID != 0
+	</select>
+	
+	<select id="searchFolderByConstructionDoc"	
+	 	parameterType="String" 
+		resultType="long">
+				
+		SELECT
+			FOlDER_ID
+		FROM
+			CONSTRUCTION_DOC
+		WHERE
+			NAME LIKE #{pattern}
+		AND
+			FOLDER_ID != 0
+	</select>
+	
+	<select id="searchTinBoxByFolderName"	
+	 	parameterType="String" 
+		resultType="long">
+				
+		SELECT
+			TIN_BOX_ID
+		FROM
+			FOLDER
+		WHERE
+			NAME LIKE #{pattern}
+		AND
+			DEL_FLAG = 0
+	</select>
+	
+	<select id="searchFolderByContractIdList"	
+	 	parameterType="java.util.List"
+		resultType="long">
+		SELECT
+			FOLDER_ID
+		FROM
+			CONTRACT_DOC
+		WHERE
+			CONTRACT_ID IN
+			<foreach item="contractId" index="index" collection="collection" open="(" separator="," close=")">
+		        #{contractId}
+		    </foreach>
+		AND
+			FOLDER_ID != 0
+	</select>
+	
+	<select id="searchTinBoxByFolderIdList"	
+	 	parameterType="java.util.List"
+		resultType="long">
+		SELECT
+			TIN_BOX_ID
+		FROM
+			FOLDER
+		WHERE
+			FOLDER_ID IN
+			<foreach item="folderId" index="index" collection="collection" open="(" separator="," close=")">
+		        #{folderId}
+		    </foreach>
+		AND
+			DEL_FLAG = 0
+	</select>
+		
+	<select id="getFolderInTinBox"	
+	 	parameterType="long"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.FolderDetail">
+		SELECT
+			FOLDER_ID as folderId, FOLDER.*
+		FROM
+			FOLDER
+		WHERE
+			TIN_BOX_ID = #{tinBoxId}
+		AND
+			DEL_FLAG = 0
+	</select>	
+	
+	<select id="getAllDocumentInFolder"	
+	 	parameterType="com.viettel.vtnet360.vt07.vt070002.entity.FolderDetail"
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.DocumentDetails">
+		SELECT
+			project_doc_id as 'documentId', #{folderId} as 'folderId', #{name} as 'folderName', "project" as 'type', name as documentName
+		FROM
+			PROJECT_DOC
+		WHERE
+			FOLDER_ID = #{folderId}		
+			
+		UNION
+		
+		SELECT
+			package_doc_id as 'documentId', #{folderId} as 'folderId', #{name} as 'folderName', "package" as 'type', name as documentName			
+		FROM
+			PACKAGE_DOC
+		WHERE
+			FOLDER_ID = #{folderId}
+		
+		UNION
+		
+		SELECT
+			contract_doc_id as 'documentId', #{folderId} as 'folderId', #{name} as 'folderName', "contract" as 'type', name as documentName			
+		FROM
+			CONTRACT_DOC
+		WHERE
+			FOLDER_ID = #{folderId}
+			
+		UNION
+		
+		SELECT
+			construction_doc_id as 'documentId', #{folderId} as 'folderId', #{name} as 'folderName', "construction" as 'type', name as documentName			
+		FROM
+			CONSTRUCTION_DOC
+		WHERE
+			FOLDER_ID = #{folderId}
+	</select>
+	
+	<!-- hungvc -->
+	<select id="getAllDocumentInFolderV2"	
+	 	parameterType="com.viettel.vtnet360.vt07.vt070002.entity.FolderDetail"
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.DocumentDetails">
+		SELECT
+			project_doc_id as 'documentId', #{folderId} as 'folderId', #{name} as 'folderName', "project" as 'type', name as documentName
+		FROM
+			PROJECT_DOC
+		WHERE
+			FOLDER_ID = #{folderId}		
+			
+		UNION
+		
+		SELECT
+			package_doc_id as 'documentId', #{folderId} as 'folderId', #{name} as 'folderName', "package" as 'type', name as documentName			
+		FROM
+			PACKAGE_DOC
+		WHERE
+			FOLDER_ID = #{folderId}
+		
+		UNION
+		
+		SELECT
+			cd.contract_doc_id as 'documentId', #{folderId} as 'folderId', #{name} as 'folderName', "contract" as 'type', cd.name as documentName			
+		FROM
+			CONTRACT_DOC cd
+		INNER JOIN CONTRACT_PROJECT cp on cp.contract_id = cd.contract_id
+		INNER JOIN PROJECT_IN_FOLDER pif on pif.project_id = cp.project_id and pif.folder_id = #{folderId}
+		WHERE
+			cd.FOLDER_ID = #{folderId}
+		UNION
+		
+		SELECT
+			cd.construction_doc_id as 'documentId', #{folderId} as 'folderId', #{name} as 'folderName', "construction" as 'type', cd.name as documentName			
+		FROM
+			CONSTRUCTION_DOC cd
+		INNER JOIN CONSTRUCTION_PROJECT cp on cd.construction_id = cp.construction_id
+		INNER JOIN PROJECT_IN_FOLDER pif on pif.project_id = cp.project_id and pif.folder_id = #{folderId}
+		WHERE
+			cd.FOLDER_ID = #{folderId}
+	</select>
+	
+	
+	<select id="getProjectIdByDoc"
+		parameterType="java.lang.Long"
+		resultType="java.lang.Long">
+		SELECT
+			PROJECT_ID
+		FROM
+			PROJECT_DOC
+		WHERE
+			PROJECT_DOC_ID = #{docId}				
+	</select>
+	
+	<select id="getPackageIdByDoc" parameterType="long" resultType="long">
+		SELECT
+			PACKAGE_ID
+		FROM
+			PACKAGE_DOC
+		WHERE
+			PACKAGE_DOC_ID = #{docId}				
+	</select>
+	
+	<select id="getContractIdByDoc" parameterType="long" resultType="long">
+		SELECT
+			CONTRACT_ID
+		FROM
+			CONTRACT_DOC
+		WHERE
+			CONTRACT_DOC_ID = #{docId}				
+	</select>
+	
+	<select id="getConstructionIdByDoc" parameterType="long" resultType="long">
+		SELECT
+			CONSTRUCTION_ID
+		FROM
+			CONSTRUCTION_DOC
+		WHERE
+			CONSTRUCTION_DOC_ID = #{docId}				
+	</select>
+	
+	<select id="getProjectName" parameterType="long" resultType="String">
+		SELECT
+			NAME
+		FROM
+			PROJECT
+		WHERE
+			PROJECT_ID = #{id}				
+	</select>
+	
+	<select id="getPackageName" parameterType="long" resultType="String">
+		SELECT
+			NAME
+		FROM
+			PACKAGE
+		WHERE
+			PACKAGE_ID = #{id}				
+	</select>
+	
+	<select id="getContractName" parameterType="long" resultType="String">
+		SELECT
+			NAME
+		FROM
+			CONTRACT
+		WHERE
+			CONTRACT_ID = #{id}				
+	</select>
+	
+	<select id="getConstructionName" parameterType="long" resultType="String">
+		SELECT
+			NAME
+		FROM
+			CONSTRUCTION
+		WHERE
+			CONSTRUCTION_ID = #{id}				
+	</select>
+	
+	<select id="getAllTinBox" parameterType="long"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail">
+		SELECT
+			TIN_BOX_ID AS tinBoxId, WAREHOUSE_ID AS warehouseId, SLOT_ID AS slotId, QR_CODE as qrCode, NAME
+		FROM
+			TIN_BOX
+		WHERE
+			WAREHOUSE_ID = #{warehouseId}			    
+		AND
+			DEL_FLAG = 0
+	</select>	
+	
+	<select id="getTinBox"	
+	 	parameterType="java.util.List"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail">
+		SELECT
+			TIN_BOX_ID AS tinBoxId, WAREHOUSE_ID AS warehouseId, SLOT_ID AS slotId, QR_CODE as qrCode, NAME
+		FROM
+			TIN_BOX
+		WHERE
+			TIN_BOX_ID IN
+				<foreach item="tinBoxId" index="index" collection="tinBoxIdList" open="(" separator="," close=")">
+			        #{tinBoxId}
+			    </foreach>	
+			<if test="warehouseId > 0">
+				AND 
+		    		WAREHOUSE_ID = #{warehouseId}
+			</if>	    
+			AND
+				DEL_FLAG = 0
+	</select>	
+	
+	<select id="getWarehouseNameById" parameterType="long" resultType="String">				
+		SELECT
+			NAME
+		FROM
+			WAREHOUSE
+		WHERE
+			WAREHOUSE_ID = #{warehouseId}						
+			AND 
+			DEL_FLAG = 0 
+			AND 
+			STATUS = 1
+	</select>
+	
+	<select id="getFolderQrCode" parameterType="long" resultType="String">				
+		SELECT
+			QR_CODE as 'qrCode'
+		FROM
+			FOLDER
+		WHERE
+			FOLDER_ID = #{folderId}
+	</select>
+		
+	<select id="getProjectNameByPackageDoc" parameterType="long" resultType="String">				
+		SELECT 
+			NAME 
+		FROM 
+			PROJECT 
+		WHERE 
+			PROJECT_ID = 
+			(SELECT 
+				PROJECT_ID 
+			FROM 
+				PACKAGE 
+			WHERE 
+				PACKAGE_ID =
+				(SELECT 
+					PACKAGE_ID 
+				FROM 
+					PACKAGE_DOC 
+				WHERE 
+					PACKAGE_DOC_ID = #{docId}))
+	</select>
+	
+	<select id="getProjectNameByContractDoc" parameterType="long" resultType="String">				
+		SELECT 
+			NAME 
+		FROM 
+			PROJECT 
+		WHERE 
+			PROJECT_ID = 
+			(SELECT 
+				PROJECT_ID 
+			FROM 
+				CONTRACT 
+			WHERE 
+				CONTRACT_ID =
+				(SELECT 
+					CONTRACT_ID 
+				FROM 
+					CONTRACT_DOC 
+				WHERE 
+					CONTRACT_DOC_ID = #{docId}))
+	</select>
+	
+	<select id="getProjectNameByContractDocV2" parameterType="long" resultType="String">				
+		SELECT 
+			NAME 
+		FROM 
+			PROJECT 
+		WHERE 
+			PROJECT_ID = 
+			(SELECT 
+				PROJECT_ID 
+			FROM 
+				CONTRACT_PROJECT
+			WHERE 
+				CONTRACT_ID =
+				(SELECT 
+					CONTRACT_ID 
+				FROM 
+					CONTRACT_DOC 
+				WHERE 
+					CONTRACT_DOC_ID = #{docId})
+			LIMIT 1)
+	</select>
+	
+	<select id="getProjectNameByContractDocV3"	
+	 	parameterType="java.lang.Long" 
+		resultType="java.lang.String">				
+		select p.name
+		from PROJECT p 
+		inner join PROJECT_IN_FOLDER pif on p.project_id = pif.project_id
+		inner join CONTRACT_PROJECT cp on cp.project_id = p.project_id
+		inner join CONTRACT_DOC ctd on ctd.contract_id = cp.contract_id
+		and ctd.folder_id = pif.folder_id and ctd.contract_doc_id = #{docId} limit 1
+	</select>
+	
+	<select id="getProjectNameByConstructionDoc"	
+	 	parameterType="java.lang.Long" 
+		resultType="java.lang.String">				
+		SELECT 
+			NAME 
+		FROM 
+			PROJECT 
+		WHERE 
+			PROJECT_ID = 
+			(SELECT 
+				PROJECT_ID 
+			FROM 
+				CONTRACT
+			WHERE 
+				CONTRACT_ID =
+				(SELECT 
+					CONTRACT_ID 
+				FROM 
+					CONSTRUCTION
+				WHERE 
+					CONSTRUCTION_ID = 
+					(SELECT
+						CONSTRUCTION_ID
+					FROM
+						CONSTRUCTION_DOC
+					WHERE
+						CONSTRUCTION_DOC_ID = #{docId})))
+	</select>
+	
+	<select id="getProjectNameByConstructionDocV2" parameterType="long" resultType="String">
+		SELECT NAME FROM PROJECT WHERE project_id =
+				(SELECT project_id FROM CONSTRUCTION_PROJECT WHERE construction_id = 
+					(SELECT construction_id FROM CONSTRUCTION_DOC WHERE construction_doc_id  = #{docId})
+				LIMIT 1)
+	</select>
+	
+	<select id="getProjectNameByConstructionDocV3"	
+	 	parameterType="java.lang.Long" 
+		resultType="java.lang.String">
+		select p.name from PROJECT p inner join PROJECT_IN_FOLDER pif on p.project_id = pif.project_id
+		inner join CONSTRUCTION_PROJECT cp on cp.project_id = p.project_id
+		inner join CONSTRUCTION_DOC ctd on ctd.construction_id = cp.construction_id
+		and ctd.folder_id = pif.folder_id and ctd.construction_doc_id = #{docId} limit 1
+	</select>
+	
+	<select id="getContractNameByConstructionId"	
+	 	parameterType="java.lang.Long" 
+		resultType="java.lang.String">
+		select c.name from CONTRACT c
+		inner join CONSTRUCTION ct on ct.CONTRACT_ID = c.contract_id
+		and ct.CONSTRUCTION_ID = #{constructionId} limit 1
+	</select>
+	
+	<select id="getSlotById"	
+	 	parameterType="long" 
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.SlotDetail">	
+					
+		SELECT
+			SLOT_ID as slotId, QR_CODE as qrCode, STATUS as status, RACK_ID as rackId, SLOT.*
+		FROM
+			SLOT
+		WHERE
+			SLOT_ID = #{slotId}
+		AND
+			DEL_FLAG = 0
+			
+	</select>
+	
+	<select id="getRackById" parameterType="long" 
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.RackDetail">	
+					
+		SELECT
+			RACK_ID as rackId, WAREHOUSE_ID as warehouseId, RACK.*
+		FROM
+			RACK
+		WHERE
+			RACK_ID = #{rackId}
+		AND
+			DEL_FLAG = 0	
+			
+	</select>
+	
+	<select id="getRackIdBySlotId" parameterType="long" resultType="long">	
+					
+		SELECT
+			RACK_ID
+		FROM
+			SLOT
+		WHERE
+			SLOT_ID = #{slotId}
+		AND
+			DEL_FLAG = 0		
+			
+	</select>
+	
+	<insert id="logImportDataAPICall" parameterType="String" >
+		Insert into EXCEL_IMPORT_LOG(create_user, json_content, create_time)
+		values(#{createUser}, #{jsonData}, now())
+	</insert>
+	
+	<select id="getFolderId" resultType="long">	
+					
+		SELECT IFNULL((SELECT f.folder_id FROM FOLDER f WHERE f.unit = #{unit} AND f.qr_code = #{folderQrCode} AND f.type = #{folderType}
+		AND f.del_flag = 0)
+		, -1)	
+			
+	</select>
+	
+	<select id="getFolderByQRCode"	
+	 	parameterType="String"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.FolderDetail">
+		SELECT
+			FOLDER_ID as folderId, TIN_BOX_ID as tinBoxId, FOLDER.*
+		FROM
+			FOLDER
+		WHERE
+			QR_CODE = #{qrCode}
+		AND
+			DEL_FLAG = 0
+	</select>
+	
+	<select id="getFolderByQRCodeGroup"	
+	 	parameterType="String"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.FolderDetail">
+		SELECT
+			FOLDER_ID as folderId, TIN_BOX_ID as tinBoxId, FOLDER_GROUP.*
+		FROM
+			FOLDER_GROUP
+		WHERE
+			QR_CODE = #{qrCode}
+		AND
+			DEL_FLAG = 0
+	</select>
+	
+	<select id="getFolderIdByQrAndTypeAndUnit" resultType="long">				
+		SELECT IFNULL((SELECT f.folder_id FROM FOLDER f WHERE f.unit = #{unit} AND f.qr_code = #{folderQrCode} AND f.type = #{folderType}
+		AND f.del_flag = 0)
+		, -1)	
+	</select>
+	<select id="getFolderIdByQrAndUnit" resultType="long">				
+		SELECT IFNULL((SELECT f.folder_id FROM FOLDER f WHERE f.unit = #{unit} AND f.qr_code = #{folderQrCode} AND f.del_flag = 0), -1)	
+	</select>
+	<select id="checkTinBoxCreateUser" resultType="int">					
+		SELECT count(*) from TIN_BOX where tin_box_id = #{tinBoxId}	and create_user = #{createUser}	
+	</select>
+	
+	<select id="getProjectId" parameterType="String" resultType="long">
+		SELECT IFNULL((SELECT project_id FROM PROJECT WHERE name = #{projectName} LIMIT 1 ), -1)
+	</select>
+	
+	<insert id="createProject">
+		INSERT INTO PROJECT (name, description, status, erp_id, code, unit)
+		VALUES (#{projectName}, #{projectName}, 1, CURDATE(), CURDATE(), #{unit});
+	</insert>
+	
+	<insert id="createPackage">
+		INSERT INTO PACKAGE (name, description, project_id, status, erp_id)
+		VALUES (#{packageName}, #{packageName}, #{projectId}, 1, CURDATE());
+	</insert>
+	
+	<insert id="createContract">
+		INSERT INTO CONTRACT (name, description, project_id, status, erp_id, code, unit, package_id)
+		VALUES (#{contractName}, #{contractName}, #{projectId}, 1, CURDATE(), CURDATE(), #{unit}, #{packageId});
+	</insert>
+	
+	<insert id="createConstruction">
+		INSERT INTO CONSTRUCTION (name, description, contract_id, status, erp_id, code)
+		VALUES (#{constructionName}, #{constructionName}, #{contractId}, 1, CURDATE(), CURDATE());
+	</insert>
+		
+	<insert id="insertProjectDoc">
+		Insert into PROJECT_DOC(name, folder_id, project_id, level_baomat)
+		values(#{projectDoc}, #{folderId}, #{projectId}, #{levelBaoMatProject})
+	</insert>
+	
+	<insert id="bindProjectToFolder">
+		INSERT INTO PROJECT_IN_FOLDER (folder_id, project_id, del_flag, create_user, create_date, update_date)
+		SELECT * FROM ( SELECT #{folderId} as folder_id, #{projectId} as project_id, 0 as del_flag, #{createUser} as create_user, now() as create_date, now() as update_date) AS tmp
+			WHERE NOT EXISTS 
+			(SELECT * FROM PROJECT_IN_FOLDER WHERE folder_id = #{folderId} AND project_id = #{projectId} AND del_flag = 0)
+	</insert>
+	
+	<select id="checkExistPrjDoc" resultType="long">						
+		SELECT IFNULL((SELECT project_doc_id FROM PROJECT_DOC WHERE name = #{projectDoc} AND project_id = #{projectId} LIMIT 1 ), -1)				
+	</select>
+	
+	<select id="getFolderIdOfProjectDoc" resultType="long">						
+		SELECT IFNULL((SELECT folder_id FROM PROJECT_DOC WHERE project_doc_id = #{prjDocExistedId} LIMIT 1 ), -1)				
+	</select>
+	
+	<update id="bindPrjDocToFolder">
+		UPDATE PROJECT_DOC set folder_id = #{folderId} WHERE project_doc_id = #{prjDocExistedId}
+	</update>
+	
+	<select id="checkExistPkgDoc" resultType="long">						
+		SELECT IFNULL((SELECT package_doc_id FROM PACKAGE_DOC WHERE name = #{packageDoc} AND package_id = #{packageId} LIMIT 1 ), -1)				
+	</select>
+	
+	<select id="getFolderIdOfPkgDoc" resultType="long">						
+		SELECT IFNULL((SELECT folder_id FROM PACKAGE_DOC WHERE package_doc_id = #{pkgDocExistedId} LIMIT 1 ), -1)				
+	</select>
+	
+	<update id="bindPkgDocToFolder">
+		UPDATE PACKAGE_DOC set folder_id = #{folderId} WHERE package_doc_id = #{pkgDocExistedId}
+	</update>
+	
+	<select id="checkExistCtDoc" resultType="long">						
+		SELECT IFNULL((SELECT contract_doc_id FROM CONTRACT_DOC WHERE name = #{contractDoc} AND contract_id = #{contractId} LIMIT 1 ), -1)				
+	</select>
+	
+	<select id="getFolderIdOfCtDoc" resultType="long">						
+		SELECT IFNULL((SELECT folder_id FROM CONTRACT_DOC WHERE contract_doc_id = #{ctDocExistedId} LIMIT 1 ), -1)				
+	</select>
+	
+	<update id="bindCtDocToFolder">
+		UPDATE CONTRACT_DOC set folder_id = #{folderId} WHERE contract_doc_id = #{ctDocExistedId}
+	</update>
+	
+	<select id="getFolderIdOfConsDoc" resultType="long">						
+		SELECT IFNULL((SELECT folder_id FROM CONSTRUCTION_DOC WHERE construction_doc_id = #{consDocExistedId} LIMIT 1 ), -1)				
+	</select>
+	
+	<update id="bindConsDocToFolder">
+		UPDATE CONSTRUCTION_DOC set folder_id = #{folderId} WHERE construction_doc_id = #{consDocExistedId}
+	</update>
+	
+	<select id="checkExistConsDoc" resultType="long">						
+		SELECT IFNULL((SELECT construction_doc_id FROM CONSTRUCTION_DOC WHERE name = #{constructionDoc} AND construction_id = #{constructionId} LIMIT 1 ), -1)				
+	</select>
+	
+	<select id="getValidPackageId" resultType="long">						
+		SELECT IFNULL((SELECT package_id FROM PACKAGE WHERE name = #{packageName} AND project_id = #{projectId} LIMIT 1 ), -1)				
+	</select>
+	
+	<insert id="insertPackageDoc">
+		Insert into PACKAGE_DOC(name, folder_id, package_id, level_baomat)
+		values(#{packageDoc}, #{folderId}, #{packageId}, #{levelBaoMatPackage})
+	</insert>
+		
+	<select id="getValidContractId" resultType="long">
+		SELECT IFNULL((SELECT c.contract_id FROM CONTRACT c
+		WHERE c.name = #{contractName} AND c.package_id = #{packageId}
+		LIMIT 1 ), -1)	
+			
+	</select>
+	
+	<insert id="insertContractDoc">
+		Insert into CONTRACT_DOC(name, folder_id, contract_id, level_baomat)
+		values(#{contractDoc}, #{folderId}, #{contractId}, #{levelBaoMatContract})
+	</insert>
+	
+	<select id="getValidConstructionId" resultType="long">					
+		SELECT IFNULL((SELECT cst.construction_id FROM CONSTRUCTION cst
+		WHERE cst.name = #{constructionName} AND cst.contract_id = #{contractId}
+		LIMIT 1 ), -1)
+	</select>
+	
+	<insert id="insertConstructionDoc">
+		Insert into CONSTRUCTION_DOC(name, folder_id, construction_id, level_baomat)
+		values(#{constructionDoc}, #{folderId}, #{constructionId}, #{levelBaoMatConstruction})
+	</insert>
+	
+	<!-- get List Slot -->
+	<resultMap id="resultGetListSlotDetail"
+		type="com.viettel.vtnet360.vt07.vt070000.entity.SlotDetail">
+
+		<result property="slotId" column="slot_id" />
+		<result property="rackId" column="rack_id" />
+		<result property="height" column="height" />
+		<result property="qrCode" column="qr_code" />
+		<result property="status" column="status" />
+		<result property="delFlag" column="del_flag" />
+
+	</resultMap>
+	
+	<resultMap id="resultGetListWarehouseRackSlot"
+		type="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseRackSlot">
+
+		<result property="slotId" column="slot_id" />
+		<result property="warehouseName" column="name" />
+		<result property="row" column="row" />
+		<result property="column" column="column" />
+		<result property="position" column="height" />
+		<result property="qrCode" column="qr_code" />
+		<result property="status" column="status" />
+	</resultMap>
+	
+	<!-- searchTinBox -->
+	<select id="searchTinBox"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.TinBoxSearchRequest"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail">
+		select 
+		A.TIN_BOX_ID as tinBoxId,
+		A.NAME as name,
+		A.QR_CODE as qrCode,
+		CONCAT(nvl(r.row, ''), '/', nvl(r.column, ''), '/', nvl(s.height, '')) as description,
+		nvl(s.qr_code, '') as slotQrCode,
+		A.STATUS as status,
+		A.WAREHOUSE_ID as warehouseId,
+		A.SLOT_ID as slotId,
+		A.INDEX as `index`,
+		A.MNG_USER as mngUser,
+		A.create_user as createUser,
+		w.NAME as warehouseName
+		from (
+		select * from TIN_BOX where tin_box_id = 0
+		<if test="keyword==null">
+			union
+			select * from tin_box
+		</if>
+		<if test="keyword!=null and byTinBox==false and byFolder==false and byProject==false and byPackage==false and byContract==false and byConstruction==false">
+			union
+			select * from TIN_BOX where name like CONCAT('%', #{keyword}, '%')
+		</if>
+		<if test="keyword!=null and byTinBox==true">
+			union
+			select * from TIN_BOX where name like CONCAT('%', #{keyword}, '%')
+		</if>
+		<if test="keyword!=null and byFolder==true">
+			union
+			select tb.* from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id and fd.name like CONCAT('%', #{keyword}, '%')
+		</if>
+		<if test="keyword!=null and byProject==true">
+		union
+		select tb.* from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id
+		inner join PROJECT_DOC pjd on pjd.folder_id = fd.folder_id
+		inner join PROJECT pj on pj.project_id = pjd.project_id and pj.name like CONCAT('%', #{keyword}, '%')
+		union
+		select tb.* from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id
+		inner join PACKAGE_DOC pkd on pkd.folder_id = fd.folder_id
+		inner join PACKAGE pk on pk.package_id = pkd.package_id 
+		inner join PROJECT pj on pj.project_id = pk.project_id and pj.name like CONCAT('%', #{keyword}, '%')
+		</if>
+		<if test="keyword!=null and byPackage==true">
+		union
+		select tb.* from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id
+		inner join PACKAGE_DOC pkd on pkd.folder_id = fd.folder_id
+		inner join PACKAGE pk on pk.package_id = pkd.package_id and pk.name like CONCAT('%', #{keyword}, '%')
+		</if>
+		<if test="keyword!=null and byContract==true">
+		union
+		select tb.* from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id
+		inner join CONTRACT_DOC ctd on ctd.folder_id = fd.folder_id
+		INNER JOIN CONTRACT_PROJECT cp on cp.contract_id = ctd.contract_id
+		INNER JOIN PROJECT_IN_FOLDER pif on pif.project_id = cp.project_id and pif.folder_id = fd.folder_id
+		inner join CONTRACT ct on ct.contract_id = ctd.contract_id and ct.name like CONCAT('%', #{keyword}, '%')
+		union
+		select tb.* from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id
+		inner join CONSTRUCTION_DOC csd on csd.folder_id = fd.folder_id
+		inner join CONSTRUCTION cst on cst.construction_id = csd.construction_id
+		INNER JOIN CONSTRUCTION_PROJECT cp on csd.construction_id = cp.construction_id
+		INNER JOIN PROJECT_IN_FOLDER pif on pif.project_id = cp.project_id and pif.folder_id = fd.folder_id
+		inner join CONTRACT ct on ct.contract_id = cst.contract_id and ct.name like CONCAT('%', #{keyword}, '%')
+		</if>
+		<if test="keyword!=null and byConstruction==true">
+		union
+		select tb.* from TIN_BOX tb inner join FOLDER fd on fd.tin_box_id = tb.tin_box_id
+		inner join CONSTRUCTION_DOC csd on csd.folder_id = fd.folder_id
+		INNER JOIN CONSTRUCTION_PROJECT cp on csd.construction_id = cp.construction_id
+		INNER JOIN PROJECT_IN_FOLDER pif on pif.project_id = cp.project_id and pif.folder_id = fd.folder_id
+		inner join CONSTRUCTION cst on cst.construction_id = csd.construction_id and cst.name like CONCAT('%', #{keyword}, '%')
+		</if>) A
+		inner join WAREHOUSE w on A.warehouse_id = w.warehouse_id And A.DEL_FLAG = 0
+		<if test="warehouseId!=0">
+			and A.warehouse_id = #{warehouseId}
+		</if>
+		left join SLOT s on s.slot_id = a.slot_id
+		left join RACK r on s.rack_id = r.rack_id
+		ORDER BY A.QR_CODE DESC
+		<!-- ORDER BY A.QR_CODE DESC LIMIT #{pageNo}, 20  -->
+	</select>
+	
+	<!-- getDocumentInTinBox -->
+	<select id="getDocumentInTinBox"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.TinBoxDetailsRequest"
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.DocumentDetails">
+		<if test="role == 'WAREHOUSE_VT' or role =='WAREHOUSE_DA' or role =='PMQT_ADMIN'">
+		<if test="searchType != null and (searchType == 1 or searchType == 2)">
+		select pd.project_doc_id as documentId, fd.folder_id as folderId, fd.type as folderType, fd.qr_code as folderQrCode,
+		fd.name as folderName, p.name as projectName, '' as packageName, '' as contractName,
+		'' as constructionName, 'project' as `type`, pd.name as documentName,'' as voucherName ,
+		'' as voucherBookName, '' as officialDispatchTravelsName, '' as incomingOfficialDispatchName,
+		'' as paymentSummaryName, p.is_synchrony as isSynchronyProject , null as isSynchronyPackage , null as isSynchronyContract,
+		null as isSynchronyConstruction, pd.level_baomat, pd.path
+		from PROJECT_DOC pd
+		inner join FOLDER fd on fd.folder_id = pd.folder_id 
+		 <if test="searchType == 1">
+		and fd.tin_box_id=#{id}
+		</if>
+		<if test="searchType==2">
+		and fd.folder_id=#{id}
+		</if>
+		inner join PROJECT p on p.project_id = pd.project_id
+		union
+		select pkd.package_doc_id as documentId, fd.folder_id as folderId, fd.type as folderType, fd.qr_code as folderQrCode,
+		fd.name as folderName, p.name as projectName, pk.name as packageName, '' as contractName,
+		'' as constructionName, 'package' as `type`, pkd.name as documentName,'' as voucherName ,
+		'' as voucherBookName, '' as officialDispatchTravelsName, '' as incomingOfficialDispatchName,
+		'' as paymentSummaryName, null as isSynchronyProject ,  pk.is_synchrony as isSynchronyPackage , null as isSynchronyContract
+		, null as isSynchronyConstruction, pkd.level_baomat, pkd.path
+		from PACKAGE_DOC pkd
+		inner join FOLDER fd on fd.folder_id = pkd.folder_id
+		 <if test="searchType == 1">
+		and fd.tin_box_id=#{id}
+		</if>
+		<if test="searchType==2">
+		and fd.folder_id=#{id}
+		</if>
+		inner join PACKAGE pk on pk.package_id = pkd.package_id
+		inner join PROJECT p on p.project_id = pk.project_id
+		
+		union
+		select cd.contract_doc_id as documentId, fd.folder_id as folderId, fd.type as folderType, fd.qr_code as folderQrCode,
+		fd.name as folderName, p.name as projectName, pk.name as packageName, c.name as contractName,
+		'' as constructionName, 'contract' as `type`, cd.name as documentName,'' as voucherName ,
+		'' as voucherBookName, '' as officialDispatchTravelsName, '' as incomingOfficialDispatchName,
+		'' as paymentSummaryName, null as isSynchronyProject , null as isSynchronyPackage , c.is_synchrony as isSynchronyContract
+		, null as isSynchronyConstruction, cd.level_baomat, cd.path
+		from CONTRACT_DOC cd 
+		inner join FOLDER fd on fd.folder_id = cd.folder_id
+		 <if test="searchType == 1">
+		and fd.tin_box_id=#{id}
+		</if>
+		<if test="searchType==2">
+		and fd.folder_id=#{id}
+		</if>
+		inner join CONTRACT c on c.contract_id = cd.contract_id
+		inner join PACKAGE pk on pk.package_id = c.package_id
+		inner join PROJECT p on p.project_id = pk.project_id
+		
+		union
+		select cd.construction_doc_id as documentId, fd.folder_id as folderId, fd.type as folderType, fd.qr_code as folderQrCode,
+		fd.name as folderName, p.name as projectName, pk.name as packageName, c.name as contractName,
+		cst.name as constructionName, 'construction' as `type`, cd.name as documentName,'' as voucherName ,
+		'' as voucherBookName, '' as officialDispatchTravelsName, '' as incomingOfficialDispatchName,
+		'' as paymentSummaryName, null as isSynchronyProject , null as isSynchronyPackage , null as isSynchronyContract
+		, cst.is_synchrony as isSynchronyConstruction, cd.level_baomat, cd.path
+		from CONSTRUCTION_DOC cd
+		inner join FOLDER fd on fd.folder_id = cd.folder_id
+		 <if test="searchType == 1">
+		and fd.tin_box_id=#{id}
+		</if>
+		<if test="searchType==2">
+		and fd.folder_id=#{id}
+		</if>
+		inner join CONSTRUCTION cst on cst.construction_id = cd.construction_id
+		inner join CONTRACT c on c.contract_id = cst.contract_id
+		inner join PACKAGE pk on pk.package_id = c.package_id
+		inner join PROJECT p on p.project_id = pk.project_id
+	
+		</if>
+		</if>
+		<if test="role == 'WAREHOUSE_VT' or role == 'WAREHOUSE_TC' or role =='PMQT_ADMIN'">
+		<if test="searchType != null and (searchType == 9 or searchType == 1 or searchType == 2)">
+		<if test="(searchType != null and (searchType == 1 or searchType == 2)) and role != 'WAREHOUSE_TC'">
+		union
+		</if> 
+		select vd.voucher_id as documentId, fd.folder_id as folderId, fd.type as folderType, fd.qr_code as folderQrCode,
+		fd.name as folderName, '' as projectName, '' as packageName, '' as contractName,
+		'' as constructionName, 'voucher' as `type`, vd.name as documentName, v.name as voucherName,
+		'' as voucherBookName, '' as officialDispatchTravelsName, '' as incomingOfficialDispatchName,
+		'' as paymentSummaryName, '' as isSynchronyProject , '' as isSynchronyPackage , '' as isSynchronyContract
+		, '' as isSynchronyConstruction, vd.level_baomat, vd.path
+		from VOUCHER_DOC vd
+		inner join FOLDER fd on fd.folder_id = vd.folder_id
+		 <if test="searchType == 1">
+		 and fd.tin_box_id=#{id}
+		</if>
+		<if test="searchType==2">
+		and fd.folder_id=#{id}
+		</if>
+		inner join VOUCHER v on v.voucher_id = vd.voucher_id
+		where vd.type = 4
+		<if test="searchType==9">
+		and v.voucher_id=#{id}
+		</if>
+		</if>
+		</if>
+		<if test="role == 'WAREHOUSE_VT' or role == 'WAREHOUSE_TC' or role =='PMQT_ADMIN'">
+		<if test="searchType != null and (searchType==10 or searchType == 1 or searchType == 2)">
+		<if test="searchType != null and (searchType == 1 or searchType == 2)">
+		union
+		</if>  
+		select vdb.voucher_id as documentId, fd.folder_id as folderId, fd.type as folderType, fd.qr_code as folderQrCode,
+		fd.name as folderName, '' as projectName, '' as packageName, '' as contractName,
+		'' as constructionName, 'voucherbook' as `type`, vdb.name as documentName, '' as voucherName ,
+		v.name as voucherBookName, '' as officialDispatchTravelsName, '' as incomingOfficialDispatchName,
+		'' as paymentSummaryName, '' as isSynchronyProject , '' as isSynchronyPackage , '' as isSynchronyContract
+		, '' as isSynchronyConstruction, vdb.level_baomat, vdb.path
+		from VOUCHER_DOC vdb
+		inner join FOLDER fd on fd.folder_id = vdb.folder_id
+		 <if test="searchType == 1">
+		 and fd.tin_box_id=#{id}
+		</if>
+		<if test="searchType==2">
+		and fd.folder_id=#{id}
+		</if>
+		inner join VOUCHER v on v.voucher_id = vdb.voucher_id
+		where vdb.type = 6
+		<if test="searchType==10">
+		and v.voucher_id=#{id}
+		</if>
+		</if>
+		</if>
+		<if test="role == 'WAREHOUSE_VT' or role =='PMQT_ADMIN'">
+		<if test="searchType != null and (searchType==7 or searchType == 1 or searchType == 2)">
+		<if test="searchType != null and (searchType == 1 or searchType == 2)">
+		union
+		</if> 
+		select odtd.id as documentId, fd.folder_id as folderId, fd.type as folderType, fd.qr_code as folderQrCode,
+		fd.name as folderName, '' as projectName, '' as packageName, '' as contractName,
+		'' as constructionName, 'documentout' as `type`, odtd.name as documentName, '' as voucherName ,
+		'' as voucherBookName, od.name as officialDispatchTravelsName, '' as incomingOfficialDispatchName,
+		'' as paymentSummaryName, '' as isSynchronyProject , '' as isSynchronyPackage , '' as isSynchronyContract
+		, '' as isSynchronyConstruction, odtd.level_baomat, odtd.path
+		from OFFICIAL_DISPATCH_TRAVELS_DOC odtd
+		inner join FOLDER fd on fd.folder_id = odtd.folder_id 
+		 <if test="searchType == 1">
+		 and fd.tin_box_id=#{id}
+		</if>
+		<if test="searchType==2">
+		and fd.folder_id=#{id}
+		</if>
+		inner join OFFICIAL_DISPATCH od on od.official_dispatch_id = odtd.official_dispatch_id
+		<if test="searchType==7">
+		where od.official_dispatch_id=#{id}
+		</if>
+		</if>
+		</if>
+		<if test="role == 'WAREHOUSE_VT' or role =='PMQT_ADMIN'">
+		<if test="searchType != null and (searchType==8 or searchType == 1 or searchType == 2)">
+		<if test="searchType != null and (searchType == 1 or searchType == 2)">
+		union
+		</if>  
+		select iodt.id as documentId, fd.folder_id as folderId, fd.type as folderType, fd.qr_code as folderQrCode,
+		fd.name as folderName, '' as projectName, '' as packageName, '' as contractName,
+		'' as constructionName, 'documentin' as `type`, iodt.name as documentName, '' as voucherName ,
+		'' as voucherBookName, '' as officialDispatchTravelsName, od.name as incomingOfficialDispatchName,
+		'' as paymentSummaryName, '' as isSynchronyProject , '' as isSynchronyPackage , '' as isSynchronyContract
+		, '' as isSynchronyConstruction, iodt.level_baomat, iodt.path
+		from INCOMING_OFFICIAL_DISPATCH_DOC iodt
+		inner join FOLDER fd on fd.folder_id = iodt.folder_id 
+        <if test="searchType == 1">
+		 and fd.tin_box_id=#{id}
+		</if>
+		<if test="searchType ==2">
+		and fd.folder_id=#{id}
+		</if>
+		inner join OFFICIAL_DISPATCH od on od.official_dispatch_id = iodt.official_dispatch_id
+		<if test="searchType==8">
+		where od.official_dispatch_id=#{id}
+		</if>
+		</if>
+		</if>
+		<if test="role == 'WAREHOUSE_VT' or role == 'WAREHOUSE_TC' or role =='PMQT_ADMIN'">
+		<if test="searchType != null and (searchType==11 or searchType == 1 or searchType == 2)">
+		<if test="searchType != null and (searchType == 1 or searchType == 2)">
+		union
+		</if>  
+		select psd.id as documentId, fd.folder_id as folderId, fd.type as folderType, fd.qr_code as folderQrCode,
+		fd.name as folderName, '' as projectName, '' as packageName, '' as contractName,
+		'' as constructionName, 'paymentsumary' as `type`, psd.name as documentName, '' as voucherName ,
+		'' as voucherBookName, '' as officialDispatchTravelsName, '' as incomingOfficialDispatchName,
+		ps.name as paymentSummaryName, '' as isSynchronyProject , '' as isSynchronyPackage , '' as isSynchronyContract
+		, '' as isSynchronyConstruction, psd.level_baomat, psd.path
+		from PAYMENT_SUMMARY_DOC psd
+		inner join FOLDER fd on fd.folder_id = psd.folder_id 
+        <if test="searchType == 1">
+		 and fd.tin_box_id=#{id}
+		</if>
+		<if test="searchType == 2">
+		and fd.folder_id=#{id}
+		</if>
+		inner join PAYMENT_SUMMARY ps on ps.payment_summary_id = psd.payment_summary_id
+		<if test="searchType==11">
+		where ps.payment_summary_id=#{id}
+		</if>
+		</if>
+		</if>
+	</select>
+	
+	<select id="getTinBoxId" resultType="long">						
+		SELECT IFNULL((SELECT tb.tin_box_id FROM TIN_BOX tb WHERE tb.unit = #{unit} AND tb.qr_code = #{tinBoxQrCode} and del_flag = 0)
+		, -1)			
+	</select>
+	
+	
+	<!-- GROUP REGION -->
+	
+	<select id="getListWareHouseDetailGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseRequestParam"
+		resultMap="resultGetListWarehouseDetail">
+		SELECT
+		*
+		FROM
+		WAREHOUSE_GROUP
+		WHERE
+		`DEL_FLAG`=0 
+		<if test="name != null">
+			AND `name` LIKE CONCAT("%",#{name} ,"%")
+		</if>
+		<if test="address != null">
+			AND `address` LIKE CONCAT("%",#{address} ,"%")
+		</if>
+		<if test="type != null">
+			AND `type` = #{type} 
+		</if>
+		<if test="status != null">
+			AND `status` = #{status} 
+		</if>
+		<if test="acreage != null">
+			AND `acreage` = #{acreage} 
+		</if>
+		<if test="rowNum != null">
+			AND `row_num` = #{rowNum} 
+		</if>
+		<if test="columnNum != null">
+			AND `column_num` = #{columnNum} 
+		</if>
+		<if test="heightNum != null">
+			AND `height_num` = #{heightNum} 
+		</if>
+		ORDER BY `UPDATE_DATE` DESC
+		LIMIT #{pageNumber}, #{pageSize}
+	</select>
+
+	<!-- Get total records -->
+	<select id="getTotalRecordGroup" parameterType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseRequestParam"
+	 resultType="int">
+		SELECT COUNT(*)
+		FROM WAREHOUSE_GROUP
+		WHERE `DEL_FLAG` = 0
+		<if test="name != null">
+			AND `name` LIKE CONCAT("%",#{name} ,"%")
+		</if>
+		<if test="address != null">
+			AND `address` LIKE CONCAT("%",#{address} ,"%")
+		</if>
+		<if test="type != null">
+			AND `type` = #{type}
+		</if>
+		<if test="status != null">
+			AND `status` = #{status}
+		</if>
+		<if test="acreage != null">
+			AND `acreage` = #{acreage}
+		</if>
+		<if test="rowNum != null">
+			AND `row_num` = #{rowNum}
+		</if>
+		<if test="columnNum != null">
+			AND `column_num` = #{columnNum}
+		</if>
+		<if test="heightNum != null">
+			AND `height_num` = #{heightNum}
+		</if>
+	</select>
+
+	<!-- Check delete -->
+	<select id="isDeleteGroup" parameterType="String" resultType="int">
+		Select
+		DEL_FLAG from WAREHOUSE_GROUP where warehouse_id =
+		#{warehouseId}
+	</select>
+
+	<!-- Check delete -->
+	<select id="checkExistsWarehouseGroup" parameterType="String"
+		resultType="int">
+		Select COUNT(*) from WAREHOUSE_GROUP where
+		warehouse_id = #{warehouseId} and DEL_FLAG = 0
+	</select>
+
+	<!-- Insert Warehouse -->
+	<insert id="insertWarehouseGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseRequestParam"
+		keyProperty="warehouseId" keyColumn="warehouse_id">
+		Insert into WAREHOUSE_GROUP(name, address, type, status, acreage, del_flag,
+		row_num, column_num, height_num, create_date, update_date,
+		create_user, update_user)
+		values(#{name}, #{address}, #{type},
+		#{status},
+		#{acreage}, 0, #{rowNum}, #{columnNum}, #{heightNum},
+		now(),
+		now(), #{createUser}, #{createUser})
+		<selectKey keyProperty="warehouseId" resultType="String"
+			order="AFTER">
+			SELECT LAST_INSERT_ID();
+		</selectKey>
+	</insert>
+
+	<!-- Update Warehouse -->
+	<update id="updateWarehouseGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseRequestParam">
+		update WAREHOUSE_GROUP set name = #{name}, address =
+		#{address},
+		type = #{type}, status = #{status}, acreage = #{acreage},
+		row_num = #{rowNum},
+		column_num = #{columnNum}, height_num = #{heightNum},
+		update_user = #{createUser}, update_date = now()
+		where
+		warehouse_id = #{warehouseId}
+	</update>
+
+	<!-- Delete Warehouse -->
+	<update id="deleteWarehouseGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseRequestParam">
+		update WAREHOUSE_GROUP set del_flag = #{delFlag}, update_user
+		= #{createUser}, update_date = now()
+		where
+		warehouse_id = #{warehouseId}
+	</update>
+
+	<!-- Insert Rack -->
+	<insert id="insertRackGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.RackDetail"
+		keyProperty="rackId" keyColumn="rack_id">
+		Insert into RACK_GROUP(`row`, warehouse_id, `column`, `type`, del_flag,
+		create_date, update_date, create_user, update_user)
+		values(#{row},
+		#{warehouseId}, #{column}, #{type},
+		#{delFlag}, now(), now(),
+		#{createUser}, #{createUser})
+		<selectKey keyProperty="rackId" resultType="long"
+			order="AFTER">
+			SELECT LAST_INSERT_ID();
+		</selectKey>
+	</insert>
+
+	<!-- Insert Slot -->
+	<insert id="insertSlotGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.SlotDetail"
+		keyProperty="slotId" keyColumn="slot_id">
+		Insert into SLOT_GROUP(rack_id, `height`, qr_code, status, del_flag,
+		create_date, update_date, create_user, update_user)
+		values(#{rackId},
+		#{height}, #{qrCode}, #{status},
+		#{delFlag}, now(), now(),
+		#{createUser}, #{createUser})
+		<selectKey keyProperty="slotId" resultType="long"
+			order="AFTER">
+			SELECT LAST_INSERT_ID();
+		</selectKey>
+	</insert>
+
+	<!-- Delete Rack With Row Column -->
+	<update id="deleteRackWithRowColumnGroup">
+		update RACK_GROUP set del_flag = 1
+		where
+		warehouse_id = #{warehouseId} and
+		del_flag = 0
+		<if test="rowNum != -1">
+			AND `row` = #{rowNum}
+		</if>
+		<if test="colNum != -1">
+			AND `column` = #{colNum}
+		</if>
+	</update>
+
+	<!-- Delete Slot with Row Column -->
+	<update id="deleteSlotWithRowColumnGroup">
+		update SLOT_GROUP set del_flag = 1
+		where
+		rack_id in (select rack_id from
+		rack_group
+		where warehouse_id = #{warehouseId}
+		<if test="rowNum != -1">
+			AND `row` = #{rowNum}
+		</if>
+		<if test="colNum != -1">
+			AND `column` = #{colNum}
+		</if>
+		) and del_flag = 0
+	</update>
+	
+	<!-- Delete Slot with Height and RackId -->
+	<update id="deleteSlotHeightWithRackIdGroup">
+		update SLOT_GROUP set del_flag = 1
+		where
+		rack_id = #{rackId} and height = #{heightNum} and del_flag = 0
+	</update>
+
+	<!-- Select Slot with Row Column -->
+	<select id="getListSlotWithRowColumnGroup"
+		resultMap="resultGetListSlotDetail">
+		select * from slot_group
+		where
+		rack_id in (select rack_id from
+		rack_group where
+		warehouse_id = #{warehouseId}
+		<if test="rowNum != -1 ">
+			<if test="rowNum != oldRowNum">
+				AND `row` > #{rowNum} AND #{oldRowNum} >= `row`
+			</if>
+		</if>
+		<if test="columnNum != -1">
+			<if test="columnNum != oldColumnNum">
+				AND `column` > #{columnNum} AND #{oldColumnNum} >= `column`
+			</if>
+		</if>
+		) and del_flag = 0 and status = 1
+	</select>
+	
+	<!-- Select Slot with Row Column -->
+	<select id="getRackWithRowColumnOfWarehouseGroup"
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.RackDetail">
+		select r.rack_id as rackId from RACK_GROUP r
+		where r.warehouse_id = #{warehouseId} and r.`row` = #{rowNum} and r.`column` = #{columnNum}
+		and r.del_flag = 0
+	</select>
+
+	<!-- Delete Rack after change WarehouseDetail -->
+	<update id="deleteRackAfterChangeWarehouseGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseRequestParam">
+		update RACK_GROUP set del_flag = 1
+		where
+		warehouse_id =
+		#{warehouseId}
+	</update>
+
+	<!-- Delete Slot after change WarehouseDetail -->
+	<update id="deleteSlotAfterChangeWarehouseGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseRequestParam">
+		update SLOT_GROUP set del_flag = 1
+		where rack_id in (Select
+		rack_id from RACK_GROUP where warehouse_id = #{warehouseId})
+
+	</update>
+
+	<!-- Get Warehouse by id -->
+	<select id="getWarehouseDetailByIdGroup" parameterType="String"
+		resultMap="resultGetListWarehouseDetail">
+		SELECT
+		*
+		FROM
+		WAREHOUSE_GROUP
+		WHERE
+		DEL_FLAG = 0
+		AND WAREHOUSE_ID =
+		#{warehouseId}
+	</select>
+	
+	<!-- get listRACK by WAREHOUSE id -->
+	<select id="getListSlotUseInWarehouseGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseRequestParam" resultMap="resultGetListWarehouseRackSlot">
+		SELECT s.slot_id, w.name, r.`row`, r.`column`, s.height, s.qr_code, s.`status` FROM WAREHOUSE_GROUP w 
+		JOIN RACK_GROUP r ON w.warehouse_id = r.warehouse_id
+		JOIN SLOT_GROUP s ON s.rack_id = r.rack_id 
+		WHERE w.warehouse_id = #{warehouseId} AND w.del_flag = 0 AND s.del_flag = 0 ORDER BY r.`row`, r.`column`, s.height
+		LIMIT #{pageNumber}, #{pageSize}
+	</select>
+	
+	<!-- get full listRACK by WAREHOUSE id -->
+	<select id="getFullListSlotUseInWarehouseGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseRequestParam" resultMap="resultGetListWarehouseRackSlot">
+		SELECT s.slot_id, w.name, r.`row`, r.`column`, s.height, s.qr_code, s.`status` FROM WAREHOUSE_GROUP w 
+		JOIN RACK_GROUP r ON w.warehouse_id = r.warehouse_id
+		JOIN SLOT_GROUP s ON s.rack_id = r.rack_id 
+		WHERE w.warehouse_id = #{warehouseId} AND w.del_flag = 0 AND s.del_flag = 0 ORDER BY r.`row`, r.`column`, s.height
+	</select>
+
+	<!-- count SLOT are in use -->
+	<select id="countSlotUseGroup" parameterType="long" resultType="int">
+		Select count(*) from SLOT_GROUP where rack_id = #{rackId} and status=1 and
+		del_flag = 0
+	</select>
+	
+	<!-- get total SLOT -->
+	<select id="getTotalRecordWarehouseSlotGroup" parameterType="String" resultType="int">
+		SELECT count(*) FROM WAREHOUSE_GROUP w 
+		JOIN RACK_GROUP r ON w.warehouse_id = r.warehouse_id
+		JOIN SLOT_GROUP s ON s.rack_id = r.rack_id 
+		WHERE w.warehouse_id = #{warehouseId} AND w.del_flag = 0 AND s.del_flag = 0
+	</select>
+	
+	<!-- count SLOT are in use of WAREHOUSE -->
+	<select id="countSlotActiveGroup" parameterType="String" resultType="int">
+		SELECT count(*) FROM WAREHOUSE_GROUP w 
+		JOIN RACK_GROUP r ON w.warehouse_id = r.warehouse_id
+		JOIN SLOT_GROUP s ON s.rack_id = r.rack_id 
+		WHERE w.warehouse_id = #{warehouseId} AND w.del_flag = 0 AND s.del_flag = 0 AND s.status = 1
+	</select>
+
+	<!-- getListSlotDetailByRackIdGroup -->
+	<select id="getListSlotDetailByRackIdGroup"
+		parameterType="long"
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.SlotDetail">
+		SELECT
+		s.SLOT_ID as slotId,
+		s.RACK_ID as rackId,
+		s.HEIGHT as height,
+		s.QR_CODE as qrCode,
+		s.STATUS as status,
+		s.DEL_FLAG as delFlag
+		FROM SLOT_GROUP s 
+		WHERE s.RACK_ID = #{rackId}		
+		ORDER BY HEIGHT ASC
+	</select>
+	
+	<!-- getListRackDetailGroup -->
+	<select id="getListRackDetailGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.RequestParam"
+		resultMap="resultGetListRackDetail">
+		SELECT * FROM RACK_GROUP r
+		<!-- WHERE r.WAREHOUSE_ID = #{warehouseId} ORDER BY ROW ASC, 'COLUMN' ASC -->
+	</select>
+	
+	<!-- getListRackDetailByWarehouseIdGroup -->
+	<select id="getListRackDetailByWarehouseIdGroup"
+		parameterType="long"
+		resultMap="resultGetListRackDetail"
+		>
+		SELECT r.* FROM RACK_GROUP r 
+		WHERE r.WAREHOUSE_ID = #{warehouseId} AND r.del_flag = 0
+		ORDER BY ROW ASC, 'COLUMN' ASC
+	</select>
+	
+	<select id="findRackGroup" parameterType="com.viettel.vtnet360.vt07.vt070000.entity.RackDetail"
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.RackDetail">
+		SELECT 
+		r.rack_id as rackId,
+		r.row as row,
+		r.warehouse_id as warehouseId,
+		w.NAME as warehouseName,
+		r.column as 'column',
+		r.type as type,
+		r.printed_time as printTime
+		
+		FROM RACK_GROUP r INNER JOIN WAREHOUSE_GROUP w
+		ON w.WAREHOUSE_ID = r.WAREHOUSE_ID
+		WHERE r.WAREHOUSE_ID = #{warehouseId} AND r.del_flag = 0
+			<if test="type != -2">
+				AND r.type = #{type}
+			</if>
+			<if test="row != 0">
+				AND r.row = #{row}
+			</if>
+			<if test="column != 0">
+				AND r.column = #{column}
+			</if>
+		ORDER BY r.ROW ASC, r.COLUMN ASC
+	</select>
+	
+	<update id="updatePrintTimeRackGroup"  parameterType="java.util.List" >
+		UPDATE RACK_GROUP AS r
+		SET 	r.printed_time = r.printed_time+1
+		WHERE r.rack_id IN 
+	    <foreach item="item" index="index" collection="list" open="(" separator="," close=")">
+		    #{item}
+		</foreach>
+					
+	</update>
+	
+	<!-- getListWarehouseGroup -->
+	<select id="getListWarehouseGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseDetail">
+		SELECT 
+		w.WAREHOUSE_ID as warehouseId,
+		w.NAME as name,
+		w.ADDRESS as address,
+		w.TYPE as type,
+		w.STATUS as status,
+		w.ACREAGE as acreage,
+		w.DEL_FLAG as delFlag,
+		w.ROW_NUM as rowNum,
+		w.COLUMN_NUM as columnNum,
+		w.HEIGHT_NUM as heightNum		 
+		FROM WAREHOUSE_GROUP w
+		WHERE w.DEL_FLAG = 0 AND w.STATUS = 1
+		
+		<if test="warehouseName != null">
+			AND w.NAME LIKE CONCAT('%', #{warehouseName}, '%')
+		</if>
+		<if test="warehouseId != 0">
+			AND w.WAREHOUSE_ID = #{warehouseId}
+		</if>
+		
+		ORDER BY UPDATE_DATE DESC LIMIT #{pageNo}, 20
+	</select>
+	
+	<!-- getListMainWarehouseDetailGroup -->
+	<select id="getListMainWarehouseDetailGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.RequestParam"
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseDetail">
+		SELECT 
+		w.WAREHOUSE_ID as warehouseId,
+		w.NAME as name,
+		w.ADDRESS as address,
+		w.TYPE as type,
+		w.STATUS as status,
+		w.ACREAGE as acreage,
+		w.DEL_FLAG as delFlag,
+		w.ROW_NUM as rowNum,
+		w.COLUMN_NUM as columnNum,
+		w.HEIGHT_NUM as heightNum		 
+		FROM WAREHOUSE_GROUP w
+		WHERE w.DEL_FLAG = 0 AND w.TYPE = 1 AND w.STATUS = 1
+		
+		<if test="warehouseName != null">
+			AND w.NAME LIKE CONCAT('%', #{warehouseName}, '%')
+		</if>
+		<if test="warehouseId != 0">
+			AND w.WAREHOUSE_ID = #{warehouseId}
+		</if>
+		
+		ORDER BY UPDATE_DATE DESC LIMIT #{pageNo}, 20
+	</select>
+	
+	<!-- getListSlotDetailByQrCodeGroup -->
+	<select id="getListSlotDetailByQrCodeGroup"
+		parameterType="String"
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.SlotDetail">
+		SELECT
+		s.SLOT_ID as slotId,
+		s.RACK_ID as rackId,
+		s.HEIGHT as height,
+		s.QR_CODE as qrCode,
+		s.STATUS as status,
+		s.DEL_FLAG as delFlag
+		FROM SLOT_GROUP s 
+		WHERE s.QR_CODE = #{qrCode}
+	</select>
+	
+	<!-- getListRackDetailByQrCodeGroup -->
+	<select id="getListRackDetailByQrCodeGroup"
+		parameterType="String"
+		resultMap="resultGetListRackDetail"
+		>
+		SELECT r.* FROM RACK_GROUP r 
+		INNER JOIN SLOT_GROUP s on s.RACK_ID = r.RACK_ID
+		AND s.QR_CODE = #{qrCode}		
+	</select>
+	
+	<!-- getListWarehouseDetailByQrCodeGroup -->
+	<select id="getListWarehouseDetailByQrCodeGroup"
+		parameterType="String"
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseDetail">
+		SELECT 
+		w.WAREHOUSE_ID as warehouseId,
+		w.NAME as name,
+		w.ADDRESS as address,
+		w.TYPE as type,
+		w.STATUS as status,
+		w.ACREAGE as acreage,
+		w.DEL_FLAG as delFlag,
+		w.ROW_NUM as rowNum,
+		w.COLUMN_NUM as columnNum,
+		w.HEIGHT_NUM as heightNum		 
+		FROM WAREHOUSE_GROUP w
+		INNER JOIN RACK_GROUP r on r.WAREHOUSE_ID = w.WAREHOUSE_ID
+		INNER JOIN SLOT_GROUP s on s.RACK_ID=r.RACK_ID
+		AND s.QR_CODE = #{qrCode}
+	</select>
+	
+	
+	<!-- getNumberOfWarehouseGroup -->
+	<select id="getNumberOfWarehouseGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.RequestParam"
+		resultType="int">
+		SELECT 
+		count(*)		 
+		FROM WAREHOUSE_GROUP w
+		WHERE w.DEL_FLAG = 0
+		<if test="warehouseName != null">
+			AND w.NAME LIKE CONCAT('%', #{warehouseName}, '%')
+		</if>
+		<if test="warehouseId != 0">
+			AND w.WAREHOUSE_ID = #{warehouseId}
+		</if>
+	</select>
+	
+	<!-- getNumberOfMainWarehouseGroup -->
+	<select id="getNumberOfMainWarehouseGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.RequestParam"
+		resultType="int">
+		SELECT 
+		count(*)		 
+		FROM WAREHOUSE_GROUP w
+		WHERE w.DEL_FLAG = 0 AND w.TYPE = 1
+		<if test="warehouseName != null">
+			AND w.NAME LIKE CONCAT('%', #{warehouseName}, '%')
+		</if>
+		<if test="warehouseId != 0">
+			AND w.WAREHOUSE_ID = #{warehouseId}
+		</if>
+	</select>
+	
+	<!-- updateRackDetailGroup -->
+	<update id="updateRackDetailGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.RackDetail">
+		UPDATE RACK_GROUP
+		SET
+		TYPE=#{type},
+		UPDATE_USER= #{updateUser}, UPDATE_DATE=SYSDATE()
+		WHERE
+		RACK_ID=#{rackId};
+	</update>
+	
+	<!-- updateSlotDetailGroup -->
+	<update id="updateSlotDetailGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.SlotDetail">
+		UPDATE SLOT_GROUP
+		SET
+		STATUS=#{status},
+		QR_CODE=#{qrCode},
+		UPDATE_USER= #{updateUser}, UPDATE_DATE=SYSDATE()
+		WHERE
+		SLOT_ID=#{slotId};
+	</update>
+	
+	<select id="getAllListWarehouseDetailGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseRequestParam"
+		resultMap="resultGetListWarehouseDetail">
+		SELECT
+		*
+		FROM
+		WAREHOUSE_GROUP
+		WHERE
+		DEL_FLAG=0 AND STATUS = 1 AND TYPE = 1
+		ORDER BY name ASC
+	</select>
+	
+	<select id="getAllActiveWarehouseGroup"
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.WarehouseDetail">
+		SELECT
+			WAREHOUSE_ID AS warehouseId, WAREHOUSE.*
+		FROM
+			WAREHOUSE_GROUP
+		WHERE
+			DEL_FLAG = 0 AND STATUS = 1
+		ORDER BY 
+			NAME ASC
+	</select>
+	
+	<select id="searchFolderContainsKeywordGroup"
+		parameterType="String" 
+		resultType="long">
+		
+		SELECT
+			FOLDER_ID
+		FROM
+			CONSTRUCTION_DOC_GROUP
+		WHERE
+			NAME LIKE #{pattern}
+			
+		UNION
+		
+		SELECT
+			FOLDER_ID
+		FROM
+			CONTRACT_DOC_GROUP
+		WHERE
+			NAME LIKE #{pattern}
+			
+		UNION
+		
+		SELECT
+			FOLDER_ID
+		FROM
+			PACKAGE_DOC_GROUP
+		WHERE
+			NAME LIKE #{pattern}
+			
+		UNION
+		
+		SELECT
+			FOLDER_ID
+		FROM
+			PROJECT_DOC_GROUP
+		WHERE
+			NAME LIKE #{pattern};
+		
+	</select>	
+	
+	<select id="searchContractByConstructionGroup"
+		parameterType="String" 
+		resultType="long">
+		
+		SELECT
+			CONTRACT_ID
+		FROM
+			CONSTRUCTION_GROUP
+		WHERE
+			NAME LIKE #{pattern}
+			
+	</select>
+		
+	<select id="searchProjectByContractIdListGroup"	
+	 	parameterType="java.util.List"
+		resultType="long">
+		SELECT
+			PROJECT_ID
+		FROM
+			CONTRACT_GROUP
+		WHERE
+			CONTRACT_ID IN
+			<foreach item="contractId" index="index" collection="collection" open="(" separator="," close=")">
+		        #{contractId}
+		    </foreach>
+	</select>
+	
+	<select id="searchProjectByPackageIdListGroup"	
+	 	parameterType="java.util.List"
+		resultType="long">
+		SELECT
+			PROJECT_ID
+		FROM
+			PACKAGE_GROUP
+		WHERE
+			PACKAGE_ID IN
+			<foreach item="packageId" index="index" collection="collection" open="(" separator="," close=")">
+		        #{packageId}
+		    </foreach>
+	</select>	
+	
+	<select id="searchFolderByProjectIdListGroup"	
+	 	parameterType="java.util.List"
+		resultType="long">
+		SELECT
+			FOLDER_ID
+		FROM
+			PROJECT_DOC_GROUP
+		WHERE
+			PROJECT_ID IN
+			<foreach item="projectId" index="index" collection="collection" open="(" separator="," close=")">
+		        #{projectId}
+		    </foreach>
+		AND
+			FOLDER_ID != 0
+	</select>
+		
+	<select id="searchFolderByPackageIdListGroup"	
+	 	parameterType="java.util.List"
+		resultType="long">
+		SELECT
+			FOLDER_ID
+		FROM
+			PACKAGE_DOC_GROUP
+		WHERE
+			PACKAGE_ID IN
+			<foreach item="packageId" index="index" collection="collection" open="(" separator="," close=")">
+		        #{packageId}
+		    </foreach>
+		AND
+			FOLDER_ID != 0
+	</select>
+		
+	<select id="searchFolderByConstructionIdListGroup"	
+	 	parameterType="java.util.List"
+		resultType="long">
+		SELECT
+			FOLDER_ID
+		FROM
+			CONSTRUCTION_DOC_GROUP
+		WHERE
+			CONSTRUCTION_ID IN
+			<foreach item="constructionId" index="index" collection="collection" open="(" separator="," close=")">
+		        #{constructionId}
+		    </foreach>
+		AND
+			FOLDER_ID != 0
+	</select>
+	
+	<select id="searchProjectByKeywordGroup"	
+	 	parameterType="String" 
+		resultType="long">
+				
+		SELECT
+			PROJECT_ID
+		FROM
+			CONTRACT_GROUP
+		WHERE
+			NAME LIKE #{pattern}
+			
+		UNION
+		
+		SELECT
+			PROJECT_ID
+		FROM
+			PACKAGE_GROUP
+		WHERE
+			NAME LIKE #{pattern}
+			
+		UNION
+		
+		SELECT
+			PROJECT_ID
+		FROM
+			PROJECT_GROUP
+		WHERE
+			NAME LIKE #{pattern}
+			
+	</select>
+		
+	<select id="searchProjectByPackageNameGroup"
+		parameterType="String" 
+		resultType="long">
+		
+		SELECT
+			PROJECT_ID
+		FROM
+			PACKAGE_GROUP
+		WHERE
+			NAME LIKE #{pattern}
+			
+	</select>
+	
+	<select id="searchTinBoxByNameGroup"	
+	 	parameterType="String" 
+		resultType="long">
+				
+		SELECT
+			TIN_BOX_ID
+		FROM
+			TIN_BOX_GROUP
+		WHERE
+			NAME LIKE #{pattern}
+		AND
+			DEL_FLAG = 0
+	</select>
+	
+	<select id="searchFolderByNameGroup"	
+	 	parameterType="String" 
+		resultType="long">
+				
+		SELECT
+			FOLDER_ID
+		FROM
+			FOLDER_GROUP
+		WHERE
+			NAME LIKE #{pattern}
+		AND
+			DEL_FLAG = 0
+	</select>			
+	
+	<select id="searchProjectByNameGroup"	
+	 	parameterType="String" 
+		resultType="long">
+				
+		SELECT
+			PROJECT_ID
+		FROM
+			PROJECT_GROUP
+		WHERE
+			NAME LIKE #{pattern}			
+	</select>
+	
+	<select id="searchPackageByNameGroup"	
+	 	parameterType="String" 
+		resultType="long">
+				
+		SELECT
+			PACKAGE_ID
+		FROM
+			PACKAGE_GROUP
+		WHERE
+			NAME LIKE #{pattern}			
+	</select>
+	
+	<select id="searchContractByNameGroup"	
+	 	parameterType="String" 
+		resultType="long">
+				
+		SELECT
+			CONTRACT_ID
+		FROM
+			CONTRACT_GROUP
+		WHERE
+			NAME LIKE #{pattern}			
+	</select>	
+	
+	<select id="searchConstructionByNameGroup"	
+	 	parameterType="String" 
+		resultType="long">
+				
+		SELECT
+			CONSTRUCTION_ID
+		FROM
+			CONSTRUCTION_GROUP
+		WHERE
+			NAME LIKE #{pattern}			
+	</select>	
+	
+	<select id="searchFolderByProjectDocGroup"	
+	 	parameterType="String" 
+		resultType="long">
+				
+		SELECT
+			FOlDER_ID
+		FROM
+			PROJECT_DOC_GROUP
+		WHERE
+			NAME LIKE #{pattern}
+		AND
+			FOLDER_ID != 0
+	</select>
+	
+	<select id="searchFolderByPackageDocGroup"	
+	 	parameterType="String" 
+		resultType="long">
+				
+		SELECT
+			FOlDER_ID
+		FROM
+			PACKAGE_DOC_GROUP
+		WHERE
+			NAME LIKE #{pattern}
+		AND
+			FOLDER_ID != 0		
+	</select>
+	
+	<select id="searchFolderByContractDocGroup"	
+	 	parameterType="String" 
+		resultType="long">
+				
+		SELECT
+			FOlDER_ID
+		FROM
+			CONTRACT_DOC_GROUP
+		WHERE
+			NAME LIKE #{pattern}
+		AND
+			FOLDER_ID != 0
+	</select>
+	
+	<select id="searchFolderByConstructionDocGroup"	
+	 	parameterType="String" 
+		resultType="long">
+				
+		SELECT
+			FOlDER_ID
+		FROM
+			CONSTRUCTION_DOC_GROUP
+		WHERE
+			NAME LIKE #{pattern}
+		AND
+			FOLDER_ID != 0
+	</select>
+	
+	<select id="searchTinBoxByFolderNameGroup"	
+	 	parameterType="String" 
+		resultType="long">
+				
+		SELECT
+			TIN_BOX_ID
+		FROM
+			FOLDER_GROUP
+		WHERE
+			NAME LIKE #{pattern}
+		AND
+			DEL_FLAG = 0
+	</select>
+	
+	<select id="searchFolderByContractIdListGroup"	
+	 	parameterType="java.util.List"
+		resultType="long">
+		SELECT
+			FOLDER_ID
+		FROM
+			CONTRACT_DOC_GROUP
+		WHERE
+			CONTRACT_ID IN
+			<foreach item="contractId" index="index" collection="collection" open="(" separator="," close=")">
+		        #{contractId}
+		    </foreach>
+		AND
+			FOLDER_ID != 0
+	</select>
+	
+	<select id="searchTinBoxByFolderIdListGroup"	
+	 	parameterType="java.util.List"
+		resultType="long">
+		SELECT
+			TIN_BOX_ID
+		FROM
+			FOLDER_GROUP
+		WHERE
+			FOLDER_ID IN
+			<foreach item="folderId" index="index" collection="collection" open="(" separator="," close=")">
+		        #{folderId}
+		    </foreach>
+		AND
+			DEL_FLAG = 0
+	</select>
+		
+	<select id="getFolderInTinBoxGroup"	
+	 	parameterType="long"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.FolderDetail">
+		SELECT
+			FOLDER_ID as folderId, FOLDER.*
+		FROM
+			FOLDER_GROUP
+		WHERE
+			TIN_BOX_ID = #{tinBoxId}
+		AND
+			DEL_FLAG = 0
+	</select>	
+	
+	<select id="getAllDocumentInFolderGroup"	
+	 	parameterType="com.viettel.vtnet360.vt07.vt070002.entity.FolderDetail"
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.DocumentDetails">
+		SELECT
+			project_doc_id as 'documentId', #{folderId} as 'folderId', #{name} as 'folderName', "project" as 'type', name as documentName
+		FROM
+			PROJECT_DOC_GROUP
+		WHERE
+			FOLDER_ID = #{folderId}		
+			
+		UNION
+		
+		SELECT
+			package_doc_id as 'documentId', #{folderId} as 'folderId', #{name} as 'folderName', "package" as 'type', name as documentName			
+		FROM
+			PACKAGE_DOC_GROUP
+		WHERE
+			FOLDER_ID = #{folderId}
+		
+		UNION
+		
+		SELECT
+			contract_doc_id as 'documentId', #{folderId} as 'folderId', #{name} as 'folderName', "contract" as 'type', name as documentName			
+		FROM
+			CONTRACT_DOC_GROUP
+		WHERE
+			FOLDER_ID = #{folderId}
+			
+		UNION
+		
+		SELECT
+			construction_doc_id as 'documentId', #{folderId} as 'folderId', #{name} as 'folderName', "construction" as 'type', name as documentName			
+		FROM
+			CONSTRUCTION_DOC_GROUP
+		WHERE
+			FOLDER_ID = #{folderId}
+	</select>
+	
+	<!-- hungvc -->
+	<select id="getAllDocumentInFolderV2Group"	
+	 	parameterType="com.viettel.vtnet360.vt07.vt070002.entity.FolderDetail"
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.DocumentDetails">
+		SELECT
+			project_doc_id as 'documentId', #{folderId} as 'folderId', #{name} as 'folderName', "project" as 'type', name as documentName
+		FROM
+			PROJECT_DOC_GROUP
+		WHERE
+			FOLDER_ID = #{folderId}		
+			
+		UNION
+		
+		SELECT
+			package_doc_id as 'documentId', #{folderId} as 'folderId', #{name} as 'folderName', "package" as 'type', name as documentName			
+		FROM
+			PACKAGE_DOC_GROUP
+		WHERE
+			FOLDER_ID = #{folderId}
+		
+		UNION
+		
+		SELECT
+			cd.contract_doc_id as 'documentId', #{folderId} as 'folderId', #{name} as 'folderName', "contract" as 'type', cd.name as documentName			
+		FROM
+			CONTRACT_DOC_GROUP cd
+		INNER JOIN CONTRACT_PROJECT_GROUP cp on cp.contract_id = cd.contract_id
+		INNER JOIN PROJECT_IN_FOLDER_GROUP pif on pif.project_id = cp.project_id and pif.folder_id = #{folderId}
+		WHERE
+			cd.FOLDER_ID = #{folderId}
+		UNION
+		
+		SELECT
+			cd.construction_doc_id as 'documentId', #{folderId} as 'folderId', #{name} as 'folderName', "construction" as 'type', cd.name as documentName			
+		FROM
+			CONSTRUCTION_DOC_GROUP cd
+		INNER JOIN CONSTRUCTION_PROJECT_GROUP cp on cd.construction_id = cp.construction_id
+		INNER JOIN PROJECT_IN_FOLDER_GROUP pif on pif.project_id = cp.project_id and pif.folder_id = #{folderId}
+		WHERE
+			cd.FOLDER_ID = #{folderId}
+	</select>
+	
+	
+	<select id="getProjectIdByDocGroup"
+		parameterType="java.lang.Long"
+		resultType="java.lang.Long">
+		SELECT
+			PROJECT_ID
+		FROM
+			PROJECT_DOC_GROUP
+		WHERE
+			PROJECT_DOC_ID = #{docId}				
+	</select>
+	
+	<select id="getPackageIdByDocGroup" parameterType="long" resultType="long">
+		SELECT
+			PACKAGE_ID
+		FROM
+			PACKAGE_DOC_GROUP
+		WHERE
+			PACKAGE_DOC_ID = #{docId}				
+	</select>
+	
+	<select id="getContractIdByDocGroup" parameterType="long" resultType="long">
+		SELECT
+			CONTRACT_ID
+		FROM
+			CONTRACT_DOC_GROUP
+		WHERE
+			CONTRACT_DOC_ID = #{docId}				
+	</select>
+	
+	<select id="getConstructionIdByDocGroup" parameterType="long" resultType="long">
+		SELECT
+			CONSTRUCTION_ID
+		FROM
+			CONSTRUCTION_DOC_GROUP
+		WHERE
+			CONSTRUCTION_DOC_ID = #{docId}				
+	</select>
+	
+	<select id="getProjectNameGroup" parameterType="long" resultType="String">
+		SELECT
+			NAME
+		FROM
+			PROJECT_GROUP
+		WHERE
+			PROJECT_ID = #{id}				
+	</select>
+	
+	<select id="getPackageNameGroup" parameterType="long" resultType="String">
+		SELECT
+			NAME
+		FROM
+			PACKAGE_GROUP
+		WHERE
+			PACKAGE_ID = #{id}				
+	</select>
+	
+	<select id="getContractNameGroup" parameterType="long" resultType="String">
+		SELECT
+			NAME
+		FROM
+			CONTRACT_GROUP
+		WHERE
+			CONTRACT_ID = #{id}				
+	</select>
+	
+	<select id="getConstructionNameGroup" parameterType="long" resultType="String">
+		SELECT
+			NAME
+		FROM
+			CONSTRUCTION_GROUP
+		WHERE
+			CONSTRUCTION_ID = #{id}				
+	</select>
+	
+	<select id="getAllTinBoxGroup" parameterType="long"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail">
+		SELECT
+			TIN_BOX_ID AS tinBoxId, WAREHOUSE_ID AS warehouseId, SLOT_ID AS slotId, QR_CODE as qrCode, NAME
+		FROM
+			TIN_BOX_GROUP
+		WHERE
+			WAREHOUSE_ID = #{warehouseId}			    
+		AND
+			DEL_FLAG = 0
+	</select>	
+	
+	<select id="getTinBoxGroup"	
+	 	parameterType="java.util.List"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail">
+		SELECT
+			TIN_BOX_ID AS tinBoxId, WAREHOUSE_ID AS warehouseId, SLOT_ID AS slotId, QR_CODE as qrCode, NAME
+		FROM
+			TIN_BOX_GROUP
+		WHERE
+			TIN_BOX_ID IN
+				<foreach item="tinBoxId" index="index" collection="tinBoxIdList" open="(" separator="," close=")">
+			        #{tinBoxId}
+			    </foreach>	
+			<if test="warehouseId > 0">
+				AND 
+		    		WAREHOUSE_ID = #{warehouseId}
+			</if>	    
+			AND
+				DEL_FLAG = 0
+	</select>	
+	
+	<select id="getWarehouseNameByIdGroup" parameterType="long" resultType="String">				
+		SELECT
+			NAME
+		FROM
+			WAREHOUSE_GROUP
+		WHERE
+			WAREHOUSE_ID = #{warehouseId}						
+			AND 
+			DEL_FLAG = 0 
+			AND 
+			STATUS = 1
+	</select>
+	
+	<select id="getFolderQrCodeGroup" parameterType="long" resultType="String">				
+		SELECT
+			QR_CODE as 'qrCode'
+		FROM
+			FOLDER_GROUP
+		WHERE
+			FOLDER_ID = #{folderId}
+	</select>
+		
+	<select id="getProjectNameByPackageDocGroup" parameterType="long" resultType="String">				
+		SELECT 
+			NAME 
+		FROM 
+			PROJECT_GROUP 
+		WHERE 
+			PROJECT_ID = 
+			(SELECT 
+				PROJECT_ID 
+			FROM 
+				PACKAGE_GROUP 
+			WHERE 
+				PACKAGE_ID =
+				(SELECT 
+					PACKAGE_ID 
+				FROM 
+					PACKAGE_DOC_GROUP 
+				WHERE 
+					PACKAGE_DOC_ID = #{docId}))
+	</select>
+	
+	<select id="getProjectNameByContractDocGroup" parameterType="long" resultType="String">				
+		SELECT 
+			NAME 
+		FROM 
+			PROJECT_GROUP 
+		WHERE 
+			PROJECT_ID = 
+			(SELECT 
+				PROJECT_ID 
+			FROM 
+				CONTRACT_GROUP 
+			WHERE 
+				CONTRACT_ID =
+				(SELECT 
+					CONTRACT_ID 
+				FROM 
+					CONTRACT_DOC_GROUP 
+				WHERE 
+					CONTRACT_DOC_ID = #{docId}))
+	</select>
+	
+	<select id="getProjectNameByContractDocV2Group" parameterType="long" resultType="String">				
+		SELECT 
+			NAME 
+		FROM 
+			PROJECT_GROUP 
+		WHERE 
+			PROJECT_ID = 
+			(SELECT 
+				PROJECT_ID 
+			FROM 
+				CONTRACT_PROJECT_GROUP
+			WHERE 
+				CONTRACT_ID =
+				(SELECT 
+					CONTRACT_ID 
+				FROM 
+					CONTRACT_DOC_GROUP 
+				WHERE 
+					CONTRACT_DOC_ID = #{docId})
+			LIMIT 1)
+	</select>
+	
+	<select id="getProjectNameByContractDocV3Group"	
+	 	parameterType="java.lang.Long" 
+		resultType="java.lang.String">				
+		select p.name
+		from PROJECT_GROUP p 
+		inner join PROJECT_IN_FOLDER_GROUP pif on p.project_id = pif.project_id
+		inner join CONTRACT_PROJECT_GROUP cp on cp.project_id = p.project_id
+		inner join CONTRACT_DOC_GROUP ctd on ctd.contract_id = cp.contract_id
+		and ctd.folder_id = pif.folder_id and ctd.contract_doc_id = #{docId} limit 1
+	</select>
+	
+	<select id="getProjectNameByConstructionDocGroup"	
+	 	parameterType="java.lang.Long" 
+		resultType="java.lang.String">				
+		SELECT 
+			NAME 
+		FROM 
+			PROJECT_GROUP 
+		WHERE 
+			PROJECT_ID = 
+			(SELECT 
+				PROJECT_ID 
+			FROM 
+				CONTRACT_GROUP
+			WHERE 
+				CONTRACT_ID =
+				(SELECT 
+					CONTRACT_ID 
+				FROM 
+					CONSTRUCTION_GROUP
+				WHERE 
+					CONSTRUCTION_ID = 
+					(SELECT
+						CONSTRUCTION_ID
+					FROM
+						CONSTRUCTION_DOC_GROUP
+					WHERE
+						CONSTRUCTION_DOC_ID = #{docId})))
+	</select>
+	
+	<select id="getProjectNameByConstructionDocV2Group" parameterType="long" resultType="String">
+		SELECT NAME FROM PROJECT_GROUP WHERE project_id =
+				(SELECT project_id FROM CONSTRUCTION_PROJECT_GROUP WHERE construction_id = 
+					(SELECT construction_id FROM CONSTRUCTION_DOC_GROUP WHERE construction_doc_id  = #{docId})
+				LIMIT 1)
+	</select>
+	
+	<select id="getProjectNameByConstructionDocV3Group"	
+	 	parameterType="java.lang.Long" 
+		resultType="java.lang.String">
+		select p.name from PROJECT_GROUP p inner join PROJECT_IN_FOLDER_GROUP pif on p.project_id = pif.project_id
+		inner join CONSTRUCTION_PROJECT_GROUP cp on cp.project_id = p.project_id
+		inner join CONSTRUCTION_DOC_GROUP ctd on ctd.construction_id = cp.construction_id
+		and ctd.folder_id = pif.folder_id and ctd.construction_doc_id = #{docId} limit 1
+	</select>
+	
+	<select id="getContractNameByConstructionIdGroup"	
+	 	parameterType="java.lang.Long" 
+		resultType="java.lang.String">
+		select c.name from CONTRACT_GROUP c
+		inner join CONSTRUCTION_GROUP ct on ct.CONTRACT_ID = c.contract_id
+		and ct.CONSTRUCTION_ID = #{constructionId} limit 1
+	</select>
+	
+	<select id="getSlotByIdGroup"	
+	 	parameterType="long" 
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.SlotDetail">	
+					
+		SELECT
+			SLOT_ID as slotId, QR_CODE as qrCode, STATUS as status, RACK_ID as rackId, SLOT_GROUP.*
+		FROM
+			SLOT_GROUP
+		WHERE
+			SLOT_ID = #{slotId}
+		AND
+			DEL_FLAG = 0
+			
+	</select>
+	
+	<select id="getRackByIdGroup" parameterType="long" 
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.RackDetail">	
+					
+		SELECT
+			RACK_ID as rackId, WAREHOUSE_ID as warehouseId, RACK_GROUP.*
+		FROM
+			RACK_GROUP
+		WHERE
+			RACK_ID = #{rackId}
+		AND
+			DEL_FLAG = 0	
+			
+	</select>
+	
+	<select id="getRackIdBySlotIdGroup" parameterType="long" resultType="long">	
+					
+		SELECT
+			RACK_ID
+		FROM
+			SLOT_GROUP
+		WHERE
+			SLOT_ID = #{slotId}
+		AND
+			DEL_FLAG = 0		
+			
+	</select>
+	
+	<insert id="logImportDataAPICallGroup" parameterType="String" >
+		Insert into EXCEL_IMPORT_LOG_GROUP(create_user, json_content, create_time)
+		values(#{createUser}, #{jsonData}, now())
+	</insert>
+	
+	<select id="getFolderIdGroup" resultType="long">	
+					
+		SELECT IFNULL((SELECT f.folder_id FROM FOLDER_GROUP f WHERE f.unit = #{unit} AND f.qr_code = #{folderQrCode} 
+		AND f.del_flag = 0 AND f.tin_box_id =  (SELECT t.tin_box_id FROM TIN_BOX_GROUP t WHERE t.qr_code = #{tinBoxQrCode} LIMIT 1))
+		, -1)	
+			
+	</select>
+		
+	<select id="checkTinBoxCreateUserGroup" resultType="int">					
+		SELECT count(*) from TIN_BOX_GROUP where tin_box_id = #{tinBoxId}	and create_user = #{createUser}	
+	</select>
+	
+	<select id="getProjectIdGroup" parameterType="String" resultType="long">
+		SELECT IFNULL((SELECT project_id FROM PROJECT_GROUP WHERE name = #{projectName} LIMIT 1 ), -1)
+	</select>
+	
+	<insert id="createProjectGroup">
+		INSERT INTO PROJECT_GROUP (name, description, status, erp_id, code, unit)
+		VALUES (#{projectName}, #{projectName}, 1, CURDATE(), CURDATE(), #{unit});
+	</insert>
+	
+	<insert id="createPackageGroup">
+		INSERT INTO PACKAGE_GROUP (name, description, project_id, status, erp_id)
+		VALUES (#{packageName}, #{packageName}, #{projectId}, 1, CURDATE());
+	</insert>
+	
+	<insert id="createContractGroup">
+		INSERT INTO CONTRACT_GROUP (name, description, project_id, status, erp_id, code, unit)
+		VALUES (#{contractName}, #{contractName}, #{projectId}, 1, CURDATE(), CURDATE(), #{unit});
+	</insert>
+	
+	<insert id="createConstructionGroup">
+		INSERT INTO CONSTRUCTION_GROUP (name, description, contract_id, status, erp_id, code)
+		VALUES (#{constructionName}, #{constructionName}, #{contractId}, 1, CURDATE(), CURDATE());
+	</insert>
+		
+	<insert id="insertProjectDocGroup">
+		Insert into PROJECT_DOC_GROUP(name, folder_id, project_id)
+		values(#{projectDoc}, #{folderId}, #{projectId})
+	</insert>
+	
+	<insert id="bindProjectToFolderGroup">
+		INSERT INTO PROJECT_IN_FOLDER_GROUP (folder_id, project_id, del_flag, create_user, create_date, update_date)
+		SELECT * FROM ( SELECT #{folderId} as folder_id, #{projectId} as project_id, 0 as del_flag, #{createUser} as create_user, now() as create_date, now() as update_date) AS tmp
+			WHERE NOT EXISTS 
+			(SELECT * FROM PROJECT_IN_FOLDER_GROUP WHERE folder_id = #{folderId} AND project_id = #{projectId} AND del_flag = 0)
+	</insert>
+	
+	<select id="checkExistPrjDocGroup" resultType="long">						
+		SELECT IFNULL((SELECT project_doc_id FROM PROJECT_DOC_GROUP WHERE name = #{projectDoc} AND project_id = #{projectId} LIMIT 1 ), -1)				
+	</select>
+	
+	<select id="getFolderIdOfProjectDocGroup" resultType="long">						
+		SELECT IFNULL((SELECT folder_id FROM PROJECT_DOC_GROUP WHERE project_doc_id = #{prjDocExistedId} LIMIT 1 ), -1)				
+	</select>
+	
+	<update id="bindPrjDocToFolderGroup">
+		UPDATE PROJECT_DOC_GROUP set folder_id = #{folderId} WHERE project_doc_id = #{prjDocExistedId}
+	</update>
+	
+	<select id="checkExistPkgDocGroup" resultType="long">						
+		SELECT IFNULL((SELECT package_doc_id FROM PACKAGE_DOC_GROUP WHERE name = #{packageDoc} AND package_id = #{packageId} LIMIT 1 ), -1)				
+	</select>
+	
+	<select id="getFolderIdOfPkgDocGroup" resultType="long">						
+		SELECT IFNULL((SELECT folder_id FROM PACKAGE_DOC_GROUP WHERE package_doc_id = #{pkgDocExistedId} LIMIT 1 ), -1)				
+	</select>
+	
+	<update id="bindPkgDocToFolderGroup">
+		UPDATE PACKAGE_DOC_GROUP set folder_id = #{folderId} WHERE package_doc_id = #{pkgDocExistedId}
+	</update>
+	
+	<select id="checkExistCtDocGroup" resultType="long">						
+		SELECT IFNULL((SELECT contract_doc_id FROM CONTRACT_DOC_GROUP WHERE name = #{contractDoc} AND contract_id = #{contractId} LIMIT 1 ), -1)				
+	</select>
+	
+	<select id="getFolderIdOfCtDocGroup" resultType="long">						
+		SELECT IFNULL((SELECT folder_id FROM CONTRACT_DOC_GROUP WHERE contract_doc_id = #{ctDocExistedId} LIMIT 1 ), -1)				
+	</select>
+	
+	<update id="bindCtDocToFolderGroup">
+		UPDATE CONTRACT_DOC_GROUP set folder_id = #{folderId} WHERE contract_doc_id = #{ctDocExistedId}
+	</update>
+	
+	<select id="getFolderIdOfConsDocGroup" resultType="long">						
+		SELECT IFNULL((SELECT folder_id FROM CONSTRUCTION_DOC_GROUP WHERE construction_doc_id = #{consDocExistedId} LIMIT 1 ), -1)				
+	</select>
+	
+	<update id="bindConsDocToFolderGroup">
+		UPDATE CONSTRUCTION_DOC_GROUP set folder_id = #{folderId} WHERE construction_doc_id = #{consDocExistedId}
+	</update>
+	
+	<select id="checkExistConsDocGroup" resultType="long">						
+		SELECT IFNULL((SELECT construction_doc_id FROM CONSTRUCTION_DOC_GROUP WHERE name = #{constructionDoc} AND construction_id = #{constructionId} LIMIT 1 ), -1)				
+	</select>
+	
+	<select id="getValidPackageIdGroup" resultType="long">						
+		SELECT IFNULL((SELECT package_id FROM PACKAGE_GROUP WHERE name = #{packageName} AND project_id = #{projectId} LIMIT 1 ), -1)				
+	</select>
+	
+	<insert id="insertPackageDocGroup">
+		Insert into PACKAGE_DOC_GROUP(name, folder_id, package_id)
+		values(#{packageDoc}, #{folderId}, #{packageId})
+	</insert>
+		
+	<select id="getValidContractIdGroup" resultType="long">
+		SELECT IFNULL((SELECT c.contract_id FROM CONTRACT_GROUP c
+		WHERE c.name = #{contractName} AND c.package_id = #{packageId}
+		LIMIT 1 ), -1)	
+			
+	</select>
+	
+	<insert id="insertContractDocGroup">
+		Insert into CONTRACT_DOC_GROUP(name, folder_id, contract_id)
+		values(#{contractDoc}, #{folderId}, #{contractId})
+	</insert>
+	
+	<select id="getValidConstructionIdGroup" resultType="long">					
+		SELECT IFNULL((SELECT cst.construction_id FROM CONSTRUCTION_GROUP cst
+		WHERE cst.name = #{constructionName} AND cst.contract_id = #{contractId}
+		LIMIT 1 ), -1)
+	</select>
+	
+	<insert id="insertConstructionDocGroup">
+		Insert into CONSTRUCTION_DOC_GROUP(name, folder_id, construction_id)
+		values(#{constructionDoc}, #{folderId}, #{constructionId})
+	</insert>
+	
+	<!-- searchTinBoxGroup -->
+	<select id="searchTinBoxGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070000.entity.TinBoxSearchRequest"
+		resultType="com.viettel.vtnet360.vt07.vt070002.entity.TinBoxDetail">
+		select 
+		A.TIN_BOX_ID as tinBoxId,
+		A.NAME as name,
+		A.QR_CODE as qrCode,
+		CONCAT(nvl(r.row, ''), '/', nvl(r.column, ''), '/', nvl(s.height, '')) as description,
+		nvl(s.qr_code, '') as slotQrCode,
+		A.STATUS as status,
+		A.WAREHOUSE_ID as warehouseId,
+		A.SLOT_ID as slotId,
+		A.INDEX as `index`,
+		A.MNG_USER as mngUser,
+		A.create_user as createUser,
+		w.NAME as warehouseName
+		from (
+		select * from TIN_BOX where tin_box_id = 0
+		<if test="keyword==null">
+			union
+			select * from tin_box_group
+		</if>
+		<if test="keyword!=null and byTinBox==false and byFolder==false and byProject==false and byPackage==false and byContract==false and byConstruction==false">
+			union
+			select * from TIN_BOX_GROUP where name like CONCAT('%', #{keyword}, '%')
+		</if>
+		<if test="keyword!=null and byTinBox==true">
+			union
+			select * from TIN_BOX_GROUP where name like CONCAT('%', #{keyword}, '%')
+		</if>
+		<if test="keyword!=null and byFolder==true">
+			union
+			select tb.* from TIN_BOX_GROUP tb inner join FOLDER_GROUP fd on fd.tin_box_id = tb.tin_box_id and fd.name like CONCAT('%', #{keyword}, '%')
+		</if>
+		<if test="keyword!=null and byProject==true">
+		union
+		select tb.* from TIN_BOX_GROUP tb inner join FOLDER_GROUP fd on fd.tin_box_id = tb.tin_box_id
+		inner join PROJECT_DOC_GROUP pjd on pjd.folder_id = fd.folder_id
+		inner join PROJECT_GROUP pj on pj.project_id = pjd.project_id and pj.name like CONCAT('%', #{keyword}, '%')
+		union
+		select tb.* from TIN_BOX_GROUP tb inner join FOLDER_GROUP fd on fd.tin_box_id = tb.tin_box_id
+		inner join PACKAGE_DOC_GROUP pkd on pkd.folder_id = fd.folder_id
+		inner join PACKAGE_GROUP pk on pk.package_id = pkd.package_id 
+		inner join PROJECT_GROUP pj on pj.project_id = pk.project_id and pj.name like CONCAT('%', #{keyword}, '%')
+		</if>
+		<if test="keyword!=null and byPackage==true">
+		union
+		select tb.* from TIN_BOX_GROUP tb inner join FOLDER_GROUP fd on fd.tin_box_id = tb.tin_box_id
+		inner join PACKAGE_DOC_GROUP pkd on pkd.folder_id = fd.folder_id
+		inner join PACKAGE_GROUP pk on pk.package_id = pkd.package_id and pk.name like CONCAT('%', #{keyword}, '%')
+		</if>
+		<if test="keyword!=null and byContract==true">
+		union
+		select tb.* from TIN_BOX_GROUP tb inner join FOLDER_GROUP fd on fd.tin_box_id = tb.tin_box_id
+		inner join CONTRACT_DOC_GROUP ctd on ctd.folder_id = fd.folder_id
+		INNER JOIN CONTRACT_PROJECT_GROUP cp on cp.contract_id = ctd.contract_id
+		INNER JOIN PROJECT_IN_FOLDER_GROUP pif on pif.project_id = cp.project_id and pif.folder_id = fd.folder_id
+		inner join CONTRACT_GROUP ct on ct.contract_id = ctd.contract_id and ct.name like CONCAT('%', #{keyword}, '%')
+		union
+		select tb.* from TIN_BOX_GROUP tb inner join FOLDER_GROUP fd on fd.tin_box_id = tb.tin_box_id
+		inner join CONSTRUCTION_DOC_GROUP csd on csd.folder_id = fd.folder_id
+		inner join CONSTRUCTION_GROUP cst on cst.construction_id = csd.construction_id
+		INNER JOIN CONSTRUCTION_PROJECT_GROUP cp on csd.construction_id = cp.construction_id
+		INNER JOIN PROJECT_IN_FOLDER_GROUP pif on pif.project_id = cp.project_id and pif.folder_id = fd.folder_id
+		inner join CONTRACT_GROUP ct on ct.contract_id = cst.contract_id and ct.name like CONCAT('%', #{keyword}, '%')
+		</if>
+		<if test="keyword!=null and byConstruction==true">
+		union
+		select tb.* from TIN_BOX_GROUP tb inner join FOLDER_GROUP fd on fd.tin_box_id = tb.tin_box_id
+		inner join CONSTRUCTION_DOC_GROUP csd on csd.folder_id = fd.folder_id
+		INNER JOIN CONSTRUCTION_PROJECT_GROUP cp on csd.construction_id = cp.construction_id
+		INNER JOIN PROJECT_IN_FOLDER_GROUP pif on pif.project_id = cp.project_id and pif.folder_id = fd.folder_id
+		inner join CONSTRUCTION_GROUP cst on cst.construction_id = csd.construction_id and cst.name like CONCAT('%', #{keyword}, '%')
+		</if>) A
+		inner join WAREHOUSE_GROUP w on A.warehouse_id = w.warehouse_id And A.DEL_FLAG = 0
+		<if test="warehouseId!=0">
+			and A.warehouse_id = #{warehouseId}
+		</if>
+		left join SLOT_GROUP s on s.slot_id = a.slot_id
+		left join RACK_GROUP r on s.rack_id = r.rack_id
+		ORDER BY A.QR_CODE DESC
+		<!-- ORDER BY A.QR_CODE DESC LIMIT #{pageNo}, 20  -->
+	</select>
+	
+	<!-- getDocumentInTinBoxGroup -->
+	<select id="getDocumentInTinBoxGroup"
+		parameterType="long"
+		resultType="com.viettel.vtnet360.vt07.vt070000.entity.DocumentDetails">
+		select pd.project_doc_id as documentId, fd.folder_id as folderId, fd.qr_code as folderQrCode,
+		fd.name as folderName, p.name as projectName, '' as packageName, '' as contractName,
+		'' as constructionName, 'project' as `type`, pd.name as documentName
+		from PROJECT_DOC_GROUP pd
+		inner join FOLDER_GROUP fd on fd.folder_id = pd.folder_id and tin_box_id=#{tinBoxId}
+		inner join PROJECT_GROUP p on p.project_id = pd.project_id
+		
+		union
+		select pkd.package_doc_id as documentId, fd.folder_id as folderId, fd.qr_code as folderQrCode,
+		fd.name as folderName, p.name as projectName, pk.name as packageName, '' as contractName,
+		'' as constructionName, 'package' as `type`, pkd.name as documentName
+		from PACKAGE_DOC_GROUP pkd
+		inner join FOLDER_GROUP fd on fd.folder_id = pkd.folder_id and tin_box_id=#{tinBoxId}
+		inner join PACKAGE_GROUP pk on pk.package_id = pkd.package_id
+		inner join PROJECT_GROUP p on p.project_id = pk.project_id
+		
+		union
+		select cd.contract_doc_id as documentId, fd.folder_id as folderId, fd.qr_code as folderQrCode,
+		fd.name as folderName, p.name as projectName, '' as packageName, c.name as contractName,
+		'' as constructionName, 'contract' as `type`, cd.name as documentName
+		from CONTRACT_DOC_GROUP cd
+		inner join FOLDER_GROUP fd on fd.folder_id = cd.folder_id and tin_box_id=#{tinBoxId}
+		inner join CONTRACT_GROUP c on c.contract_id = cd.contract_id
+		inner join CONTRACT_PROJECT_GROUP cp on cp.contract_id = c.contract_id
+		inner join PROJECT_GROUP p on p.project_id = cp.project_id
+		
+		union
+		select cd.construction_doc_id as documentId, fd.folder_id as folderId, fd.qr_code as folderQrCode,
+		fd.name as folderName, p.name as projectName, '' as packageName, c.name as contractName,
+		cst.name as constructionName, 'construction' as `type`, cd.name as documentName
+		from CONSTRUCTION_DOC_GROUP cd
+		inner join FOLDER_GROUP fd on fd.folder_id = cd.folder_id and tin_box_id=#{tinBoxId}
+		inner join CONSTRUCTION_GROUP cst on cst.construction_id = cd.construction_id
+		inner join CONTRACT_GROUP c on c.contract_id = cst.contract_id
+		inner join CONSTRUCTION_PROJECT_GROUP cp on cp.construction_id=cst.construction_id
+		inner join PROJECT_GROUP p on p.project_id = cp.project_id
+		
+		union 
+		select fd.folder_id as documentId, fd.folder_id as folderId, fd.qr_code as folderQrCode,
+		fd.name as folderName, '' as projectName, '' as packageName, '' as contractName,
+		'' as constructionName, 'folder' as `type`, '' as documentName
+		from FOLDER_GROUP fd
+		left join PROJECT_IN_FOLDER_GROUP pif on fd.folder_id = pif.folder_id
+		where pif.project_id is null and fd.tin_box_id=#{tinBoxId}
+	</select>
+	
+	<select id="getTinBoxIdGroup" resultType="long">						
+		SELECT IFNULL((SELECT tb.tin_box_id FROM TIN_BOX_GROUP tb WHERE tb.unit = #{unit} AND tb.qr_code = #{tinBoxQrCode} and del_flag = 0)
+		, -1)			
+	</select>
+	<!-- Update status flow search type -->
+	<update id="updateStatusBySearchType"
+	parameterType="com.viettel.vtnet360.vt07.vt070000.entity.UpdateStatusRequest">
+			
+		<if test="searchType !=null and searchType == 3">
+			UPDATE PROJECT set is_synchrony = #{isSynchrony} where project_id = #{id}
+		</if>
+		
+		<if test="searchType !=null and searchType == 4">
+			UPDATE PACKAGE set is_synchrony = #{isSynchrony} where package_id = #{id}
+		</if>
+		
+		<if test="searchType !=null and searchType == 5">
+			UPDATE CONTRACT set is_synchrony = #{isSynchrony} where contract_id = #{id}
+		</if>
+		
+		<if test="searchType !=null and searchType == 6">
+			UPDATE CONSTRUCTION set is_synchrony = #{isSynchrony} where construction_id = #{id}
+		</if>
+	</update>
+	
+    <update id="updateStatusPackageById">
+			UPDATE PACKAGE set is_synchrony = #{isSynchrony} where package_id in (${idList})
+	</update>
+	
+	 <update id="updateStatusContractById">
+			UPDATE CONTRACT set is_synchrony = #{isSynchrony} where contract_id in (${idList})
+	</update>
+	
+	 <update id="updateStatusConstructionById">
+			UPDATE CONSTRUCTION set is_synchrony = #{isSynchrony} where construction_id in (${idList})
+	</update>
+
+	<resultMap id="projectTreeMap" type="com.viettel.vtnet360.vt07.vt070000.entity.projecttree.ProjectTree">
+		<id column="projectId" jdbcType="BIGINT" property="projectId" />
+		<collection property="packages" javaType="List" ofType="com.viettel.vtnet360.vt07.vt070000.entity.projecttree.PackageTree">
+			<id column="packageId" jdbcType="BIGINT" property="packageId" />
+			<collection property="contracts" javaType="List" ofType="com.viettel.vtnet360.vt07.vt070000.entity.projecttree.ContractTree">
+				<id column="contractId" jdbcType="BIGINT" property="contractId" />
+				<collection property="constructions" javaType="List" ofType="com.viettel.vtnet360.vt07.vt070000.entity.projecttree.ConstructionTree">
+					<id column="constructionId" jdbcType="BIGINT" property="constructionId" />
+				</collection>
+			</collection>
+		</collection>
+	</resultMap>
+    
+    <resultMap id="packageTreeMap" type="com.viettel.vtnet360.vt07.vt070000.entity.projecttree.PackageTree">
+		<id column="packageId" jdbcType="BIGINT" property="packageId" />
+		<collection property="contracts" javaType="List" ofType="com.viettel.vtnet360.vt07.vt070000.entity.projecttree.ContractTree">
+			<id column="contractId" jdbcType="BIGINT" property="contractId" />
+			<collection property="constructions" javaType="List" ofType="com.viettel.vtnet360.vt07.vt070000.entity.projecttree.ConstructionTree">
+				<id column="constructionId" jdbcType="BIGINT" property="constructionId" />
+			</collection>
+		</collection>
+    </resultMap>
+    
+    
+        <resultMap id="contractTreeMap" type="com.viettel.vtnet360.vt07.vt070000.entity.projecttree.ContractTree">
+			<id column="contractId" jdbcType="BIGINT" property="contractId" />
+			<collection property="constructions" javaType="List" ofType="com.viettel.vtnet360.vt07.vt070000.entity.projecttree.ConstructionTree">
+				<id column="constructionId" jdbcType="BIGINT" property="constructionId" />
+			</collection>
+    </resultMap>
+     
+	<select id="getProjectTree" resultMap="projectTreeMap">
+		select project.project_id as projectId,
+		p.package_id as packageId,
+		c.contract_id as contractId,
+		c2.construction_id as constructionId
+		from PROJECT
+		left join PACKAGE p on project.project_id = p.project_id
+		left join CONTRACT c on p.package_id = c.package_id
+		left join CONSTRUCTION c2 on c.contract_id = c2.contract_id
+        where project.project_id= #{projectId}
+	</select>
+
+
+	<select id="getPackageTree" resultMap="packageTreeMap">
+		select p.package_id as packageId,
+		c.contract_id as contractId,
+		c2.construction_id as constructionId
+		from PACKAGE p
+		left join CONTRACT c on p.package_id = c.package_id
+		left join CONSTRUCTION c2 on c.contract_id = c2.contract_id
+		where p.package_id= #{packageId}
+	</select>
+
+	<select id="getContractTree" resultMap="contractTreeMap">
+		select
+		c.contract_id as contractId,
+		c2.construction_id as constructionId
+		from CONTRACT c
+		left join CONSTRUCTION c2 on c.contract_id = c2.contract_id
+		where c.contract_id= #{contractId}
+	</select>
+	
+     <resultMap id="TinBoxSearchResultMap" type="com.viettel.vtnet360.vt07.vt070000.entity.search.TinBoxDetailSearch">
+        <id column="tinBoxId" jdbcType="BIGINT" property="tinBoxId"/>
+        <result column="tinBoxName" jdbcType="VARCHAR" property="tinBoxName"/>
+        <result column="tinBoxQRcode" jdbcType="VARCHAR" property="tinBoxQRcode"/>
+        <result column="column" jdbcType="BIGINT" property="column"/>
+        <result column="row" jdbcType="BIGINT" property="row"/>
+        <result column="height" jdbcType="BIGINT" property="height"/>
+        <result column="slotQRCode" jdbcType="VARCHAR" property="slotQRCode"/>
+     </resultMap>
+        
+	<select id="getTinBoxByName" resultMap="TinBoxSearchResultMap">
+		select tb.tin_box_id as tinBoxId,tb.qr_code as
+		tinBoxQRcode, tb.name as tinBoxName,
+		r.`column`, r.row as row,
+		s.qr_code as slotQRCode,
+		s.height as height
+		from TIN_BOX tb
+		left join SLOT s on tb.slot_id = s.slot_id
+		left join RACK r on s.rack_id = r.rack_id
+		inner join WAREHOUSE w on
+		tb.warehouse_id = w.warehouse_id
+		where tb.name like CONCAT('%',#{keyword}, '%') and w.del_flag = 0 and tb.del_flag = 0 
+		<if test="warehouseId &gt; 0">
+			and w.warehouse_id = #{warehouseId}
+		</if>
+		union
+		select tb.tin_box_id as tinBoxId,tb.qr_code as
+		tinBoxQRcode, tb.name as tinBoxName,
+		r.`column`, r.row as row,
+		s.qr_code as slotQRCode,
+		s.height as height
+		from TIN_BOX tb
+		left join SLOT s on tb.slot_id = s.slot_id
+		left join RACK r on s.rack_id = r.rack_id
+		inner join WAREHOUSE w on
+		tb.warehouse_id = w.warehouse_id
+		where tb.name like CONCAT('%',#{keyword}, '%') and w.del_flag = 0 and tb.del_flag = 0 
+		<if test="warehouseId &gt; 0">
+			and w.warehouse_id = #{warehouseId}
+		</if>
+	</select>
+	
+     <resultMap id="FolderSearchResultMap" type="com.viettel.vtnet360.vt07.vt070000.entity.search.FolderDetailSearch">
+        <id column="folderId" jdbcType="BIGINT" property="folderId"/>
+        <result column="folderName" jdbcType="VARCHAR" property="folderName"/>
+        <result column="folderQRCode" jdbcType="VARCHAR" property="folderQRCode"/>
+        <result column="tinBoxQRCode" jdbcType="VARCHAR" property="tinBoxQRCode"/>
+        <result column="tinBoxName" jdbcType="VARCHAR" property="tinBoxName"/>
+        <result column="tinBoxId" jdbcType="BIGINT" property="tinBoxId"/>
+        <result column="folderType" jdbcType="BIGINT" property="folderType"/>
+        <result column="column" jdbcType="BIGINT" property="column"/>
+        <result column="row" jdbcType="BIGINT" property="row"/>
+        <result column="height" jdbcType="BIGINT" property="height"/>
+        <result column="slotQRCode" jdbcType="VARCHAR" property="slotQRCode"/>
+     </resultMap>
+     
+	<select id="getFolderByDocName" resultMap="FolderSearchResultMap">
+		select fd.folder_id as folderId
+		, fd.name as folderName
+		, fd.qr_code as folderQRCode
+		, tb.qr_code as tinBoxQRCode
+		, tb.name tinBoxName
+		, tb.tin_box_id as tinBoxId
+		, fd.type as folderType 
+		, r.`column`
+		, r.row as row
+		,s.qr_code as slotQRCode
+		,s.height as height
+		from FOLDER fd
+		inner join TIN_BOX tb on fd.tin_box_id = tb.tin_box_id
+		left join SLOT s on tb.slot_id = s.slot_id
+		left join RACK r on s.rack_id = r.rack_id
+		inner join WAREHOUSE w on
+		tb.warehouse_id = w.warehouse_id
+		where fd.name like CONCAT('%', #{keyword}, '%') and w.del_flag = 0 and tb.del_flag = 0 and fd.del_flag = 0
+		<if test="warehouseId &gt; 0">
+			and w.warehouse_id = #{warehouseId}
+		</if>
+		union
+		select fd.folder_id as folderId
+		, fd.name as folderName
+		, fd.qr_code as folderQRCode
+		, tb.qr_code as tinBoxQRCode
+		, tb.name tinBoxName
+		, tb.tin_box_id as tinBoxId
+		, fd.type as folderType 
+		, r.`column`
+		, r.row as row
+		,s.qr_code as slotQRCode
+		,s.height as height
+		from FOLDER fd
+		inner join TIN_BOX tb on fd.tin_box_id = tb.tin_box_id
+		left join SLOT s on tb.slot_id = s.slot_id
+		left join RACK r on s.rack_id = r.rack_id
+		inner join WAREHOUSE w on
+		tb.warehouse_id = w.warehouse_id
+		where fd.name like CONCAT('%', #{keyword}, '%') and w.del_flag = 0 and tb.del_flag = 0 and fd.del_flag = 0
+		<if test="warehouseId &gt; 0">
+			and w.warehouse_id = #{warehouseId}
+		</if>
+	</select>
+	
+	 <resultMap id="ProjetSearchResultMap" type="com.viettel.vtnet360.vt07.vt070002.entity.FolderDetail">
+        <id column="projectId" jdbcType="BIGINT" property="projectId"/>
+        <result column="projectName" jdbcType="VARCHAR" property="projectName"/>
+        <result column="folderName" jdbcType="VARCHAR" property="name"/>
+        <result column="folderQRCode" jdbcType="VARCHAR" property="qrCode"/>
+        <result column="tinBoxQRCode" jdbcType="VARCHAR" property="tinBoxQRCode"/>
+        <result column="tinBoxName" jdbcType="VARCHAR" property="tinBoxName"/>
+        <result column="isSynchrony" jdbcType="BOOLEAN" property="isSynchrony"/>
+        <result column="tinBoxId" jdbcType="BIGINT" property="tinBoxId"/>
+        <result column="folderId" jdbcType="BIGINT" property="folderId"/>
+        <result column="column" jdbcType="BIGINT" property="column"/>
+        <result column="row" jdbcType="BIGINT" property="row"/>
+        <result column="height" jdbcType="BIGINT" property="height"/>
+        <result column="slotQRCode" jdbcType="VARCHAR" property="slotQRCode"/>
+      </resultMap>
+      
+	<select id="getProjectByDocName" resultType="com.viettel.vtnet360.vt07.vt070000.entity.search.ProjectDetailSearch">
+		select pj.project_id as projectId
+		, pj.name as projectName
+		, pj.is_synchrony as isSynchrony
+		, f.name as folderName
+		, f.qr_code as folderQRCode
+		, f.folder_id as folderId
+		, tb.qr_code as tinBoxQRCode
+		, tb.name as tinBoxName
+		, tb.tin_box_id as tinBoxId
+		, r.`column`
+		, r.row as row
+		,s.qr_code as slotQRCode
+		,s.height as height
+		from PROJECT pj
+		inner join PROJECT_DOC pd on pj.project_id = pd.project_id
+		left join FOLDER f on pd.folder_id = f.folder_id and f.del_flag = 0
+		left join TIN_BOX tb on f.tin_box_id = tb.tin_box_id and tb.del_flag = 0
+		left join WAREHOUSE w on tb.warehouse_id = w.warehouse_id  and w.del_flag = 0
+		left join SLOT s on tb.slot_id = s.slot_id
+		left join RACK r on s.rack_id = r.rack_id
+		where pj.name like CONCAT('%', #{keyword}, '%')
+		<if test="warehouseId &gt; 0">
+			and w.warehouse_id = #{warehouseId}
+		</if>
+		union
+		select pj.project_id as projectId
+		, pj.name as projectName
+		, pj.is_synchrony as isSynchrony
+		, f.name as folderName
+		, f.qr_code as folderQRCode
+		, f.folder_id as folderId
+		, tb.qr_code as tinBoxQRCode
+		, tb.name as tinBoxName
+		, tb.tin_box_id as tinBoxId
+		, r.`column`
+		, r.row as row
+		,s.qr_code as slotQRCode
+		,s.height as height
+		from PROJECT pj
+		inner join PROJECT_DOC pd on pj.project_id = pd.project_id
+		left join FOLDER f on pd.folder_id = f.folder_id and f.del_flag = 0
+		left join TIN_BOX tb on f.tin_box_id = tb.tin_box_id and tb.del_flag = 0
+		left join WAREHOUSE w on tb.warehouse_id = w.warehouse_id  and w.del_flag = 0
+		left join SLOT s on tb.slot_id = s.slot_id
+		left join RACK r on s.rack_id = r.rack_id
+		where pj.name like CONCAT('%', #{keyword}, '%') 
+		<if test="warehouseId &gt; 0">
+			and w.warehouse_id = #{warehouseId}
+		</if>
+	 </select>
+
+	
+	 <resultMap id="packageSearchResultMap" type="com.viettel.vtnet360.vt07.vt070000.entity.search.PackageDetailSearch">
+        <id column="packageId" jdbcType="BIGINT" property="packageId"/>
+        <result column="packageName" jdbcType="VARCHAR" property="packageName"/>
+        <result column="projectName" jdbcType="VARCHAR" property="projectName"/>
+        <result column="folderName" jdbcType="VARCHAR" property="folderName"/>
+        <result column="folderQRCode" jdbcType="VARCHAR" property="folderQRCode"/>
+        <result column="tinBoxQRCode" jdbcType="VARCHAR" property="tinBoxQRCode"/>
+        <result column="tinBoxName" jdbcType="VARCHAR" property="tinBoxName"/>
+        <result column="isSynchrony" jdbcType="BOOLEAN" property="isSynchrony"/>
+        <result column="tinBoxId" jdbcType="BIGINT" property="tinBoxId"/>
+        <result column="folderId" jdbcType="BIGINT" property="folderId"/>
+        <result column="projectId" jdbcType="BIGINT" property="projectId"/>
+        <result column="column" jdbcType="BIGINT" property="column"/>
+        <result column="row" jdbcType="BIGINT" property="row"/>
+        <result column="height" jdbcType="BIGINT" property="height"/>
+        <result column="slotQRCode" jdbcType="VARCHAR" property="slotQRCode"/>
+     </resultMap>
+
+	<select id="getPackageByDocName" resultMap="packageSearchResultMap">
+		select pk.package_id as packageId
+		, pk.name as packageName
+		, pk.is_synchrony as isSynchrony
+		, pj.name as projectName
+		, pj.project_id as projectId
+		, fd.name as folderName
+		, fd.qr_code as folderQRCode
+		, fd.folder_id as folderId
+		, tb.qr_code as tinBoxQRCode
+		, tb.name as tinBoxName
+		, tb.tin_box_id as tinBoxId
+		, r.`column`
+		, r.row as row
+		, s.qr_code as slotQRCode
+		, s.height as height
+		from PACKAGE pk
+		inner join PACKAGE_DOC pkd on pk.package_id = pkd.package_id
+		inner join PROJECT pj on pk.project_id = pj.project_id
+		left join FOLDER fd on pkd.folder_id = fd.folder_id and fd.del_flag = 0
+		left join TIN_BOX tb on fd.tin_box_id = tb.tin_box_id and tb.del_flag = 0
+		left join WAREHOUSE w on tb.warehouse_id = w.warehouse_id and w.del_flag = 0
+		left join SLOT s on tb.slot_id = s.slot_id
+		left join RACK r on s.rack_id = r.rack_id
+		where pk.name like CONCAT('%', #{keyword}, '%')
+		<if test="warehouseId &gt; 0">
+			and w.warehouse_id = #{warehouseId}
+		</if>		union
+		select pk.package_id as packageId
+		, pk.name as packageName
+		, pk.is_synchrony as isSynchrony
+		, pj.name as projectName
+		, pj.project_id as projectId
+		, fd.name as folderName
+		, fd.qr_code as folderQRCode
+		, fd.folder_id as folderId
+		, tb.qr_code as tinBoxQRCode
+		, tb.name as tinBoxName
+		, tb.tin_box_id as tinBoxId
+		, r.`column`
+		, r.row as row
+		, s.qr_code as slotQRCode
+		, s.height as height
+		from PACKAGE pk
+		inner join PACKAGE_DOC pkd on pk.package_id = pkd.package_id
+		inner join PROJECT pj on pk.project_id = pj.project_id
+		left join FOLDER fd on pkd.folder_id = fd.folder_id and fd.del_flag = 0
+		left join TIN_BOX tb on fd.tin_box_id = tb.tin_box_id and tb.del_flag = 0
+		left join WAREHOUSE w on tb.warehouse_id = w.warehouse_id and w.del_flag = 0
+		left join SLOT s on tb.slot_id = s.slot_id
+		left join RACK r on s.rack_id = r.rack_id
+		where pk.name like CONCAT('%', #{keyword}, '%') 
+		<if test="warehouseId &gt; 0">
+			and w.warehouse_id = #{warehouseId}
+		</if>	
+		</select>
+	
+	 <resultMap id="contractSearchResultMap" type="com.viettel.vtnet360.vt07.vt070000.entity.search.ContractDetailSearch">
+        <id column="contractId" jdbcType="BIGINT" property="contractId"/>
+        <result column="contractName" jdbcType="VARCHAR" property="contractName"/>
+        <result column="packageName" jdbcType="VARCHAR" property="packageName"/>
+        <result column="projectName" jdbcType="VARCHAR" property="projectName"/>
+        <result column="folderName" jdbcType="VARCHAR" property="folderName"/>
+        <result column="folderQRCode" jdbcType="VARCHAR" property="folderQRCode"/>
+        <result column="tinBoxQRCode" jdbcType="VARCHAR" property="tinBoxQRCode"/>
+        <result column="tinBoxName" jdbcType="VARCHAR" property="tinBoxName"/>
+        <result column="isSynchrony" jdbcType="BOOLEAN" property="isSynchrony"/>
+        <result column="tinBoxId" jdbcType="BIGINT" property="tinBoxId"/>
+        <result column="folderId" jdbcType="BIGINT" property="folderId"/>
+        <result column="projectId" jdbcType="BIGINT" property="projectId"/>
+        <result column="projectId" jdbcType="BIGINT" property="projectId"/>
+        <result column="column" jdbcType="BIGINT" property="column"/>
+        <result column="row" jdbcType="BIGINT" property="row"/>
+        <result column="height" jdbcType="BIGINT" property="height"/>
+        <result column="slotQRCode" jdbcType="VARCHAR" property="slotQRCode"/>
+     </resultMap>
+
+	<select id="getContractByDocName" resultMap="contractSearchResultMap">
+		select c.contract_id as contractId
+		, c.name as contractName
+		, c.is_synchrony as isSynchrony
+		, p.name as packageName
+		, pj.name as projectName
+		, pj.project_id as projectId
+		, fd.name as folderName
+		, fd.qr_code as folderQRCode
+		, fd.folder_id as folderId
+		, tb.qr_code as tinBoxQRCode
+		, tb.name as tinBoxName
+		, tb.tin_box_id as tinBoxId
+		, r.`column`
+		, r.row as row
+		, s.qr_code as slotQRCode
+		, s.height as height
+		from CONTRACT c
+		inner join CONTRACT_DOC cd on c.contract_id = cd.contract_id
+		inner join PACKAGE p on c.package_id = p.package_id
+		inner join PROJECT pj on c.project_id = pj.project_id
+		left join FOLDER fd on cd.folder_id = fd.folder_id and fd.del_flag = 0
+		left join TIN_BOX tb on fd.tin_box_id = tb.tin_box_id and tb.del_flag = 0
+		left join WAREHOUSE w on tb.warehouse_id = w.warehouse_id and w.del_flag = 0
+		left join SLOT s on tb.slot_id = s.slot_id
+		left join RACK r on s.rack_id = r.rack_id
+		where c.name like CONCAT('%', #{keyword}, '%')
+		<if test="warehouseId &gt; 0">
+			and w.warehouse_id = #{warehouseId}
+		</if>
+		union
+		select c.contract_id as contractId
+		, c.name as contractName
+		, c.is_synchrony as isSynchrony
+		, p.name as packageName
+		, pj.name as projectName
+		, pj.project_id as projectId
+		, fd.name as folderName
+		, fd.qr_code as folderQRCode
+		, fd.folder_id as folderId
+		, tb.qr_code as tinBoxQRCode
+		, tb.name as tinBoxName
+		, tb.tin_box_id as tinBoxId
+		, r.`column`
+		, r.row as row
+		, s.qr_code as slotQRCode
+		, s.height as height
+		from CONTRACT c
+		inner join CONTRACT_DOC cd on c.contract_id = cd.contract_id
+		inner join PACKAGE p on c.package_id = p.package_id
+		inner join PROJECT pj on c.project_id = pj.project_id
+		left join FOLDER fd on cd.folder_id = fd.folder_id and fd.del_flag = 0
+		left join TIN_BOX tb on fd.tin_box_id = tb.tin_box_id and tb.del_flag = 0
+		left join WAREHOUSE w on tb.warehouse_id = w.warehouse_id and w.del_flag = 0
+		left join SLOT s on tb.slot_id = s.slot_id
+		left join RACK r on s.rack_id = r.rack_id
+		where c.name like CONCAT('%', #{keyword}, '%')
+		<if test="warehouseId &gt; 0">
+			and w.warehouse_id = #{warehouseId}
+		</if>
+	</select>
+	 <resultMap id="constructionSearchResultMap" type="com.viettel.vtnet360.vt07.vt070000.entity.search.ConstructionDetailSearch">
+        <id column="contractId" jdbcType="BIGINT" property="contractId"/>
+        <result column="constructionName" jdbcType="VARCHAR" property="constructionName"/>
+        <result column="isSynchrony" jdbcType="BOOLEAN" property="isSynchrony"/>
+        <result column="contractName" jdbcType="VARCHAR" property="contractName"/>
+        <result column="packageName" jdbcType="VARCHAR" property="packageName"/>
+        <result column="projectName" jdbcType="VARCHAR" property="projectName"/>
+        <result column="folderName" jdbcType="VARCHAR" property="folderName"/>
+        <result column="folderQRCode" jdbcType="VARCHAR" property="folderQRCode"/>
+        <result column="tinBoxQRCode" jdbcType="VARCHAR" property="tinBoxQRCode"/>
+        <result column="tinBoxName" jdbcType="VARCHAR" property="tinBoxName"/>
+        <result column="tinBoxId" jdbcType="BIGINT" property="tinBoxId"/>
+        <result column="folderId" jdbcType="BIGINT" property="folderId"/>
+        <result column="projectId" jdbcType="BIGINT" property="projectId"/>
+        <result column="projectId" jdbcType="BIGINT" property="projectId"/>
+        <result column="column" jdbcType="BIGINT" property="column"/>
+        <result column="row" jdbcType="BIGINT" property="row"/>
+        <result column="height" jdbcType="BIGINT" property="height"/>
+        <result column="slotQRCode" jdbcType="VARCHAR" property="slotQRCode"/>
+     </resultMap>
+
+
+	<select id="getConstructionByDocName" resultMap="constructionSearchResultMap">
+		select ct.construction_id as constructionId
+		, ct.name as constructionName
+		, ct.is_synchrony as isSynchrony
+		, c.name as contractName
+		, p.name as packageName
+		, pj.name as projectName
+		, pj.project_id as projectId
+		, fd.name as folderName
+		, fd.qr_code as folderQRCode
+		, fd.folder_id as folderId
+		, tb.qr_code as tinBoxQRCode
+		, tb.name as tinBoxName
+		, tb.tin_box_id as tinBoxId
+		, r.`column`
+		, r.row as row
+		, s.qr_code as slotQRCode
+		, s.height as height
+		from CONSTRUCTION ct
+		inner join CONSTRUCTION_DOC cd on ct.construction_id = cd.construction_id
+		inner join CONTRACT c on ct.contract_id = c.contract_id
+		inner join PACKAGE p on c.package_id = p.package_id
+		inner join PROJECT pj on c.project_id = pj.project_id
+		left join FOLDER fd on cd.folder_id = fd.folder_id and fd.del_flag = 0
+		left join TIN_BOX tb on fd.tin_box_id = tb.tin_box_id and tb.del_flag = 0
+		left join WAREHOUSE w on tb.warehouse_id = w.warehouse_id and w.del_flag = 0
+		left join SLOT s on tb.slot_id = s.slot_id
+		left join RACK r on s.rack_id = r.rack_id
+		where ct.name
+		like CONCAT('%', #{keyword}, '%')   
+		<if test="warehouseId &gt; 0">
+			and w.warehouse_id = #{warehouseId}
+		</if>
+		union
+		select ct.construction_id as constructionId
+		, ct.name as constructionName
+		, ct.is_synchrony as isSynchrony
+		, c.name as contractName
+		, p.name as packageName
+		, pj.name as projectName
+		, pj.project_id as projectId
+		, fd.name as folderName
+		, fd.qr_code as folderQRCode
+		, fd.folder_id as folderId
+		, tb.qr_code as tinBoxQRCode
+		, tb.name as tinBoxName
+		, tb.tin_box_id as tinBoxId
+		, r.`column`
+		, r.row as row
+		, s.qr_code as slotQRCode
+		, s.height as height
+		from CONSTRUCTION ct
+		inner join CONSTRUCTION_DOC cd on ct.construction_id = cd.construction_id
+		inner join CONTRACT c on ct.contract_id = c.contract_id
+		inner join PACKAGE p on c.package_id = p.package_id
+		inner join PROJECT pj on c.project_id = pj.project_id
+		left join FOLDER fd on cd.folder_id = fd.folder_id and fd.del_flag = 0
+		left join TIN_BOX tb on fd.tin_box_id = tb.tin_box_id and tb.del_flag = 0
+		left join WAREHOUSE w on tb.warehouse_id = w.warehouse_id and w.del_flag = 0
+		left join SLOT s on tb.slot_id = s.slot_id
+		left join RACK r on s.rack_id = r.rack_id
+		where ct.name
+		like CONCAT('%', #{keyword}, '%')
+		<if test="warehouseId &gt; 0">
+			and w.warehouse_id = #{warehouseId}
+		</if>	
+		</select>
+	
+	 <resultMap id="officialDispatchSearchResultMap" type="com.viettel.vtnet360.vt07.vt070000.entity.search.OfficialDispatchDetailSearch">
+        <id column="officialDispatchId" jdbcType="BIGINT" property="id"/>
+        <result column="officialDispatchName" jdbcType="VARCHAR" property="officialDispatchName"/>
+        <result column="folderName" jdbcType="VARCHAR" property="folderName"/>
+        <result column="folderQRCode" jdbcType="VARCHAR" property="folderQRCode"/>
+        <result column="tinBoxQRCode" jdbcType="VARCHAR" property="tinBoxQRCode"/>
+        <result column="tinBoxName" jdbcType="VARCHAR" property="tinBoxName"/>
+        <result column="tinBoxId" jdbcType="BIGINT" property="tinBoxId"/>
+        <result column="projectId" jdbcType="BIGINT" property="projectId"/>
+        <result column="column" jdbcType="BIGINT" property="column"/>
+        <result column="row" jdbcType="BIGINT" property="row"/>
+        <result column="height" jdbcType="BIGINT" property="height"/>
+        <result column="slotQRCode" jdbcType="VARCHAR" property="slotQRCode"/>
+     </resultMap>
+
+	<select id="getOfficialDispatchBytravelsDocName" resultMap="officialDispatchSearchResultMap">
+		select od.official_dispatch_id as officialDispatchId
+		, od.name as officialDispatchName
+		, f.qr_code as folderQRCode
+		, f.name as folderName
+		, tb.qr_code as tinBoxQRCode
+		, tb.name as tinBoxName
+		, tb.tin_box_id as tinBoxId
+		, r.`column`
+		, r.row as row
+		, s.qr_code as slotQRCode
+		, s.height as height
+		from OFFICIAL_DISPATCH od
+		inner join OFFICIAL_DISPATCH_TRAVELS_DOC odtd on od.official_dispatch_id =
+		odtd.official_dispatch_id
+		inner join FOLDER f on odtd.folder_id = f.folder_id
+		inner join TIN_BOX tb on f.tin_box_id = tb.tin_box_id
+		inner join WAREHOUSE w on tb.warehouse_id = w.warehouse_id
+		left join SLOT s on tb.slot_id = s.slot_id
+		left join RACK r on s.rack_id = r.rack_id
+		where od.name like CONCAT('%', #{keyword}, '%') and w.del_flag = 0 and tb.del_flag = 0 and f.del_flag = 0
+		<if test="warehouseId &gt; 0">
+			and w.warehouse_id = #{warehouseId}
+		</if>
+		union
+
+		select od.official_dispatch_id as officialDispatchId
+		, od.name as officialDispatchName
+		, f.qr_code as folderQRCode
+		, f.name as folderName
+		, tb.qr_code as tinBoxQRCode
+		, tb.name as tinBoxName
+		, tb.tin_box_id as tinBoxId
+		, r.`column`
+		, r.row as row
+		, s.qr_code as slotQRCode
+		, s.height as height
+		from OFFICIAL_DISPATCH od
+		inner join OFFICIAL_DISPATCH_TRAVELS_DOC odtd on od.official_dispatch_id =
+		odtd.official_dispatch_id
+		inner join FOLDER f on odtd.folder_id = f.folder_id
+		inner join TIN_BOX tb on f.tin_box_id = tb.tin_box_id
+		inner join WAREHOUSE w on tb.warehouse_id = w.warehouse_id
+		left join SLOT s on tb.slot_id = s.slot_id
+		left join RACK r on s.rack_id = r.rack_id
+		where od.name like CONCAT('%', #{keyword}, '%') and w.del_flag = 0 and tb.del_flag = 0 and f.del_flag = 0
+		<if test="warehouseId &gt; 0">
+			and w.warehouse_id = #{warehouseId}
+		</if>
+	</select>
+
+
+	<select id="getOfficialDispatchByIncomingDocName" resultMap="officialDispatchSearchResultMap">
+		select od.name as officialDispatchName
+		, od.official_dispatch_id as officialDispatchId
+		, f.qr_code as folderQRCode
+		, f.name as folderName
+		, tb.qr_code as tinBoxQRCode
+		, tb.name as tinBoxName
+		, tb.tin_box_id as tinBoxId
+		, r.`column`
+		, r.row as row
+		, s.qr_code as slotQRCode
+		, s.height as height
+		from OFFICIAL_DISPATCH od
+		inner join INCOMING_OFFICIAL_DISPATCH_DOC iodd on od.official_dispatch_id =
+		iodd.official_dispatch_id
+		inner join FOLDER f on iodd.folder_id = f.folder_id
+		inner join TIN_BOX tb on f.tin_box_id = tb.tin_box_id
+		inner join WAREHOUSE w on tb.warehouse_id = w.warehouse_id
+		left join SLOT s on tb.slot_id = s.slot_id
+		left join RACK r on s.rack_id = r.rack_id
+		where od.name like CONCAT('%', #{keyword}, '%') and w.del_flag = 0 and tb.del_flag = 0 and f.del_flag = 0
+		<if test="warehouseId &gt; 0">
+			and w.warehouse_id = #{warehouseId}
+		</if>
+		union
+		select od.name as officialDispatchName
+		, od.official_dispatch_id as officialDispatchId
+		, f.qr_code as folderQRCode
+		, f.name as folderName
+		, tb.qr_code as tinBoxQRCode
+		, tb.name as tinBoxName
+		, tb.tin_box_id as tinBoxId
+		, r.`column`
+		, r.row as row
+		, s.qr_code as slotQRCode
+		, s.height as height
+		from OFFICIAL_DISPATCH od
+		inner join INCOMING_OFFICIAL_DISPATCH_DOC iodd on od.official_dispatch_id =
+		iodd.official_dispatch_id
+		inner join FOLDER f on iodd.folder_id = f.folder_id
+		inner join TIN_BOX tb on f.tin_box_id = tb.tin_box_id
+		inner join WAREHOUSE w on tb.warehouse_id = w.warehouse_id
+		left join SLOT s on tb.slot_id = s.slot_id
+		left join RACK r on s.rack_id = r.rack_id
+		where od.name like CONCAT('%', #{keyword}, '%') and w.del_flag = 0 and tb.del_flag = 0 and f.del_flag = 0
+		<if test="warehouseId &gt; 0">
+			and w.warehouse_id = #{warehouseId}
+		</if>
+	</select>
+	
+	 <resultMap id="VoucherSearchResultMap" type="com.viettel.vtnet360.vt07.vt070000.entity.search.VoucherDetailSearch">
+        <id column="voucherId" jdbcType="BIGINT" property="voucherId"/>
+        <result column="type" jdbcType="BIGINT" property="type"/>
+        <result column="voucherName" jdbcType="VARCHAR" property="voucherName"/>
+        <result column="folderName" jdbcType="VARCHAR" property="folderName"/>
+        <result column="folderQRCode" jdbcType="VARCHAR" property="folderQRCode"/>
+        <result column="tinBoxQRCode" jdbcType="VARCHAR" property="tinBoxQRCode"/>
+        <result column="tinBoxName" jdbcType="VARCHAR" property="tinBoxName"/>
+        <result column="tinBoxId" jdbcType="BIGINT" property="tinBoxId"/>
+        <result column="projectId" jdbcType="BIGINT" property="projectId"/>
+        <result column="column" jdbcType="BIGINT" property="column"/>
+        <result column="row" jdbcType="BIGINT" property="row"/>
+        <result column="height" jdbcType="BIGINT" property="height"/>
+        <result column="slotQRCode" jdbcType="VARCHAR" property="slotQRCode"/>
+     </resultMap>
+
+	<select id="getVoucherByDocNameAndType"
+		resultMap="VoucherSearchResultMap">
+		select vc.voucher_id as voucherId
+		, vc.name as voucherName
+		, f.qr_code as folderQRCode
+		, f.name as folderName
+		, tb.qr_code as tinBoxQRCode
+		, tb.name as tinBoxName
+		, vc.type as type
+		, tb.tin_box_id as tinBoxId
+		, r.`column`
+		, r.row as row
+		, s.qr_code as slotQRCode
+		, s.height as height
+		from VOUCHER vc
+		inner join VOUCHER_DOC vd on vc.voucher_id = vd.voucher_id
+		inner join FOLDER f on vd.folder_id = f.folder_id
+		inner join TIN_BOX tb on f.tin_box_id = tb.tin_box_id
+		inner join WAREHOUSE w on tb.warehouse_id = w.warehouse_id
+		left join SLOT s on tb.slot_id = s.slot_id
+		left join RACK r on s.rack_id = r.rack_id
+		where vc.name like CONCAT('%', #{documentSearchRequest.keyword}, '%') and w.del_flag = 0 and tb.del_flag = 0 and f.del_flag = 0
+		and vc.type = #{type}
+		<if test="documentSearchRequest.warehouseId &gt; 0">
+			and w.warehouse_id = #{documentSearchRequest.warehouseId}
+		</if>
+		union
+		select vc.voucher_id as voucherId
+		, vc.name as voucherName
+		, f.qr_code as folderQRCode
+		, f.name as folderName
+		, tb.qr_code as tinBoxQRCode
+		, tb.name as tinBoxName
+		, vc.type as type
+		, tb.tin_box_id as tinBoxId
+		, r.`column`
+		, r.row as row
+		, s.qr_code as slotQRCode
+		, s.height as height
+		from VOUCHER vc
+		inner join VOUCHER_DOC vd on vc.voucher_id = vd.voucher_id
+		inner join FOLDER f on vd.folder_id = f.folder_id
+		inner join TIN_BOX tb on f.tin_box_id = tb.tin_box_id
+		inner join WAREHOUSE w on tb.warehouse_id = w.warehouse_id
+		left join SLOT s on tb.slot_id = s.slot_id
+		left join RACK r on s.rack_id = r.rack_id
+		where vc.name like CONCAT('%', #{documentSearchRequest.keyword}, '%') and w.del_flag = 0 and tb.del_flag = 0 and f.del_flag = 0
+		and vc.type = #{type}
+		<if test="documentSearchRequest.warehouseId &gt; 0">
+			and w.warehouse_id = #{documentSearchRequest.warehouseId}
+		</if>
+	</select>
+	
+	 <resultMap id="PaymentSummarySearchResultMap" type="com.viettel.vtnet360.vt07.vt070000.entity.search.PaymentSummaryDetailSearch">
+        <id column="id" jdbcType="BIGINT" property="paymentSummaryId"/>
+        <result column="type" jdbcType="BIGINT" property="type"/>
+        <result column="voucherName" jdbcType="VARCHAR" property="voucherName"/>
+        <result column="folderName" jdbcType="VARCHAR" property="folderName"/>
+        <result column="folderQRCode" jdbcType="VARCHAR" property="folderQRCode"/>
+        <result column="tinBoxQRCode" jdbcType="VARCHAR" property="tinBoxQRCode"/>
+        <result column="tinBoxName" jdbcType="VARCHAR" property="tinBoxName"/>
+        <result column="tinBoxId" jdbcType="BIGINT" property="tinBoxId"/>
+        <result column="projectId" jdbcType="BIGINT" property="projectId"/>
+        <result column="column" jdbcType="BIGINT" property="column"/>
+        <result column="row" jdbcType="BIGINT" property="row"/>
+        <result column="height" jdbcType="BIGINT" property="height"/>
+        <result column="slotQRCode" jdbcType="VARCHAR" property="slotQRCode"/>
+     </resultMap>
+
+	<select id="getPaymentSummaryByDocName" resultMap="PaymentSummarySearchResultMap">
+		select ps.payment_summary_id as paymentSummaryId
+		, ps.name as
+		paymentSummaryName
+		, f.qr_code as folderQRCode
+		, f.name as folderName
+		, tb.qr_code as tinBoxQRCode
+		, tb.name as tinBoxName
+		, tb.tin_box_id as tinBoxId
+		, r.`column`
+		, r.row as row
+		, s.qr_code as slotQRCode
+		, s.height as height
+		from PAYMENT_SUMMARY
+		ps
+		inner join PAYMENT_SUMMARY_DOC psd on ps.payment_summary_id =
+		psd.payment_summary_id
+		inner join FOLDER f on psd.folder_id =
+		f.folder_id
+		inner join TIN_BOX tb on f.tin_box_id = tb.tin_box_id
+		inner
+		join WAREHOUSE w on tb.warehouse_id = w.warehouse_id
+		left join SLOT s on tb.slot_id = s.slot_id
+		left join RACK r on s.rack_id = r.rack_id
+		where ps.name like CONCAT('%', #{keyword}, '%') and w.del_flag = 0 and tb.del_flag = 0 and f.del_flag = 0
+		<if test="warehouseId &gt; 0">
+			and w.warehouse_id = #{warehouseId}
+		</if>
+		union
+		select ps.payment_summary_id as paymentSummaryId
+		, ps.name as
+		paymentSummaryName
+		, f.qr_code as folderQRCode
+		, f.name as folderName
+		, tb.qr_code as tinBoxQRCode
+		, tb.name as tinBoxName
+		, tb.tin_box_id as tinBoxId
+		, r.`column`
+		, r.row as row
+		, s.qr_code as slotQRCode
+		, s.height as height
+		from PAYMENT_SUMMARY 
+		ps
+		inner join PAYMENT_SUMMARY_DOC psd on ps.payment_summary_id =
+		psd.payment_summary_id
+		inner join FOLDER f on psd.folder_id =
+		f.folder_id
+		inner join TIN_BOX tb on f.tin_box_id = tb.tin_box_id
+		inner
+		join WAREHOUSE w on tb.warehouse_id = w.warehouse_id
+		left join SLOT s on tb.slot_id = s.slot_id
+		left join RACK r on s.rack_id = r.rack_id
+		where ps.name like CONCAT('%', #{keyword}, '%') and w.del_flag = 0 and tb.del_flag = 0 and f.del_flag = 0
+		<if test="warehouseId &gt; 0">
+			and w.warehouse_id = #{warehouseId}
+		</if>
+	</select>
+	
+	<select id="getDocDetailByIdAndType" resultType="com.viettel.vtnet360.vt07.vt070000.entity.search.DocumentDetailSearch">
+	<if test="type==1">
+		(
+		select distinct pjd.project_doc_id as docId,
+		pjd.name as docName,
+		'' as constractionName,
+		'' as contracName,
+		'' as packageName,
+		pj.name as projectName,
+		pjd.level_baomat as levelBaoMat,
+		pjd.path as path,
+		'duan' as type
+		from PROJECT_DOC pjd
+		inner join PROJECT pj on pjd.project_id = pj.project_id
+		left join FOLDER f on pjd.folder_id = f.folder_id AND f.folder_id = #{folderId}
+		where 1=1 AND pj.project_id = #{id}
+		)
+		union
+	</if>
+	<if test="type==1 or type==2">
+		(
+		select distinct pkgd.package_doc_id as docId,
+		pkgd.name as docName,
+		'' as constractionName,
+		'' as contracName,
+		pkg.name as packageName,
+		pj.name as projectName,
+		pkgd.level_baomat as levelBaoMat,
+		pkgd.path as path,
+		'goithau' as type
+		from PACKAGE_DOC pkgd
+		inner join PACKAGE pkg on pkgd.package_id = pkg.package_id
+		inner join PROJECT pj on pkg.project_id = pj.project_id
+		left join FOLDER f on pkgd.folder_id = f.folder_id AND f.folder_id = #{folderId}
+		where 1=1 AND
+		<if test="type==1">
+			pj.project_id = #{id}
+		</if>
+		<if test="type==2">
+			pkg.package_id = #{id}
+		</if>
+		)
+		union
+	</if>
+	<if test="type==1 or type==2 or type==3">
+		(
+		select distinct cd.contract_doc_id as docId,
+		cd.name as docName,
+		'' as constractionName,
+		c.name as contracName,
+		pkg.name as packageName,
+		pj.name as projectName,
+		cd.level_baomat as levelBaoMat,
+		cd.path as path,
+		'hopdong' as type
+		from CONTRACT_DOC cd
+             inner join CONTRACT c on cd.contract_id = c.contract_id
+             inner join PACKAGE pkg on c.package_id = pkg.package_id
+             inner join PROJECT pj on c.project_id = pj.project_id
+             left join FOLDER f on cd.folder_id = f.folder_id AND f.folder_id = #{folderId}
+		where 1=1 AND
+		<if test="type==1">
+			pj.project_id = #{id}
+		</if>
+		<if test="type==2">
+			pkg.package_id = #{id}
+		</if>
+		<if test="type==3">
+			c.contract_id = #{id}
+		</if>
+		)
+		union
+	</if>
+	<if test="type==1 or type==2 or type==3 or type==4">
+		(
+		select distinct cd.construction_doc_id as docId,
+		cd.name as docName,
+		c.name as constractionName,
+		ct.name as contracName,
+		pkg.name as packageName,
+		pj.name as projectName,
+		cd.level_baomat as levelBaoMat,
+		cd.path as path,
+		'congtrinh' as type
+		from CONSTRUCTION_DOC cd
+             inner join CONSTRUCTION c on cd.construction_id = c.construction_id
+             inner join CONTRACT ct on c.contract_id = ct.contract_id
+             inner join PACKAGE pkg on ct.package_id = pkg.package_id
+             inner join PROJECT pj on ct.project_id = pj.project_id
+             left join FOLDER f on cd.folder_id = f.folder_id AND f.folder_id = #{folderId}
+		where 1=1 AND
+		<if test="type==1">
+			pj.project_id = #{id}
+		</if>
+		<if test="type==2">
+			pkg.package_id = #{id}
+		</if>
+		<if test="type==3">
+			ct.contract_id = #{id}
+		</if>
+		<if test="type==4">
+			c.construction_id = #{id}
+		</if>
+		)
+	</if>
+</select>
+</mapper>

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+	<mappers>
+		<mapper resource="./sqlMap/vt00/common.xml" />
+		<mapper resource="./sqlMap/vt00/vt000000.xml" />
+		<mapper resource="./sqlMap/vt01/vt010000.xml" />
+		<mapper resource="./sqlMap/vt01/vt010001.xml" />
+		<mapper resource="./sqlMap/vt01/vt010002.xml" />
+		<mapper resource="./sqlMap/vt01/vt010011.xml" />
+		<mapper resource="./sqlMap/vt01/vt010012.xml" />
+		<mapper resource="./sqlMap/vt02/vt020000.xml" />
+		<mapper resource="./sqlMap/vt02/vt020001.xml" />
+		<mapper resource="./sqlMap/vt02/vt020002.xml" />
+		<mapper resource="./sqlMap/vt02/vt020003.xml" />
+		<mapper resource="./sqlMap/vt02/vt020004.xml" />
+		<mapper resource="./sqlMap/vt02/vt020006.xml" />
+		<mapper resource="./sqlMap/vt02/vt020008.xml" />
+		<mapper resource="./sqlMap/vt02/vt020009.xml" />
+		<mapper resource="./sqlMap/vt02/vt020010.xml" />
+		<mapper resource="./sqlMap/vt02/vt020011.xml" />
+		<mapper resource="./sqlMap/vt02/vt020012.xml" />
+		<mapper resource="./sqlMap/vt02/vt020013.xml" />
+		<mapper resource="./sqlMap/vt03/vt030000.xml" />
+		<mapper resource="./sqlMap/vt03/vt030001.xml" />
+		<mapper resource="./sqlMap/vt03/vt030002.xml" />
+		<mapper resource="./sqlMap/vt03/vt030003.xml" />
+		<mapper resource="./sqlMap/vt03/vt030004.xml" />
+		<mapper resource="./sqlMap/vt03/vt030005.xml" />
+		<mapper resource="./sqlMap/vt03/vt030006.xml" />
+		<mapper resource="./sqlMap/vt03/vt030007.xml" />
+		<mapper resource="./sqlMap/vt03/vt030008.xml" />
+		<mapper resource="./sqlMap/vt03/vt030009.xml" />
+		<mapper resource="./sqlMap/vt03/vt030010.xml" />
+		<mapper resource="./sqlMap/vt03/vt030011.xml" />
+		<mapper resource="./sqlMap/vt03/vt030012.xml" />
+		<mapper resource="./sqlMap/vt03/vt030013.xml" />
+		<mapper resource="./sqlMap/vt03/vt030014.xml" />
+		<mapper resource="./sqlMap/vt04/vt040000.xml" />
+		<mapper resource="./sqlMap/vt04/vt040001.xml" />
+		<mapper resource="./sqlMap/vt04/vt040002.xml" />
+		<mapper resource="./sqlMap/vt04/vt040003.xml" />
+		<mapper resource="./sqlMap/vt04/vt040004.xml" />
+		<mapper resource="./sqlMap/vt04/vt040007.xml" />
+		<mapper resource="./sqlMap/vt04/vt040010.xml" />
+		<mapper resource="./sqlMap/vt05/vt050000.xml" />
+		<mapper resource="./sqlMap/vt05/vt050001.xml" />
+		<mapper resource="./sqlMap/vt05/vt050002.xml" />
+		<mapper resource="./sqlMap/vt05/vt050003.xml" />
+		<mapper resource="./sqlMap/vt05/vt050004.xml" />
+		<mapper resource="./sqlMap/vt05/vt050005.xml" />
+		<mapper resource="./sqlMap/vt05/vt050006.xml" />
+		<mapper resource="./sqlMap/vt05/vt050007.xml" />
+		<mapper resource="./sqlMap/vt05/vt050008.xml" />
+		<mapper resource="./sqlMap/vt05/vt050009.xml" />
+		<mapper resource="./sqlMap/vt05/vt050010.xml" />
+		<mapper resource="./sqlMap/vt05/vt050011.xml" />
+		<mapper resource="./sqlMap/vt05/vt050012.xml" />
+		<mapper resource="./sqlMap/vt05/vt050013.xml" />
+		<mapper resource="./sqlMap/vt05/vt050015.xml" />
+		<mapper resource="./sqlMap/vt05/vt050017.xml" />
+		<mapper resource="./sqlMap/vt05/vt050018.xml" />
+		<mapper resource="./sqlMap/vt06/vt060001.xml" />
+		<mapper resource="./sqlMap/vt07/vt070000.xml" />
+		<mapper resource="./sqlMap/vt07/vt070001.xml" />
+		<mapper resource="./sqlMap/vt07/vt070002.xml" />
+		<mapper resource="./sqlMap/vt07/vt070003.xml" />
+		<mapper resource="./sqlMap/vt07/vt070005.xml" />
+
+		<mapper resource="./sqlMap/checking/checking.xml" />
+		<mapper resource="./sqlMap/kitchen/kitchen.xml" />
+		<mapper resource="./sqlMap/kitchen/lunch.xml" />
+		<mapper resource="./sqlMap/driving/driving.xml" />
+		<mapper resource="./sqlMap/driving/booking.xml" />
+		<mapper resource="./sqlMap/issuesService/issuesService.xml" />
+		<mapper resource="./sqlMap/signVoffice/signVoffice.xml" />
+		<mapper resource="./sqlMap/stationery/stationery.xml" />
+		<mapper resource="./sqlMap/stationery/stationeryreport.xml" />
+	</mappers>
+</configuration>

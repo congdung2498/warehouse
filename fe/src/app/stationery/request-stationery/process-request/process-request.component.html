@@ -1,0 +1,104 @@
+<div class="panel-heading vt-relative">
+  <form >
+    <div class="col-xl-6 mb-3">
+      <div class="row mb-3" style="margin-left: 20px;">
+        <div class="col-sm-12">
+          <div class="row">
+            <p-checkbox class="col-sm-6" label="Đã duyệt" value=1 [ngModelOptions]="{standalone: true}"  [(ngModel)]="status"></p-checkbox>
+            <p-checkbox class="col-sm-6" label="Đã thực hiện" value=3 [ngModelOptions]="{standalone: true}"  [(ngModel)]="status"></p-checkbox>
+            <p-checkbox class="col-sm-6" label="Hoãn thực hiện" value=4 [ngModelOptions]="{standalone: true}"  [(ngModel)]="status"></p-checkbox>
+          </div>
+        </div>
+
+        <div class="col-sm-12">
+          <div class="row">
+            <div class="col-sm-6" style="text-align: left; padding-top: 5px;">Vị trí:</div>
+            <div class="col-sm-6 ui-fluid" style="margin-left: -10px; position: relative;">
+              <p-autoComplete [suggestions]="placeStartList"
+                               (completeMethod)="searchPlaceIsRole($event)"
+
+                              field="placeName"
+
+                              (onSelect)="selectPlace($event)"
+                              ></p-autoComplete>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="col-sm-12">
+          <div class="row">
+            <div class="col-sm-6" style="text-align: left; padding-top: 5px;">Đơn vị:</div>
+            <div class="col-sm-6 ui-fluid" style="margin-left: -10px; position: relative;">
+              <p-autoComplete [suggestions]="unitNameList"
+
+
+                              field="unitName"
+                              (completeMethod)="searchUnitName($event)"
+                              (onSelect)="selectUnit($event)"
+                              ></p-autoComplete>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </form>
+</div>
+<div class="col-sm-12" style="padding-top: 10px;">
+  <div class="text-center">
+    <!-- confirm button -->
+    <button type="button" pButton icon="fa fa-search" iconPos="left" label="Tìm kiếm" (click)="searchData();"
+            style="text-align: center; max-width: 200px;"></button>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-xl-12">
+    <!-- if has data -->
+
+      <p-table [rows]="10" [value]="resultList"
+               (onLazyLoad)="onLazyLoad($event)" [lazy]="true" [paginator]="true" >
+        <ng-template pTemplate="header">
+          <tr style="font-weight: bold;">
+            <th rowspan="2" style="width: 4rem; font-weight: bold;">TT</th>
+            <th rowspan="2" style="width: 8rem; font-weight: bold;">Vị trí</th>
+            <th rowspan="2" style="width: 8rem; font-weight: bold;">Đơn vị</th>
+            <th rowspan="2" style="width: 8rem; font-weight: bold;">Định mức đơn vị </th>
+            <th rowspan="2" style="width: 8rem; font-weight: bold;">Trạng thái</th>
+
+          </tr>
+
+        </ng-template>
+        <ng-template let-ri="rowIndex" pTemplate="body" let-item>
+          <tr>
+            <td style="width: 3rem; padding: 2px 1.5px !important;">{{ri+1}}</td>
+            <td *ngIf="isShowImg" style="width: 3rem; padding: 2px 1.5px !important;">
+              <p-button icon="fa fa-image"
+                        (onClick)="showImage($event, item.empCode, item.empName, op1)"></p-button>
+            </td>
+            <td style="width: 6rem">{{item.startDate | date: 'dd/MM/yyyy'}}</td>
+            <td style="width: 6rem">{{item.startDate | date: 'dd/MM/yyyy'}}</td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="item.empEmail"
+                style="width: 7rem; text-align: left !important;">
+              {{item.empEmail}}
+            </td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="item.empEmail"
+                style="width: 7rem; text-align: left !important;">
+              {{item.empEmail}}
+            </td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="item.empEmail"
+                style="width: 7rem; text-align: left !important;">
+              {{item.empEmail}}
+            </td>
+
+
+          </tr>
+        </ng-template>
+
+      </p-table>
+      <!-- image -->
+
+
+  </div>
+</div>

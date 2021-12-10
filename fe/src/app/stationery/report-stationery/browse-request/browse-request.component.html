@@ -1,0 +1,93 @@
+
+<div class="container">
+  <div class="row mt-2" style="margin-left: 100px; margin-right: 100px">
+    <div class="col-sm-2">Tổng tiền:</div>
+    <div class="col-sm-4 ui-fluid">
+      <input  pInputText [ngModel]="fullNameDetails | number" disabled="true"  [style]="{'width': '100%'}"/>
+    </div>
+    <div class="col-sm-2">Người phê duyệt<span style="color: red">*</span>: </div>
+    <div class="col-sm-4 ui-fluid" >
+      <p-autoComplete #managerFld [suggestions]="qlttNameList" (onDropdownClick)="onDropdownClick($event)" [minLength]="1"
+                      (completeMethod)="getManager($event)" field="fullName" [dropdown]="true"
+                      [(ngModel)]="qlttName"></p-autoComplete>
+    </div>
+    <div class="col-sm-2  mt-3">Nội dung<span style="color: red">*</span>:</div>
+    <div class="col-sm-10 mt-3 ui-fluid">
+      <textarea type="text" style="width: 100%" [(ngModel)]="note" maxlength="255" > </textarea>
+    </div>
+  </div>
+
+  <div class="row row-button">
+    <div class="col-sm-2"></div>
+    <div class="col-sm-8">
+      <p-button label="Ký VPP tháng"  (click)="handleUpdateRequest()" [disabled]="isDisabledButton"></p-button>
+      <p-button  iconPos="left" label="Hủy bỏ" (click)="handleCancel()"></p-button>
+    </div>
+    <div class="col-sm-2"></div>
+  </div>
+
+  <div class="row col-sm-12">
+    <p-table #dt [value]="listSearchDetails" [totalRecords]="" [paginator]="true"
+             [rows]="10" [resizableColumns]="true"
+             #dt>
+      <ng-template pTemplate="header">
+        <tr style="font-weight: bold;">
+          <th rowspan="1" style="width: 3rem; font-weight: bold;text-align: center">STT</th>
+          <th rowspan="1" style="width: 3rem; font-weight: bold;text-align: center">Thao tác</th>
+          <th rowspan="5" style="width: 6rem; font-weight: bold;text-align: center">Vị trí</th>
+          <th rowspan="5" style="width: 5rem; font-weight: bold;text-align: center">Đơn vị</th>
+          <th rowspan="5" style="width: 5rem; font-weight: bold;text-align: center">Người yêu cầu</th>
+          <th rowspan="9" style="width: 6rem; font-weight: bold;text-align: center">Mã NV</th>
+          <th rowspan="7" style="width: 5rem; font-weight: bold;text-align: center">Ngày yêu cầu</th>
+          <th rowspan="7" style="width: 5rem; font-weight: bold;text-align: center">Tên VPP</th>
+          <th rowspan="7" style="width: 5rem; font-weight: bold;text-align: center">Số lượng</th>
+          <th rowspan="7" style="width: 5rem; font-weight: bold;text-align: center">Đơn giá</th>
+          <th rowspan="7" style="width: 5rem; font-weight: bold;text-align: center">Số tiền</th>
+        </tr>
+
+      </ng-template>
+      <ng-template let-ri="rowIndex" pTemplate="body" let-item>
+        <tr>
+          <td style="width: 1rem; padding: 2px 1.5px !important;">{{ri+1}}</td>
+          <td style="width: 4rem; padding: 10px ; text-align:center;">
+            <p-button icon="fa fa-trash" (onClick)="doCancel(item)" style="padding-left: 10px;" pTooltip="Xóa"></p-button>
+          </td>
+          <td class="wrapText" pTextEllipsis [pTooltip]="item.startPlace" style="width: 5rem; text-align: left !important;">
+            {{item.startPlace}}
+          </td>
+          <td class="wrapText" pTextEllipsis [pTooltip]="item.unitName" style="width: 5rem; text-align: left !important;">
+            {{item.unitName}}
+          </td>
+          <td class="wrapText" pTextEllipsis [pTooltip]="item.fullName" style="width: 9rem; text-align: left !important;">
+            {{item.fullName}}
+          </td>
+          <td class="wrapText" pTextEllipsis [pTooltip]="item.employeeId" style="width: 7rem; text-align: left !important;">
+            {{item.employeeId}}
+          </td>
+          <td class="wrapText" pTextEllipsis [pTooltip]="item.requestDate | date:'dd/MM/yyyy HH:mm'" style="width: 5rem; text-align: left !important;">
+            {{item.requestDate | date:'dd/MM/yyyy HH:mm' }}
+          </td>
+          <td class="wrapText" pTextEllipsis [pTooltip]="item.stationeryName" style="width: 7rem; text-align: left !important;">
+            {{item.stationeryName}}
+          </td>
+          <td class="wrapText" pTextEllipsis [pTooltip]="item.totalRequest" style="width: 7rem; text-align: left !important;">
+            {{item.totalRequest}}
+          </td>
+          <td class="wrapText" pTextEllipsis [pTooltip]="item.unitPrice | number:0" style="width: 7rem; text-align: left !important;">
+            {{item.unitPrice | number:0}}
+          </td>
+          <td class="wrapText" pTextEllipsis [pTooltip]="item.totalMoneyRequest | number:0" style="width: 7rem; text-align: left !important;">
+            {{item.totalRequest * item.unitPrice | number:0}}
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td [attr.colspan]="11">
+            Không có dữ liệu
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>

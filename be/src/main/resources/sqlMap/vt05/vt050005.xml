@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt05.vt050005.dao.VT050005DAO">
+	
+	<select id="findIssuesStationeryApprove" parameterType="com.viettel.vtnet360.vt05.vt050005.entity.VT050005RequestParamToSearch" 
+											resultType="com.viettel.vtnet360.vt05.vt050005.entity.VT050005DataResponse">
+		SELECT isa.ISSUES_STATIONERY_APPROVED_ID as requestID, 
+				qe.FULL_NAME as fullName, 
+				isa.CREATE_DATE as dateRequest, 
+				isa.HCDV_MESSAGE as message,
+				isa.STATUS as status
+		FROM ISSUES_STATIONERY_APPROVED isa JOIN QLDV_EMPLOYEE qe ON isa.HCDV_USERNAME = qe.USER_NAME
+		WHERE 1=1 	
+				<if test="listStatus.size() > 0">
+				AND isa.STATUS IN
+				<foreach collection="listStatus" item="item" index="index" open="(" separator="," close=")">
+				#{item}
+				</foreach>
+				</if>
+				<if test="roleAdmin == false">
+					AND isa.LD_USERNAME = #{approveUserName}
+				</if>
+				<if test="employeeUserName != null">
+					 AND isa.HCDV_USERNAME = #{employeeUserName}
+				</if>
+				<if test="requestDate != null">
+					 AND MONTH(isa.CREATE_DATE) = MONTH(#{requestDate})
+					  AND YEAR(isa.CREATE_DATE) = YEAR(#{requestDate})
+				</if>
+				
+				ORDER BY dateRequest desc
+				<if test="pageNumber >=0 and pageSize > 0">
+                    LIMIT #{pageNumber}, #{pageSize}
+                </if>
+	</select>
+	
+	<update id="updateIssuesStationeryApproveStatus" parameterType="com.viettel.vtnet360.vt05.vt050005.entity.VT050005InfoToUpdateIssuesStationeryApproveStatus">
+		UPDATE ISSUES_STATIONERY_APPROVED
+		SET LD_APPROVED_DATE = NOW(), 
+			STATUS = #{status}, 
+			LD_REASON_REJECT = #{reasonReject}, 
+			UPDATE_USER = #{updateUser}, 
+			UPDATE_DATE = NOW()
+		WHERE ISSUES_STATIONERY_APPROVED_ID IN 
+				<foreach collection="listIssuesStationeryApproveID" item="item" index="index" open="(" separator="," close=")">
+					#{item}
+  				</foreach>
+  				AND STATUS = #{statusNow}
+	</update>
+	
+	<update id="updateIssuesStationeryItemStatus" parameterType="com.viettel.vtnet360.vt05.vt050005.entity.VT050005InfoUpdateIssuesStationeryItemStatus">
+		UPDATE ISSUES_STATIONERY_ITEMS
+		SET STATUS = #{status}, 
+			UPDATE_USER = #{updateUser}, 
+			UPDATE_DATE = NOW()
+		WHERE ISSUES_STATIONERY_APPROVED_ID IN
+				<foreach collection="listIssuesStationeryApproveID" item="item" index="index" open="(" separator="," close=")">
+					#{item}
+  				</foreach>
+  				AND STATUS = #{statusNow}
+	</update>
+	
+	<select id="findIssuesStationeryID" resultType="java.lang.String" parameterType="java.lang.String">
+		SELECT DISTINCT(ISSUES_STATIONERY_ID) 
+		FROM ISSUES_STATIONERY_ITEMS 
+		WHERE ISSUES_STATIONERY_APPROVED_ID = #{issuesStationeryApproveID}
+	</select>
+	
+	<select id="findEmployeeRequest" resultType="com.viettel.vtnet360.vt05.vt050005.entity.VT050005InfoOfEmployeeRequest" parameterType="java.lang.String">
+		SELECT DISTINCT(isi.CREATE_USER) as employeeUserName, 
+				isi.ISSUES_STATIONERY_ID as stationeryID,
+				ist.STATUS as status
+		FROM ISSUES_STATIONERY_ITEMS isi JOIN ISSUES_STATIONERY ist ON isi.ISSUES_STATIONERY_ID = ist.ISSUE_STATIONERY_ID
+		WHERE isi.ISSUES_STATIONERY_APPROVED_ID = #{id}
+	</select>
+	
+	<select id="findStationeryItemRequeset" resultType="java.lang.String" parameterType="com.viettel.vtnet360.vt05.vt050005.entity.VT050005InfoToFindItemRequest">
+		SELECT si.STATIONERY_NAME 
+		FROM ISSUES_STATIONERY_ITEMS isi JOIN STATIONERY_ITEMS si ON isi.STATIONERY_ID = si.STATIONERY_ID
+		WHERE isi.ISSUES_STATIONERY_APPROVED_ID = #{issuesStationeryApproveID}
+				AND isi.CREATE_USER = #{userName}
+	</select>
+	
+	<select id="findVPTCT" resultType="java.lang.String" parameterType="java.lang.Integer">
+		SELECT EMPLOYEE_USERNAME
+		FROM STATIONERY_STAFF 
+		WHERE ISSUE_LOCATION = #{placeID}
+				AND JOB_CODE = '02'
+				AND DELETE_FLAG = 0
+	</select>
+	
+	<select id="checkConditionBeforeUpdateIssuesApprove"
+	resultType="java.lang.Integer"
+	parameterType="com.viettel.vtnet360.vt05.vt050005.entity.VT050005InfoToUpdateIssuesStationeryApproveStatus">
+	SELECT COUNT(*)
+	FROM ISSUES_STATIONERY_APPROVED
+	WHERE ISSUES_STATIONERY_APPROVED_ID IN 
+					<foreach collection="listIssuesStationeryApproveID" item="item" index="index" open="(" separator="," close=")">
+						#{item}
+	  				</foreach>
+				AND STATUS = #{status}
+	</select>
+	
+	<select id="findLocationOfRequestForEachRequest" parameterType="java.util.List" resultType="com.viettel.vtnet360.vt05.vt050005.entity.VT050005PlaceIDOfIssuesStationeryApprove">
+		SELECT 	ss.ISSUE_LOCATION as placeID, 
+				ISSUES_STATIONERY_APPROVED_ID as issuesStationeryApprovedID
+		FROM ISSUES_STATIONERY_APPROVED isa 
+				JOIN STATIONERY_STAFF ss ON isa.HCDV_USERNAME = ss.EMPLOYEE_USERNAME AND ss.JOB_CODE = '01' AND ss.DELETE_FLAG = 0
+		WHERE isa.ISSUES_STATIONERY_APPROVED_ID IN 
+				<foreach collection="list" item="item" index="index" open="(" separator="," close=")">
+					#{item}
+  				</foreach>
+	</select>
+	
+</mapper>

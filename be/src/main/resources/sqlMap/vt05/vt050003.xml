@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt05.vt050003.dao.VT050003DAO">
+	
+	<select id="checkPlaceExist" resultType="java.lang.Integer" 
+									parameterType="com.viettel.vtnet360.vt05.vt050003.entity.VT050003InfoToCheckPlaceExist">
+		SELECT COUNT(*) 
+		FROM QLDV_PLACE	
+		WHERE PLACE_ID = #{placeID}
+				AND STATUS = #{status}
+	</select>
+	
+	<insert id="insertIssuesStationery" parameterType="com.viettel.vtnet360.vt05.vt050000.entity.VT050000IssuesStationery">
+		INSERT INTO ISSUES_STATIONERY
+					(	
+						ISSUE_STATIONERY_ID, 
+						EMPLOYEE_USERNAME, 
+						ISSUE_LOCATION, 
+						NOTE, 
+						REQUEST_DATE,
+						STATUS,
+						CREATE_USER, 
+						CREATE_DATE,
+						UPDATE_USER,
+						UPDATE_DATE
+					)
+		VALUES	(
+					CONCAT('VTN_SR_', NEXT VALUE FOR VTN_S), 
+					#{employeeUserName}, 
+					#{issueLocation}, 
+					#{note}, 
+					NOW(), 
+					#{status},
+					#{createUser}, 
+					NOW(),
+					#{createUser}, 
+					NOW()
+				)
+	</insert>
+	
+	<select id="findIssuesStationeryID" resultType="java.lang.String" parameterType="java.lang.String">
+		SELECT ISSUE_STATIONERY_ID 
+		FROM ISSUES_STATIONERY 
+		WHERE EMPLOYEE_USERNAME = #{employeeUserName}
+		ORDER BY ISSUE_STATIONERY_ID DESC
+		LIMIT 1
+	</select>
+	
+	<insert id="insertIssuesStationeryItems" parameterType="com.viettel.vtnet360.vt05.vt050003.entity.VT050003IssuesStationeryItemsToInsert">
+		INSERT INTO ISSUES_STATIONERY_ITEMS
+					(	
+						ISSUES_STATIONERY_ITEM_ID,
+						ISSUES_STATIONERY_ID, 
+						STATIONERY_ID, 
+						TOTAL_REQUEST,
+						UNIT_PRICE, 
+						STATUS, 
+						CREATE_USER, 
+						CREATE_DATE,
+						UPDATE_USER,
+						UPDATE_DATE,
+						STATIONERY_NAME,
+						CALCULATION_UNIT
+					)
+		VALUES	
+				<foreach collection="listStationery" item="item" index="index" separator=",">
+					(
+						CONCAT('VTN_SR_', NEXT VALUE FOR VTN_S),
+						#{issuesStationeryID}, 
+						#{item.stationeryID}, 
+						#{item.quantity}, 
+						#{item.unitPrice}, 
+						#{status},
+						#{createUser}, 
+						NOW(),
+						#{createUser}, 
+						NOW(),
+						#{item.stationeryName}, 
+						#{item.calculationUnit}
+					)
+  				</foreach>
+	</insert>
+	
+	<insert id="insertIssuesStationeryItemsEmployee" parameterType="com.viettel.vtnet360.vt05.vt050003.entity.VT050003IssuesStationeryItemsToInsertEmployee">
+		INSERT INTO ISSUES_STATIONERY_ITEMS
+					(	
+						ISSUES_STATIONERY_ITEM_ID,
+						ISSUES_STATIONERY_ID, 
+						STATIONERY_ID, 
+						TOTAL_REQUEST,
+						UNIT_PRICE, 
+						STATUS, 
+						CREATE_USER, 
+						CREATE_DATE,
+						UPDATE_USER,
+						UPDATE_DATE,
+						STATIONERY_NAME,
+						CALCULATION_UNIT
+					)
+		VALUES	
+				
+					(
+						CONCAT('VTN_SR_', NEXT VALUE FOR VTN_S),
+						#{issuesStationeryID}, 
+						#{stationeryID}, 
+						#{quantity}, 
+						(SELECT si.UNIT_PRICE FROM STATIONERY_ITEMS si WHERE si.STATIONERY_ID = #{stationeryID}), 
+						#{status},
+						#{createUser}, 
+						NOW(),
+						#{createUser}, 
+						NOW(),
+						#{stationeryName}, 
+						(SELECT i.CALCULATION_UNIT FROM STATIONERY_ITEMS i WHERE i.STATIONERY_ID = #{stationeryID})
+					)
+  				
+	</insert>
+	
+	
+	<insert id="insertIssuesStationeryItemsForm" parameterType="com.viettel.vtnet360.vt05.vt050003.entity.VT050003IssuesStationeryItemsToInsertForm">
+		INSERT INTO ISSUES_STATIONERY_ITEMS
+					(	
+						ISSUES_STATIONERY_ITEM_ID,
+						ISSUES_STATIONERY_ID, 
+						STATIONERY_ID,
+						TOTAL_REQUEST,
+						STATUS, 
+						CREATE_USER, 
+						CREATE_DATE,
+						UPDATE_USER,
+						UPDATE_DATE,
+						STATIONERY_NAME,
+						CALCULATION_UNIT
+					)
+		VALUES	
+				<foreach collection="listStationery" item="item" index="index" separator=",">
+					(
+						CONCAT('VTN_SR_', NEXT VALUE FOR VTN_S),
+						#{issuesStationeryID}, 
+						#{item.stationeryID},
+						#{item.quantity}, 
+						#{status},
+						#{createUser}, 
+						NOW(),
+						#{createUser}, 
+						NOW(),
+						#{item.stationeryName}, 
+						#{item.calculationUnit}
+					)
+  				</foreach>
+	</insert>
+	<select id="findStationeryPrice" resultType="com.viettel.vtnet360.vt05.vt050000.entity.VT050000StationeryInfo" 
+										parameterType="java.util.List">
+		SELECT STATIONERY_ID as stationeryID, 
+				UNIT_PRICE as unitPrice
+		FROM STATIONERY_ITEMS 
+		WHERE STATIONERY_ID IN 
+			<foreach collection="list" item="item" index="index" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+	</select>
+	
+	<select id="findHcdvUserName" parameterType="com.viettel.vtnet360.vt05.vt050003.entity.VT050003InfoToFindHcdv" resultType="java.lang.String">
+	   SELECT ss.EMPLOYEE_USERNAME 
+	   FROM 
+		    STATIONERY_STAFF ss
+		    LEFT JOIN STATIONERY_STAFF_PLACE ssp ON ss.STATIONERY_STAFF_ID = ssp.STATIONERY_STAFF_ID
+	   WHERE 
+	       ssp.PLACE_ID = #{placeID}
+		   AND (SELECT qu.`PATH` FROM QLDV_EMPLOYEE qe JOIN QLDV_UNIT qu ON qe.UNIT_ID = qu.UNIT_ID WHERE qe.USER_NAME = #{userName}) like CONCAT('%', UNIT_ID, '%')
+		   AND JOB_CODE = #{jobCode}
+		   AND DELETE_FLAG = 0;
+	</select>
+	
+</mapper>

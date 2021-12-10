@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt05.vt050009.dao.VT050009DAO">
+	
+	<select id="findInfoRequest" resultType="com.viettel.vtnet360.vt05.vt050009.entity.VT050009DataResponse" 
+									parameterType="java.lang.String">
+		SELECT 	qe.FULL_NAME as fullName,
+				isa.UPDATE_DATE as dateRequest,
+				isa.VPTCT_MESSAGE as message,
+				isa.STATUS as status
+		FROM ISSUES_STATIONERY_APPROVED isa JOIN QLDV_EMPLOYEE qe ON isa.HCDV_USERNAME = qe.USER_NAME
+		WHERE isa.ISSUES_STATIONERY_APPROVED_ID = #{id}
+	</select>
+	
+	<select id="findInfoRequestDetail" resultType="com.viettel.vtnet360.vt05.vt050004.entity.VT050004DataResponse"
+										parameterType="java.lang.String">
+			SELECT 	isi.ISSUES_STATIONERY_ITEM_ID as requestID,
+				qp.PLACE_NAME as placeName,
+				CASE 
+					WHEN u.UNIT_ID = 234841 THEN IFNULL(u.UNIT_NAME, '')
+					WHEN b.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''))
+					WHEN c.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''), IFNULL(CONCAT(' / ', c.UNIT_NAME), ''))
+					ELSE CONCAT(IFNULL(b.UNIT_NAME, ''), IFNULL(CONCAT(' / ', c.UNIT_NAME), ''), IFNULL(CONCAT(' / ', d.UNIT_NAME), ''))
+				END AS unitName,
+				qe.FULL_NAME as fullName,
+				qe.USER_NAME as userName,
+				ist.REQUEST_DATE as dateRequest,
+				isi.STATIONERY_NAME as stationeryName,
+				isi.TOTAL_REQUEST as quantity,
+				isi.UNIT_PRICE as price,
+				isi.TOTAL_REQUEST * isi.UNIT_PRICE as totalMoney
+			FROM ISSUES_STATIONERY_ITEMS isi JOIN ISSUES_STATIONERY ist ON isi.ISSUES_STATIONERY_ID = ist.ISSUE_STATIONERY_ID
+					JOIN QLDV_EMPLOYEE qe ON ist.EMPLOYEE_USERNAME = qe.USER_NAME
+					JOIN QLDV_PLACE qp ON qp.PLACE_ID = ist.ISSUE_LOCATION
+					LEFT JOIN QLDV_UNIT u ON u.UNIT_ID = qe.UNIT_ID
+					LEFT JOIN QLDV_UNIT b ON u.PARENT_UNIT_ID = b.UNIT_ID
+					LEFT JOIN QLDV_UNIT c ON b.PARENT_UNIT_ID = c.UNIT_ID
+					LEFT JOIN QLDV_UNIT d ON c.PARENT_UNIT_ID = d.UNIT_ID
+					JOIN ISSUES_STATIONERY_APPROVED isa ON isa.ISSUES_STATIONERY_APPROVED_ID = isi.ISSUES_STATIONERY_APPROVED_ID
+			WHERE isi.ISSUES_STATIONERY_APPROVED_ID = #{id}
+	</select>
+	
+</mapper>

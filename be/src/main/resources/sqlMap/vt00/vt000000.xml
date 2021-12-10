@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper
+	namespace="com.viettel.vtnet360.vt00.vt000000.dao.VT000000DAO">
+
+	<!-- API findListSystemCode -->
+	<resultMap id="resultData"
+		type="com.viettel.vtnet360.vt00.vt000000.entity.VT000000EntityDataSystemCode">
+
+		<result property="codeValue" column="CODE_VALUE" />
+		<result property="codeName" column="CODE_NAME" />
+
+
+	</resultMap>
+
+	<select id="findListSystemCode"
+		parameterType="com.viettel.vtnet360.vt00.vt000000.entity.VT000000EntityRqSystemCode"
+		resultMap="resultData">
+		SELECT MASTER_CLASS, CODE_VALUE, CODE_NAME
+		FROM M_SYSTEM_CODE
+		WHERE
+		STATUS = 1 AND 
+		MASTER_CLASS = #{masterClass}
+		<if test="codeName != null">
+			AND
+			<bind name="pattern" value="'%' + codeName + '%'" />
+			CODE_NAME like #{pattern}
+		</if>
+		<choose>
+			<when test="masterClass == 'S002'">
+				ORDER BY CAST(CODE_NAME AS int) ASC
+			</when>
+			<otherwise>
+				ORDER BY CODE_NAME ASC
+			</otherwise>
+		</choose>
+	</select>
+
+	<!-- API FindEmployee -->
+	<resultMap id="resultDataFindEmployee"
+		type="com.viettel.vtnet360.vt00.vt000000.entity.VT000000EntityDataFindEmployee">
+
+		<result property="userName" column="USER_NAME" />
+		<result property="fullName" column="FULL_NAME" />
+		<result property="title" column="TITLE" />
+		<result property="levelEmployee" column="LEVEL_EMPLOYEE" />
+		<result property="unitName" column="UNIT_NAME" />
+		<result property="email" column="EMAIL" />
+
+	</resultMap>
+
+	<!-- findListEmployee -->
+	<select id="findListEmployee"
+		parameterType="com.viettel.vtnet360.vt00.vt000000.entity.VT000000EntityRqFindEmp"
+		resultMap="resultDataFindEmployee">
+		SELECT USER_NAME, FULL_NAME,FULL_NAME AS fullNameEmployee, TITLE, LEVEL_EMPLOYEE,
+		UNIT_NAME , EMAIL 
+	FROM QLDV_EMPLOYEE LEFT JOIN QLDV_UNIT ON QLDV_EMPLOYEE.UNIT_ID = QLDV_UNIT.UNIT_ID
+	WHERE QLDV_UNIT.`PATH` LIKE CONCAT('%','234841','%') AND QLDV_EMPLOYEE.STATUS = 1 AND 
+		
+		(
+		( CODE LIKE CONCAT("%",#{pattern},"%") )
+		OR (FULL_NAME LIKE CONCAT("%",#{pattern},"%") )
+		OR (EMAIL LIKE CONCAT("%",#{pattern},"%") )
+		OR (PHONE_NUMBER LIKE CONCAT("%",#{pattern},"%") )
+		)
+
+		<if test="role != null">
+			AND
+			<foreach item="item" index="index" collection="role" open="("
+				separator=" OR " close=")">
+
+				(
+				ROLE LIKE CONCAT(#{item})
+				OR ROLE LIKE CONCAT(#{item},",%" )
+				OR ROLE LIKE CONCAT( "%,",#{item},",%" )
+				OR ROLE LIKE CONCAT( "%,",#{item})
+				)
+
+			</foreach>
+		</if>
+
+		ORDER BY FULL_NAME ASC
+		<if test="getSize > 0">
+			LIMIT #{fromIndex},#{getSize}
+		</if>
+
+
+	</select>
+
+
+
+	<!--find information By UserName -->
+	<resultMap id="resultNotifySmsByUserName"
+		type="com.viettel.vtnet360.vt00.vt000000.entity.VT000000EntitySmsVsNotify">
+
+		<result property="toUserId" column="EMPLOYEE_ID" />
+		<result property="phone" column="PHONE_NUMBER" />
+		<result property="UnitName" column="UNIT_NAME" />
+		<result property="createUser" column="FULL_NAME" />
+		<result property="FullNameOfToUserName" column="FULL_NAME" />
+
+	</resultMap>
+
+	<select id="findNotifySmsByUserName" parameterType="String"
+		resultMap="resultNotifySmsByUserName">
+		SELECT
+		QLDV_UNIT.UNIT_NAME,
+		QLDV_EMPLOYEE.USER_NAME,
+		QLDV_EMPLOYEE.FULL_NAME,
+		QLDV_EMPLOYEE.EMPLOYEE_ID,
+		QLDV_EMPLOYEE.PHONE_NUMBER,
+		QLDV_EMPLOYEE.UNIT_ID
+
+		FROM
+		QLDV_EMPLOYEE LEFT JOIN
+		QLDV_UNIT ON QLDV_EMPLOYEE.UNIT_ID = QLDV_UNIT.UNIT_ID
+		WHERE
+		QLDV_EMPLOYEE.USER_NAME = #{userName}
+	</select>
+
+
+
+	<!--find Notify Sms By IdInOut -->
+	<resultMap id="resultNotifySmsByIdInOut"
+		type="com.viettel.vtnet360.vt00.vt000000.entity.VT000000EntitySmsVsNotify">
+
+		<result property="toUserId" column="EMPLOYEE_ID" />
+		<result property="toUserName" column="EMPLOYEE_USER_NAME" />
+		<result property="phone" column="PHONE_NUMBER" />
+		<result property="startTimeByPlan" column="START_TIME_BY_PLAN" />
+		<result property="endTimeByPlan" column="END_TIME_BY_PLAN" />
+		<result property="oldStartTimeByPlan"
+			column="LOG_TO_ROLLBACK_START_TIME_BY_PLAN" />
+		<result property="oldEndTimeByPlan"
+			column="LOG_TO_ROLLBACK_END_TIME_BY_PLAN" />
+		<result property="approverUserName" column="APPROVER_USER_NAME" />
+		<result property="FullNameOfToUserName" column="FULL_NAME" />
+		<result property="approverUserNameFullName"
+			column="FULL_NAME_APROVE" />
+
+		<result property="status" column="STATUS" />
+		<result property="oldStatus" column="LOG_TO_ROLLBACK_STATUS" />
+
+	</resultMap>
+
+	<select id="findNotifySmsByIdInOut" parameterType="String"
+		resultMap="resultNotifySmsByIdInOut">
+
+		SELECT
+
+		I_O.IN_OUT_REGISTER_ID,
+		I_O.EMPLOYEE_USER_NAME,
+		I_O.STATUS,
+		I_O.LOG_TO_ROLLBACK_STATUS,
+		I_O.START_TIME_BY_PLAN,
+		I_O.END_TIME_BY_PLAN,
+		I_O.APPROVER_USER_NAME,
+		I_O.LOG_TO_ROLLBACK_START_TIME_BY_PLAN,
+		I_O.LOG_TO_ROLLBACK_END_TIME_BY_PLAN,
+		EMP.EMPLOYEE_ID,
+		EMP.PHONE_NUMBER,
+		EMP.FULL_NAME,
+		APROVER.FULL_NAME as FULL_NAME_APROVE
+
+		FROM
+
+		IN_OUT_REGISTER as I_O
+		LEFT JOIN QLDV_EMPLOYEE as EMP ON I_O.EMPLOYEE_USER_NAME = EMP.USER_NAME
+		LEFT JOIN QLDV_EMPLOYEE as APROVER ON I_O.APPROVER_USER_NAME =
+		APROVER.USER_NAME
+
+		WHERE
+
+		I_O.IN_OUT_REGISTER_ID = #{inOutRegisterId}
+
+
+	</select>
+
+
+	<!--find User Name Emp By Id InOut -->
+	<select id="findUserNameEmpByIdInOut" parameterType="String"
+		resultType='String'>
+		SELECT EMPLOYEE_USER_NAME
+		FROM IN_OUT_REGISTER
+		WHERE IN_OUT_REGISTER_ID = #{inOutRegisterId}
+	</select>
+
+	<!-- Tim kiem vi tri khoi hanh va dia diem den cho yeu cau dat xe -->
+	<select id="findPlace"
+		resultType="com.viettel.vtnet360.vt00.vt000000.entity.VT000000EntityPlace"
+		parameterType="com.viettel.vtnet360.vt00.vt000000.entity.VT000000EntityPlace">
+		SELECT
+		a.PLACE_ID as placeId,
+		a.PLACE_CODE as placeCode,
+		a.PLACE_NAME as placeName,
+		a.AREA as area,
+		a.DESCRIPTION as description,
+		a.STATUS status
+		FROM QLDV_PLACE AS a
+		WHERE a.STATUS = 1
+		<if test="placeName != null">
+			AND
+			<bind name="pattern" value="'%' + placeName + '%'" />
+			a.PLACE_NAME LIKE #{pattern}
+		</if>
+
+		<if test="getSize > 0">
+			ORDER BY a.PLACE_NAME ASC
+			LIMIT #{fromIndex},#{getSize}
+		</if>
+
+	</select>
+
+	<!-- get list of units ** CREATED BY ThangBT ** -->
+	<select id="findListUnit"
+		parameterType="com.viettel.vtnet360.vt00.vt000000.entity.VT000000EntityListUnit"
+		resultType="com.viettel.vtnet360.vt00.vt000000.entity.VT000000EntityListUnit">
+		SELECT
+		u.UNIT_ID AS result,
+		u.UNIT_ID AS unitId,
+		u.UNIT_NAME AS unitName
+		FROM
+		QLDV_UNIT u
+		WHERE
+		u.STATUS = 1 AND u.`PATH` LIKE CONCAT('%','234841','%')
+		<if test="result != null and result.length &gt; 0">
+			<bind name="pattern" value="'%' + result + '%'" />
+			AND (u.UNIT_ID LIKE #{pattern} OR u.UNIT_NAME LIKE #{pattern})
+		</if>
+		ORDER BY unitName ASC
+		<if test="pageNumber != -1 and pageSize != 0">
+			LIMIT #{pageNumber}, #{pageSize}
+		</if>
+
+	</select>
+
+	<delete id="invalidateDeviceToken" parameterType="String">
+		DELETE FROM
+		NOTI_REG WHERE USERNAME = #{value}
+	</delete>
+
+	<delete id="invalidateToken" parameterType="Map">
+		DELETE a,r,d
+		FROM
+		oauth_access_token as a LEFT OUTER JOIN oauth_refresh_token as r ON
+		a.refresh_token = r.token_id
+		LEFT OUTER JOIN NOTI_REG as d ON
+		a.user_name = d.USERNAME WHERE (a.user_name = #{username} AND
+		a.client_id = #{client})
+	</delete>
+
+	<!-- "get Guard password -->
+	<select id="getPasswordOfGuard" resultType="String">
+		SELECT CODE_NAME FROM M_SYSTEM_CODE WHERE MASTER_CLASS = "S010" AND STATUS =1 AND
+		CODE_VALUE = "01"
+	</select>
+
+	<!-- "set Guard password -->
+	<update id="setPasswordOfGuard" parameterType="String">
+		UPDATE M_SYSTEM_CODE SET CODE_NAME = #{value} WHERE MASTER_CLASS = "S010" AND STATUS =1
+		AND CODE_VALUE = "01"
+	</update>
+	<select id="findNotifyEachMinute" resultType="java.util.Map">
+
+		SELECT
+		reg.USERNAME as toUserName,
+		reg.DEVICE_ID as deviceId ,
+		reg.DEVICE_TYPE as deviceType,
+		log.TITLE as title,
+		log.MESSAGE as message,
+		log.TYPE as type,
+		log.ADDITIONAL_INFOMATION as addInfo,
+		log.STATUS as status,
+		log.STATUS_RECORD as statusRecord,
+		log.NOTI_LOG_ID as notiLogId
+		FROM
+		NOTI_REG as reg
+		LEFT JOIN NOTI_LOG as log ON
+		reg.USERNAME = log.USERNAME
+		WHERE log.STATUS = 0
+	</select>
+
+
+	<select id="findInfoInOutRecord" parameterType="String"
+		resultType="java.util.Map">
+		SELECT
+		*
+		FROM IN_OUT_REGISTER
+		WHERE
+		IN_OUT_REGISTER_ID = #{id}
+
+	</select>
+
+</mapper>

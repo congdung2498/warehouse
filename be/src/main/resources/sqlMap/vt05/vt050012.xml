@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt05.vt050012.dao.VT050012DAO">
+    
+    <select id="isQuotaExist" resultType="java.lang.Integer"
+        parameterType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM STATIONERY_QUOTA
+        WHERE UNIT_ID = #{unitId}
+    </select>
+    
+	<select id="findData"
+		resultType="com.viettel.vtnet360.vt05.vt050012.entity.VT050012DataResponse"
+		parameterType="com.viettel.vtnet360.vt05.vt050012.entity.VT050012RequestParam">
+		SELECT i.ISSUE_STATIONERY_ID as requestID,
+		i.REQUEST_DATE as dateRequest,
+		i.NOTE as message,
+		i.STATUS as status,
+		qp.PLACE_NAME as placeName
+		FROM ISSUES_STATIONERY i 
+		JOIN QLDV_PLACE qp ON i.ISSUE_LOCATION = qp.PLACE_ID
+		WHERE 1 = 1 AND
+		 i.EMPLOYEE_USERNAME = #{userName} 
+		<if test="dateFrom != null and dateTo != null">
+			<!-- AND -->
+			AND DATE(i.REQUEST_DATE) BETWEEN DATE(#{dateFrom}) AND DATE(#{dateTo})
+		</if>
+		<if test="dateFrom == null and dateTo != null">
+			AND DATE(i.REQUEST_DATE) &lt;= DATE(#{dateTo})
+		</if>
+		<if test="dateFrom != null and dateTo == null">
+			AND DATE(i.REQUEST_DATE) >= DATE(#{dateFrom})
+		</if>
+		<if test="dateFrom == null and dateTo == null">
+			<!-- AND -->
+			AND MONTH(i.REQUEST_DATE) = MONTH(NOW())
+			AND YEAR(i.REQUEST_DATE) = YEAR(NOW())
+		</if>
+		<if test="listStatus != null and listStatus.size() > 0">
+		AND i.STATUS IN
+		<foreach collection="listStatus" item="item" index="index"
+			open="(" separator="," close=")">
+			#{item}
+		</foreach>
+		</if>
+		<if test="placeId > 0">
+			AND i.ISSUE_LOCATION = #{placeId}
+		</if>
+		ORDER BY dateRequest ASC
+		<if test="pageNumber >= 0 and pageSize > 0">
+			LIMIT #{pageNumber}, #{pageSize}
+		</if>
+	</select>
+
+	<select id="countRequest" resultType="java.lang.Integer"
+		parameterType="com.viettel.vtnet360.vt05.vt050012.entity.VT050012RequestParam">
+		SELECT
+		COUNT(*)
+		FROM ISSUES_STATIONERY
+		WHERE
+		<!-- EMPLOYEE_USERNAME = #{userName} -->
+		<if test="dateFrom != null and dateTo != null">
+			<!-- AND -->
+			DATE(REQUEST_DATE) BETWEEN DATE(#{dateFrom}) AND DATE(#{dateTo})
+		</if>
+		<if test="dateFrom == null and dateTo != null">
+			AND DATE(REQUEST_DATE) &lt;= DATE(#{dateTo})
+		</if>
+		<if test="dateFrom != null and dateTo == null">
+			AND DATE(REQUEST_DATE) >= DATE(#{dateFrom})
+		</if>
+		<if test="dateFrom == null and dateTo == null">
+			<!-- AND -->
+			MONTH(REQUEST_DATE) = MONTH(NOW())
+			AND YEAR(REQUEST_DATE) = YEAR(NOW())
+		</if>
+		<if test="listStatus != null and listStatus.size() > 0">
+		AND STATUS IN
+		<foreach collection="listStatus" item="item" index="index"
+			open="(" separator="," close=")">
+			#{item}
+		</foreach>
+		</if>
+		<if test="placeId > 0">
+			AND ISSUE_LOCATION = #{placeId}
+		</if>
+	</select>
+
+	<select id="findStationeryQuota"
+		resultType="com.viettel.vtnet360.vt05.vt050012.entity.VT050012DataResponseQuota"
+		parameterType="com.viettel.vtnet360.vt05.vt050012.entity.VT050012RequestParamQuota">
+		select
+		(select CODE_NAME from M_SYSTEM_CODE
+            where MASTER_CLASS ='STATIONERY' AND STATUS =1 AND CODE_VALUE ='END') as limitDate,
+		sq.ID as id,
+		qu.UNIT_NAME as unitName ,
+		sq.QUOTA as quota ,
+		sq.QUANTITY as quantity,
+		qu.PATH AS path,
+		sq.UNIT_ID as unitId,
+		(sq.QUOTA*sq.QUANTITY) as total
+		from STATIONERY_QUOTA sq LEFT JOIN QLDV_UNIT qu ON qu.UNIT_ID = sq.UNIT_ID
+
+		WHERE 1=1
+		<if test="listStatus != null and listStatus.length &gt; 0">
+			AND qu.UNIT_ID IN
+			<foreach item="item1" collection="listStatus" open="("
+				separator=" UNION " close=")">
+				SELECT
+				UNIT_ID
+				FROM
+				QLDV_UNIT
+				WHERE
+				QLDV_UNIT.`PATH` LIKE CONCAT('%', #{item1}, '%')
+			</foreach>
+		</if>
+		<if test="quota !=null and quotaInt ==0 ">
+			AND
+			sq.QUOTA LIKE CONCAT('%', #{quota}, '%')
+		</if>
+		<if test="quotaInt !=0 ">
+			AND
+			sq.QUOTA LIKE CONCAT('%', #{quotaInt}, '%')
+		</if>
+		<if test="quantity !=null">
+			AND
+			sq.QUANTITY LIKE CONCAT('%', #{quantity}, '%')
+		</if>
+		ORDER BY UNIT_NAME
+		<if test="pageNumber >= 0 and pageSize > 0">
+			LIMIT #{pageNumber}, #{pageSize}
+		</if>
+	</select>
+
+
+	<select id="countStationeryQuota" resultType="java.lang.Integer"
+		parameterType="com.viettel.vtnet360.vt05.vt050012.entity.VT050012RequestParamQuota">
+		select
+		COUNT(*)
+		from STATIONERY_QUOTA sq LEFT JOIN QLDV_UNIT qu ON qu.UNIT_ID = sq.UNIT_ID
+		WHERE 1=1
+		<if test="listStatus != null and listStatus.length &gt; 0">
+			AND qu.UNIT_ID IN
+			<foreach item="item1" collection="listStatus" open="("
+				separator=" UNION " close=")">
+				SELECT
+				UNIT_ID
+				FROM
+				QLDV_UNIT
+				WHERE
+				QLDV_UNIT.`PATH` LIKE CONCAT('%', #{item1}, '%')
+			</foreach>
+		</if>
+		<if test="quota !=null">
+			AND
+			sq.QUOTA LIKE CONCAT('%', #{quota}, '%')
+		</if>
+		<if test="quantity !=null">
+			AND
+			sq.QUANTITY LIKE CONCAT('%', #{quantity}, '%')
+		</if>
+	</select>
+
+	<select id="getLimitDateEnd" resultType="String">
+		select CODE_NAME from M_SYSTEM_CODE
+		where MASTER_CLASS ='STATIONERY' AND STATUS =1 AND CODE_VALUE ='END';
+	</select>
+
+	<update id="updateLimitDate" parameterType="com.viettel.vtnet360.vt05.vt050012.entity.UpdateLimitDateDTO">
+		UPDATE M_SYSTEM_CODE
+		SET
+		CODE_NAME=#{codeName}
+		where MASTER_CLASS ='STATIONERY'  AND STATUS =1 AND CODE_VALUE ='END';
+	</update>
+	
+	<insert id="insertQuota"
+	parameterType="com.viettel.vtnet360.vt05.vt050012.entity.QuotaInsert">
+
+	INSERT
+	INTO
+	STATIONERY_QUOTA
+	(ID
+	 ,UNIT_ID
+	,QUOTA
+	,QUANTITY	
+	)
+
+	VALUES(
+	CONCAT('VTN_SR_', NEXT VALUE FOR VTN_S),
+	#{unitId}
+	,#{quota}
+	,#{quantity}
+	)
+</insert>
+<update id="updateQuota" parameterType="com.viettel.vtnet360.vt05.vt050012.entity.VT050012DataResponseQuota">
+		UPDATE STATIONERY_QUOTA
+		SET
+		QUOTA = #{quota},
+		QUANTITY = #{quantity}
+		WHERE ID = #{id};
+	</update>
+
+<delete id="deleteQuota" parameterType="com.viettel.vtnet360.vt05.vt050012.entity.VT050012DataResponseQuota">
+		DELETE FROM STATIONERY_QUOTA
+		WHERE ID = #{id};
+	</delete>
+	
+</mapper>

@@ -1,0 +1,55 @@
+.content {
+    background: #fff;
+  }
+  .config-right {
+    float: right;
+  }
+  .config-left {
+    float: left;
+  }
+  .row-button {
+    padding: 15px;
+    margin: auto;
+    text-align: center;
+  }
+  
+  
+  :host >>> .fix-drop-down > .ui-widget {
+    height: 35px !important;
+    top: -1px !important;
+  }
+  /* @media all {
+    .page-break {display: flex; }
+} */
+
+ 
+  @media print{
+    @page{
+      size: A5;
+      flex-direction: row;
+      background-color: red;
+    }
+   
+  }
+  #table-container{
+    overflow: auto;
+  }
+
+  @media only screen and (max-width: 700px) {
+    #custom-container{
+      margin-left:30px;
+    }
+    .table-container{
+      width:100%;
+      overflow: auto;
+      margin-bottom: 5%;
+    }
+  }
+  
+  
+  /* #exportPDF{
+    @page{
+      size: A4;
+    }
+  } */
+  

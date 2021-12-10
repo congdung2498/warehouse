@@ -1,0 +1,31 @@
+p-autoComplete {
+    width: 100% !important;
+}
+
+p-table {
+    text-align: center;
+}
+
+:host>>>.ui-table>.ui-table-wrapper>table>.ui-table-thead>tr>th {
+    padding: 2px 3px !important;
+}
+
+:host>>>table>.ui-table-tbody>tr>td.wrapText {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+:host>>>p-paginator>.ui-paginator-bottom>.ui-paginator-pages>a {
+    margin-left: 3px !important;
+    margin-right: 3px !important;
+}
+
+::ng-deep #dlgChef .ui-dialog .ui-dialog-titlebar {
+    text-align: center !important;
+}
+
+/* :host>>>p-button>button {
+    width: 25px !important;
+    height: 25px !important;
+} */

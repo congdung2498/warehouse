@@ -1,0 +1,29 @@
+:host >>> .fix-drop-down > .ui-widget {
+    height: 35px !important;
+    top: -1px !important;
+}
+:host>>>.no-border>div {
+    border: none;
+    overflow: unset !important;
+    width: 120%;
+}
+:host >>> .no-border > div > ul {
+    overflow: unset !important;
+    width: 100%;
+}
+:host >>> .full-width > .ui-table > .ui-table-scrollable-wrapper > .ui-table-frozen-view {
+    width: 100% !important;
+}
+:host >>> .full-width > .ui-table > .ui-table-scrollable-wrapper > .ui-table-unfrozen-view {
+    width: calc(100% - 54rem - 1px) !important;
+}
+:host >>> .full-width > .ui-table > .ui-table-scrollable-wrapper > .ui-table-unfrozen-view > .ui-table-scrollable-footer > .ui-table-scrollable-footer-box {
+    display: none;
+}
+:host >>> .full-width > .ui-table > .ui-table-scrollable-wrapper > .ui-table-unfrozen-view > .ui-table-scrollable-body > .ui-table-scrollable-body-table> .ui-table-tbody> .delete {
+    display: none;
+}
+
+.ui-treenode-content-selected {
+    border: none !important;
+}

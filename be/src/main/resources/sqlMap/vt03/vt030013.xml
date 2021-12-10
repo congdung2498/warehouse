@@ -1,0 +1,549 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt03.vt030013.dao.VT030013DAO">
+
+	<select id="getCarDriverManage"
+		parameterType="com.viettel.vtnet360.vt03.vt030013.entity.RequestSearch"
+		resultType="com.viettel.vtnet360.vt03.vt030013.entity.CarDriverManage">
+		SELECT
+		b.DRIVE_SQUAD_ID as squadId,
+		d.USER_NAME as userName,
+		c.PLACE_NAME place,
+		b.SQUAD_NAME as squadName,
+		d.FULL_NAME driver,
+		d.PHONE_NUMBER phoneNumber,
+		e.UNIT_NAME unit,
+		g.PROCESS_STATUS
+		driverStatus,
+		f.`TYPE` type,
+		f.SEAT seat,
+		f.LICENSE_PLATE licensePlate,
+		f.PROCESS_STATUS carStatus
+		FROM DRIVE_CAR a
+		LEFT JOIN DRIVES_SQUAD b ON a.DRIVE_SQUAD_ID=b.DRIVE_SQUAD_ID
+		LEFT JOIN QLDV_PLACE c ON b.PLACE_ID = c.PLACE_ID
+		LEFT JOIN QLDV_EMPLOYEE d ON a.EMPLOYEE_USER_NAME=d.USER_NAME
+		LEFT JOIN QLDV_UNIT e ON d.UNIT_ID= e.UNIT_ID
+		LEFT JOIN CARS f ON a.CAR_ID=f.CAR_ID
+		LEFT JOIN DRIVER g ON a.EMPLOYEE_USER_NAME=g.EMPLOYEE_USER_NAME
+		WHERE
+		b.STATUS>0 AND g.STATUS = 1
+		AND
+		g.DELETE_FLAG = 0 and d.STATUS=1
+		
+		<if test="driverSquadName !=null">
+            AND
+            <bind name="pattern1" value="'%' + driverSquadName + '%'" />
+            b.SQUAD_NAME LIKE #{pattern1}
+        </if>
+		<if test="driverSquadId != null and driverSquadId.length &gt; 0">
+			AND b.DRIVE_SQUAD_ID = #{driverSquadId}
+		</if>
+        <if test="driverFullName!=null and driverFullName!=''">
+            <bind name="pattern" value="'%' + driverFullName + '%'" />
+            AND d.FULL_NAME LIKE #{pattern} 
+        </if>
+		<if test="driverUserName != null and driverUserName.length &gt; 0">
+			AND d.USER_NAME = #{driverUserName}
+		</if>
+
+		<if test="driverStatus != null and driverStatus.length &gt; 0">
+			AND
+			<foreach item="status" index="index" collection="driverStatus"
+				open="(" separator="or" close=")">
+				g.PROCESS_STATUS = #{status}
+			</foreach>
+		</if>
+
+		<if test="carType != null and carType.length &gt; 0">
+			AND f.`TYPE` = #{carType}
+		</if>
+
+		<if test="seat != null and seat.length &gt; 0">
+			AND f.SEAT = #{seat}
+		</if>
+
+		<if test="licensePlate != null and licensePlate.length &gt; 0">
+			<bind name="pattern" value="'%' + licensePlate + '%'" />
+			AND f.LICENSE_PLATE LIKE #{pattern}
+		</if>
+
+		<if test="carStatus != null and carStatus.length &gt; 0" >
+			AND
+			<foreach item="status" index="index" collection="carStatus"
+				open="(" separator="or" close=")">
+				f.PROCESS_STATUS = #{status}
+			</foreach>
+		</if>
+
+		<if test="carLead == true ">
+			AND a.DRIVE_SQUAD_ID=#{squadOfLead}
+		</if>
+		ORDER BY squadName, driver, place
+		LIMIT #{pageNumber},#{pageSize}
+	</select>
+
+
+<select id="getCarDriverManageCount"
+		parameterType="com.viettel.vtnet360.vt03.vt030013.entity.RequestSearch"
+		resultType="Int">
+		SELECT COUNT(*)
+		FROM DRIVE_CAR a
+		LEFT JOIN DRIVES_SQUAD b ON
+		a.DRIVE_SQUAD_ID=b.DRIVE_SQUAD_ID
+		LEFT JOIN QLDV_PLACE c ON b.PLACE_ID
+		= c.PLACE_ID
+		LEFT JOIN QLDV_EMPLOYEE d ON
+		a.EMPLOYEE_USER_NAME=d.USER_NAME
+		LEFT JOIN QLDV_UNIT e ON d.UNIT_ID=
+		e.UNIT_ID
+		LEFT JOIN CARS f ON a.CAR_ID=f.CAR_ID
+		LEFT JOIN DRIVER g ON
+		a.EMPLOYEE_USER_NAME=g.EMPLOYEE_USER_NAME
+		WHERE
+		b.STATUS>0 AND g.STATUS = 1
+		AND
+		g.DELETE_FLAG = 0 and d.STATUS=1
+		<if test="driverSquadId != null and driverSquadId.length &gt; 0">
+			AND b.DRIVE_SQUAD_ID = #{driverSquadId}
+		</if>
+
+		<if test="driverUserName != null and driverUserName.length &gt; 0">
+			AND d.USER_NAME = #{driverUserName}
+		</if>
+
+		<if test="driverStatus != null and driverStatus.length &gt; 0">
+			AND
+			<foreach item="status" index="index" collection="driverStatus"
+				open="(" separator="or" close=")">
+				g.PROCESS_STATUS = #{status}
+			</foreach>
+		</if>
+
+		<if test="carType != null and carType.length &gt; 0">
+			AND f.`TYPE` = #{carType}
+		</if>
+
+		<if test="seat != null and seat.length &gt; 0">
+			AND f.SEAT = #{seat}
+		</if>
+
+		<if test="licensePlate != null and licensePlate.length &gt; 0">
+			<bind name="pattern" value="'%' + licensePlate + '%'" />
+			AND f.LICENSE_PLATE LIKE #{pattern}
+		</if>
+
+		<if test="carStatus != null and carStatus.length &gt; 0" >
+			AND
+			<foreach item="status" index="index" collection="carStatus"
+				open="(" separator="or" close=")">
+				f.PROCESS_STATUS = #{status}
+			</foreach>
+		</if>
+
+		<if test="carLead == true ">
+			AND a.DRIVE_SQUAD_ID=#{squadOfLead}
+		</if>
+		<if test="freeTime == true and driverStatus != null and driverStatus.length &gt; 0">
+			UNION ALL
+			SELECT
+			b.DRIVE_SQUAD_ID as squadId,
+			d.USER_NAME as
+			userName,
+			c.PLACE_NAME place,
+			b.SQUAD_NAME as squadName,
+			d.FULL_NAME
+			driver,
+			d.PHONE_NUMBER phoneNumber,
+			e.UNIT_NAME unit,
+			g.PROCESS_STATUS
+			driverStatus,
+			f.`TYPE` type,
+			f.SEAT seat,
+			f.LICENSE_PLATE licensePlate,
+			f.PROCESS_STATUS carStatus
+			FROM DRIVE_CAR a
+			INNER JOIN DRIVES_SQUAD b
+			ON a.DRIVE_SQUAD_ID=b.DRIVE_SQUAD_ID
+			INNER JOIN QLDV_PLACE c ON
+			b.PLACE_ID = c.PLACE_ID
+			INNER JOIN QLDV_EMPLOYEE d ON
+			a.EMPLOYEE_USER_NAME=d.USER_NAME
+			INNER JOIN QLDV_UNIT e ON d.UNIT_ID=
+			e.UNIT_ID
+			INNER JOIN CARS f ON a.CAR_ID=f.CAR_ID
+			INNER JOIN DRIVER g ON
+			a.EMPLOYEE_USER_NAME=g.EMPLOYEE_USER_NAME
+			LEFT JOIN CAR_BOOKING h ON
+			a.DRIVE_SQUAD_ID=h.DRIVER_SQUAD_ID
+			WHERE
+			b.STATUS>0 AND g.STATUS = 1
+			AND h.STATUS &lt; 8
+			AND g.DELETE_FLAG = 0 AND h.STATUS=4 and
+			now()
+			&lt;= h.`END`
+			<if test="carLead == true ">
+				AND a.DRIVE_SQUAD_ID=#{squadOfLead}
+			</if>
+		</if>
+		
+	</select>
+
+<select id="reportCarDriverManage"
+		parameterType="com.viettel.vtnet360.vt03.vt030013.entity.ReportSearch"
+		resultType="com.viettel.vtnet360.vt03.vt030013.entity.CarDriverManage">
+		SELECT
+		b.DRIVE_SQUAD_ID as squadId,
+		d.USER_NAME as userName,
+		c.PLACE_NAME place,
+		b.SQUAD_NAME as squadName,
+		d.FULL_NAME driver,
+		d.PHONE_NUMBER phoneNumber,
+		e.UNIT_NAME unit,
+		g.PROCESS_STATUS
+		driverStatus,
+		f.`TYPE` type,
+		f.SEAT seat,
+		f.LICENSE_PLATE licensePlate,
+		f.PROCESS_STATUS carStatus
+		FROM DRIVE_CAR a
+		LEFT JOIN DRIVES_SQUAD b ON
+		a.DRIVE_SQUAD_ID=b.DRIVE_SQUAD_ID
+		LEFT JOIN QLDV_PLACE c ON b.PLACE_ID
+		= c.PLACE_ID
+		LEFT JOIN QLDV_EMPLOYEE d ON
+		a.EMPLOYEE_USER_NAME=d.USER_NAME
+		LEFT JOIN QLDV_UNIT e ON d.UNIT_ID=
+		e.UNIT_ID
+		LEFT JOIN CARS f ON a.CAR_ID=f.CAR_ID
+		LEFT JOIN DRIVER g ON
+		a.EMPLOYEE_USER_NAME=g.EMPLOYEE_USER_NAME
+		WHERE
+		b.STATUS>0 AND g.STATUS = 1
+		AND
+		g.DELETE_FLAG = 0 and d.STATUS=1
+		<if test="driverSquadId != null">
+			AND b.DRIVE_SQUAD_ID = #{driverSquadId}
+		</if>
+
+		<if test="driverUserName != null">
+			AND d.USER_NAME = #{driverUserName}
+		</if>
+
+		<if test="driverStatus != null">
+			AND
+			<foreach item="status" index="index" collection="driverStatus"
+				open="(" separator="or" close=")">
+				g.PROCESS_STATUS = #{status}
+			</foreach>
+		</if>
+
+		<if test="carType != null">
+			AND f.`TYPE` = #{carType}
+		</if>
+
+		<if test="seat != null">
+			AND f.SEAT = #{seat}
+		</if>
+
+		<if test="licensePlate != null">
+			<bind name="pattern" value="'%' + licensePlate + '%'" />
+			AND f.LICENSE_PLATE LIKE #{pattern}
+		</if>
+
+		<if test="carStatus != null">
+			AND
+			<foreach item="status" index="index" collection="carStatus"
+				open="(" separator="or" close=")">
+				f.PROCESS_STATUS = #{status}
+			</foreach>
+		</if>
+
+		<if test="carLead == true and carLead != null">
+			AND a.DRIVE_SQUAD_ID=#{squadOfLead}
+		</if>
+		<if test="freeTime == true and driverStatus != null">
+			UNION ALL
+			SELECT
+			b.DRIVE_SQUAD_ID as squadId,
+			d.USER_NAME as
+			userName,
+			c.PLACE_NAME place,
+			b.SQUAD_NAME as squadName,
+			d.FULL_NAME
+			driver,
+			d.PHONE_NUMBER phoneNumber,
+			e.UNIT_NAME unit,
+			g.PROCESS_STATUS
+			driverStatus,
+			f.`TYPE` type,
+			f.SEAT seat,
+			f.LICENSE_PLATE licensePlate,
+			f.PROCESS_STATUS carStatus
+			FROM DRIVE_CAR a
+			INNER JOIN DRIVES_SQUAD b
+			ON a.DRIVE_SQUAD_ID=b.DRIVE_SQUAD_ID
+			INNER JOIN QLDV_PLACE c ON
+			b.PLACE_ID = c.PLACE_ID
+			INNER JOIN QLDV_EMPLOYEE d ON
+			a.EMPLOYEE_USER_NAME=d.USER_NAME
+			INNER JOIN QLDV_UNIT e ON d.UNIT_ID=
+			e.UNIT_ID
+			INNER JOIN CARS f ON a.CAR_ID=f.CAR_ID
+			INNER JOIN DRIVER g ON
+			a.EMPLOYEE_USER_NAME=g.EMPLOYEE_USER_NAME
+			LEFT JOIN CAR_BOOKING h ON
+			a.DRIVE_SQUAD_ID=h.DRIVER_SQUAD_ID
+			WHERE
+			b.STATUS>0 AND g.STATUS = 1
+			AND h.STATUS &lt; 8
+			AND g.DELETE_FLAG = 0 AND h.STATUS=4 and
+			now()
+			&lt;= h.`END`
+			<if test="carLead == true and carLead != null">
+				AND a.DRIVE_SQUAD_ID=#{squadOfLead}
+			</if>
+		</if>
+		ORDER BY squadName, driver, place
+	
+	</select>
+
+
+
+
+	<select id="getSquadIdByQLDX" parameterType="java.lang.String"
+		resultType="com.viettel.vtnet360.vt03.vt030001.entity.DriveSquad">
+		select DRIVE_SQUAD_ID as squadId,SQUAD_NAME as squadName
+		from DRIVES_SQUAD where
+		EMPLOYEE_USER_NAME=#{userName} and
+		DELETE_FLAG=0 and STATUS=1
+	</select>
+
+	<select id="getCarSeat" resultType="com.viettel.vtnet360.vt03.vt030002.entity.Seat">
+		SELECT CODE_VALUE as seatId,
+		CODE_NAME as seat
+		FROM M_SYSTEM_CODE where MASTER_CLASS='S002';
+	</select>
+
+	<select id="getCarType" resultType="com.viettel.vtnet360.vt03.vt030002.entity.Type">
+		SELECT CODE_VALUE as typeId,
+		CODE_NAME as type
+		FROM M_SYSTEM_CODE where MASTER_CLASS='S001';
+	</select>
+
+	<select id="getLocationList" resultType="com.viettel.vtnet360.vt03.vt030013.entity.Unit">
+		SELECT UNIT_ID as
+		unitId, UNIT_NAME as unitName, IFNULL(PARENT_UNIT_ID,-1) as parentId
+		FROM QLDV_UNIT WHERE STATUS = 1 AND QLDV_UNIT.PATH LIKE '%234841%'
+	</select>
+
+
+	<select id="getLicensePlate" parameterType="com.viettel.vtnet360.vt03.vt030013.entity.CarPlate"
+		resultType="com.viettel.vtnet360.vt03.vt030013.entity.CarPlate">
+		SELECT 
+			CAR_ID as carId, 
+			LICENSE_PLATE as licensePlate 
+		FROM CARS 
+		<if test="role == 'PMQT_QL_Doi_xe' and licensePlate == null">
+			WHERE DRIVE_SQUAD_ID = (SELECT DRIVE_SQUAD_ID FROM DRIVES_SQUAD WHERE EMPLOYEE_USER_NAME = #{userName})
+		</if>
+		<if test="licensePlate != null">
+			WHERE
+			<bind name="pattern" value="'%' + licensePlate + '%'" />
+			LICENSE_PLATE LIKE #{pattern}
+			<if test="role == 'PMQT_QL_Doi_xe'">
+				AND DRIVE_SQUAD_ID = (SELECT DRIVE_SQUAD_ID FROM DRIVES_SQUAD WHERE EMPLOYEE_USER_NAME = #{userName})
+			</if>
+		</if>
+		ORDER BY LICENSE_PLATE ASC
+		LIMIT #{pageNumber}, #{pageSize}
+	</select>
+	
+	<select id="getDriverInSquad" parameterType="com.viettel.vtnet360.vt03.vt030013.entity.Driver" resultType="com.viettel.vtnet360.vt03.vt030013.entity.Driver">
+		SELECT 
+			e.FULL_NAME as fullName,
+			e.USER_NAME as userName,
+			e.TITLE as title
+		FROM QLDV_EMPLOYEE as e 
+			LEFT JOIN DRIVER as d ON e.USER_NAME = d.EMPLOYEE_USER_NAME
+			LEFT JOIN DRIVES_SQUAD as ds ON ds.DRIVE_SQUAD_ID = d.DRIVE_SQUAD_ID
+			LEFT JOIN QLDV_UNIT as u ON u.UNIT_ID = e.UNIT_ID
+		WHERE 
+			d.STATUS = 1 
+			AND d.DELETE_FLAG = 0
+			AND u.`PATH` LIKE CONCAT('%','234841','%')
+			AND e.STATUS = 1
+			<if test="pattern != null">
+				<bind name="value" value="'%' + pattern + '%'" />
+					AND (e.FULL_NAME LIKE #{value} OR e.USER_NAME LIKE #{value} )
+			</if>
+			<if test="role == 'PMQT_QL_Doi_xe'">
+				AND d.DRIVE_SQUAD_ID = (SELECT DRIVE_SQUAD_ID FROM DRIVES_SQUAD WHERE EMPLOYEE_USER_NAME = #{userName})
+			</if>
+			ORDER BY fullName ASC
+			LIMIT #{pageNumber}, #{pageSize}
+	
+	</select>
+    <select id="getListFreeCar"
+            parameterType="com.viettel.vtnet360.vt03.vt030013.entity.RequestSearch"
+            resultType="com.viettel.vtnet360.vt03.vt030013.entity.CarDriverManage">
+        SELECT
+	        b.DRIVE_SQUAD_ID as squadId,
+	        d.USER_NAME as userName,
+	        c.PLACE_NAME place,
+	        b.SQUAD_NAME as squadName,
+	        d.FULL_NAME driver,
+	        d.PHONE_NUMBER phoneNumber,
+	        e.UNIT_NAME unit,
+	        g.PROCESS_STATUS as driverStatus,
+	        f.PROCESS_STATUS as carStatus,
+	        mscType.CODE_NAME type,
+	        mscSeat.CODE_NAME seat,
+	        f.LICENSE_PLATE licensePlate
+        FROM 
+            DRIVE_CAR a
+	        LEFT JOIN DRIVES_SQUAD b ON a.DRIVE_SQUAD_ID=b.DRIVE_SQUAD_ID
+	        LEFT JOIN QLDV_PLACE c ON b.PLACE_ID = c.PLACE_ID
+	        LEFT JOIN QLDV_EMPLOYEE d ON a.EMPLOYEE_USER_NAME=d.USER_NAME
+	        LEFT JOIN QLDV_UNIT e ON d.UNIT_ID= e.UNIT_ID
+	        LEFT JOIN CARS f ON a.CAR_ID=f.CAR_ID
+	        LEFT JOIN DRIVER g ON a.EMPLOYEE_USER_NAME=g.EMPLOYEE_USER_NAME AND a.DRIVE_SQUAD_ID=g.DRIVE_SQUAD_ID
+	        LEFT JOIN M_SYSTEM_CODE mscType ON f.TYPE=mscType.CODE_VALUE
+	        LEFT JOIN M_SYSTEM_CODE mscSeat ON f.SEAT=mscSeat.CODE_VALUE
+        WHERE
+	        b.STATUS>0 AND g.STATUS = 1 AND g.DELETE_FLAG = 0 AND d.STATUS=1
+	        AND mscType.MASTER_CLASS = 'S001' AND mscType.STATUS =1 AND mscSeat.MASTER_CLASS = 'S002' AND mscSeat.STATUS =1
+        
+	        <if test="driverSquadName !=null">
+	            AND
+	            <bind name="pattern1" value="'%' + driverSquadName + '%'" />
+	            b.SQUAD_NAME LIKE #{pattern1}
+	        </if>
+	        <if test="driverSquadId != null and driverSquadId.length &gt; 0">
+	            AND b.DRIVE_SQUAD_ID = #{driverSquadId}
+	        </if>
+	        <if test="driverFullName!=null and driverFullName!=''">
+	            <bind name="pattern" value="'%' + driverFullName + '%'" />
+	            AND d.FULL_NAME LIKE #{pattern} 
+	        </if>
+	        <if test="driverUserName != null and driverUserName.length &gt; 0">
+	            AND d.USER_NAME = #{driverUserName}
+	        </if>
+	
+	        <if test="driverStatus != null and driverStatus.length &gt; 0">
+	            AND
+	            <foreach item="status" index="index" collection="driverStatus"
+	                open="(" separator="or" close=")">
+	                g.PROCESS_STATUS = #{status}
+	            </foreach>
+	        </if>
+			<if test="driverStatus == null or driverStatus.length == 0">
+	            AND g.PROCESS_STATUS IN(0, 7, 4, 5)
+	        </if>
+	        <if test="carType != null and carType.length &gt; 0">
+	            AND f.`TYPE` = #{carType}
+	        </if>
+	
+	        <if test="seat != null and seat.length &gt; 0">
+	            AND f.SEAT = #{seat}
+	        </if>
+	
+	        <if test="licensePlate != null and licensePlate.length &gt; 0">
+	            <bind name="pattern" value="'%' + licensePlate + '%'" />
+	            AND f.LICENSE_PLATE LIKE #{pattern}
+	        </if>
+	
+	        <if test="carStatus != null and carStatus.length &gt; 0" >
+	            AND
+	            <foreach item="status" index="index" collection="carStatus"
+	                open="(" separator="or" close=")">
+	                f.PROCESS_STATUS = #{status}
+	            </foreach>
+	        </if>
+			<if test="carStatus == null or carStatus.length == 0" >
+	            AND f.PROCESS_STATUS IN(0, 7, 4, 5)
+	        </if>
+	        <if test="carLead == true ">
+	            AND a.DRIVE_SQUAD_ID=#{squadOfLead}
+	        </if>
+        
+        ORDER BY squadName, driver, place,seat
+        <if test="pageNumber &gt;= 0">
+            LIMIT #{pageRecord},#{pageSize}
+        </if>
+        
+    </select>
+    
+    <select id="totalFreeCar"
+            parameterType="com.viettel.vtnet360.vt03.vt030013.entity.RequestSearch"
+        resultType="int">
+        SELECT
+            COUNT(*)
+        FROM DRIVE_CAR a
+        LEFT JOIN DRIVES_SQUAD b ON a.DRIVE_SQUAD_ID=b.DRIVE_SQUAD_ID
+        LEFT JOIN QLDV_PLACE c ON b.PLACE_ID = c.PLACE_ID
+        LEFT JOIN QLDV_EMPLOYEE d ON a.EMPLOYEE_USER_NAME=d.USER_NAME
+        LEFT JOIN QLDV_UNIT e ON d.UNIT_ID= e.UNIT_ID
+        LEFT JOIN CARS f ON a.CAR_ID=f.CAR_ID
+        LEFT JOIN DRIVER g ON a.EMPLOYEE_USER_NAME=g.EMPLOYEE_USER_NAME AND a.DRIVE_SQUAD_ID=g.DRIVE_SQUAD_ID
+        LEFT JOIN M_SYSTEM_CODE mscType ON f.TYPE=mscType.CODE_VALUE
+        LEFT JOIN M_SYSTEM_CODE mscSeat ON f.SEAT=mscSeat.CODE_VALUE
+        WHERE
+        b.STATUS>0 AND g.STATUS = 1 AND g.DELETE_FLAG = 0 AND d.STATUS=1
+        AND mscType.MASTER_CLASS = 'S001' AND mscType.STATUS =1 AND mscSeat.MASTER_CLASS = 'S002' AND mscSeat.STATUS =1
+        
+        <if test="driverSquadName !=null">
+            AND
+            <bind name="pattern1" value="'%' + driverSquadName + '%'" />
+            b.SQUAD_NAME LIKE #{pattern1}
+        </if>
+        <if test="driverSquadId != null and driverSquadId.length &gt; 0">
+            AND b.DRIVE_SQUAD_ID = #{driverSquadId}
+        </if>
+        <if test="driverFullName!=null and driverFullName!=''">
+            <bind name="pattern" value="'%' + driverFullName + '%'" />
+            AND d.FULL_NAME LIKE #{pattern} 
+        </if>
+        <if test="driverUserName != null and driverUserName.length &gt; 0">
+            AND d.USER_NAME = #{driverUserName}
+        </if>
+
+        <if test="driverStatus != null and driverStatus.length &gt; 0">
+            AND
+            <foreach item="status" index="index" collection="driverStatus"
+                open="(" separator="or" close=")">
+                g.PROCESS_STATUS = #{status}
+            </foreach>
+        </if>
+		<if test="driverStatus == null or driverStatus.length == 0">
+            AND g.PROCESS_STATUS IN(0, 7, 4, 5)
+        </if>
+        <if test="carType != null and carType.length &gt; 0">
+            AND f.`TYPE` = #{carType}
+        </if>
+
+        <if test="seat != null and seat.length > 0">
+            AND f.SEAT = #{seat}
+        </if>
+
+        <if test="licensePlate != null and licensePlate.length &gt; 0">
+            <bind name="pattern" value="'%' + licensePlate + '%'" />
+            AND f.LICENSE_PLATE LIKE #{pattern}
+        </if>
+
+        <if test="carStatus != null and carStatus.length &gt; 0" >
+            AND
+            <foreach item="status" index="index" collection="carStatus"
+                open="(" separator="or" close=")">
+                f.PROCESS_STATUS = #{status}
+            </foreach>
+        </if>
+ 		<if test="carStatus == null or carStatus.length == 0" >
+            AND f.PROCESS_STATUS IN(0, 7, 4, 5)
+        </if>
+        <if test="carLead == true ">
+            AND a.DRIVE_SQUAD_ID=#{squadOfLead}
+        </if>
+    </select>
+
+</mapper>

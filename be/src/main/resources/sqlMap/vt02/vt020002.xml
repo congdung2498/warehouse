@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt02.vt020002.dao.VT020002DAO">
+	<select id="findListKitchen"
+		resultType="com.viettel.vtnet360.vt02.vt020002.entity.VT020002Kitchen"
+		parameterType="com.viettel.vtnet360.vt02.vt020002.entity.VT020002InfoToFindKitchen">
+		SELECT ks.KITCHEN_ID as kitchenID,
+		CONCAT(ks.KITCHEN_NAME, IF(qp.PLACE_NAME IS NULL,'',CONCAT(' - ',qp.PLACE_NAME))) as
+		kitchenName,
+		ks.CHEF_NAME as chefName,
+		ks.STATUS as status
+		FROM KITCHEN_SETTING ks LEFT JOIN QLDV_PLACE qp ON
+		ks.PLACE_ID = qp.PLACE_ID
+		WHERE ks.STATUS = #{status}
+		AND ks.DELETE_FLAG = #{deleteFG}
+		<if test="kitchenName != null">
+			<bind name="pattern" value="'%' + kitchenName + '%'" />
+			AND CONCAT(ks.KITCHEN_NAME, IF(qp.PLACE_NAME IS NULL,'',CONCAT(' -
+			',qp.PLACE_NAME))) LIKE #{pattern}
+		</if>
+		ORDER BY kitchenName ASC
+	</select>
+
+	<select id="findAllKitchen"
+		resultType="com.viettel.vtnet360.vt02.vt020002.entity.VT020002Kitchen"
+		parameterType="com.viettel.vtnet360.vt02.vt020002.entity.VT020002InfoToFindKitchen">
+		SELECT ks.KITCHEN_ID as kitchenID,
+		CONCAT(ks.KITCHEN_NAME, IF(qp.PLACE_NAME IS NULL,'',CONCAT(' - ',qp.PLACE_NAME))) as
+		kitchenName,
+		GROUP_CONCAT(ksc.CHEF_NAME) as chefName,
+		ks.STATUS as status
+		FROM KITCHEN_SETTING ks LEFT JOIN QLDV_PLACE qp ON
+		ks.PLACE_ID = qp.PLACE_ID
+		left JOIN KITCHEN_SETTING_CHEF ksc ON
+		ks.KITCHEN_ID = ksc.KITCHEN_SETTING_ID
+		WHERE ks.DELETE_FLAG =
+		#{deleteFG}
+		<if test="kitchenName != null">
+			<bind name="pattern" value="'%' + kitchenName + '%'" />
+			AND CONCAT(ks.KITCHEN_NAME, IF(qp.PLACE_NAME IS NULL,'',CONCAT(' -
+			',qp.PLACE_NAME))) LIKE #{pattern}
+		</if>
+		GROUP BY ks.KITCHEN_ID
+		ORDER BY kitchenName ASC
+	</select>
+
+	<select id="findKitchen" resultType="java.lang.Integer"
+		parameterType="java.lang.String">
+		SELECT COUNT(*)
+		FROM KITCHEN_SETTING
+		WHERE KITCHEN_ID = #{kitchenID}
+	</select>
+
+	<select id="findListDish"
+		resultType="com.viettel.vtnet360.vt02.vt020002.entity.VT020002Dish"
+		parameterType="com.viettel.vtnet360.vt02.vt020002.entity.VT020002DishOffset">
+		SELECT ds.DISH_ID as dishID,
+		ds.DISH_NAME as dishName,
+		ds.KITCHEN_ID as kitchenID,
+		ks.KITCHEN_NAME as kitchenName,
+		ds.image,
+		ds.STATUS as status
+		FROM DISH_SETTING ds JOIN KITCHEN_SETTING ks ON
+		ds.KITCHEN_ID = ks.KITCHEN_ID
+		WHERE ks.DELETE_FLAG = 0
+		AND ds.DELETE_FLAG = #{deleteFG}
+		<if test="kitchenID != null">
+			AND ds.KITCHEN_ID = #{kitchenID}
+		</if>
+		<if test="dishName != null">
+			<bind name="pattern2" value="'%' + dishName + '%'" />
+			AND ds.DISH_NAME LIKE #{pattern2}
+		</if>
+		<if test="status == 0 or status == 1">
+			AND ds.STATUS = #{status}
+		</if>
+		ORDER BY ks.KITCHEN_NAME ASC, ds.DISH_NAME ASC
+		<if test="pageNumber >=0 and pageSize > 0">
+			LIMIT #{pageNumber}, #{pageSize}
+		</if>
+	</select>
+
+	<select id="findDish" resultType="java.lang.Integer"
+		parameterType="com.viettel.vtnet360.vt02.vt020002.entity.VT020002Dish">
+		SELECT COUNT(*)
+		FROM DISH_SETTING
+		WHERE DISH_NAME = #{dishName}
+		AND KITCHEN_ID = #{kitchenID}
+		AND DELETE_FLAG = #{deleteFG}
+		<if test="dishID != null">
+			AND DISH_ID != #{dishID}
+		</if>
+	</select>
+
+	<insert id="insertDish"
+		parameterType="com.viettel.vtnet360.vt02.vt020002.entity.VT020002Dish">
+		<selectKey keyProperty="dishID" resultType="String" order="BEFORE">
+			SELECT CONCAT( 'VTN_SR_',NEXT VALUE FOR VTN_S) as dishID
+		</selectKey>
+		INSERT INTO DISH_SETTING( DISH_ID,
+		DISH_NAME,
+		KITCHEN_ID,
+		STATUS,
+		DELETE_FLAG,
+		CREATE_USER,
+		CREATE_DATE,
+		UPDATE_USER,
+		UPDATE_DATE)
+		VALUES( #{dishID},
+		#{dishName},
+		#{kitchenID},
+		#{status},
+		#{deleteFG},
+		#{createUser},
+		NOW(),
+		NULL,
+		NULL);
+	</insert>
+
+	<update id="updateDish"
+		parameterType="com.viettel.vtnet360.vt02.vt020002.entity.VT020002Dish">
+		UPDATE DISH_SETTING
+		SET DISH_NAME = #{dishName},
+		KITCHEN_ID = #{kitchenID},
+		STATUS = #{status},
+		<if test="image != null and image.length > 0 ">
+            IMAGE = #{image},
+        </if>
+		UPDATE_USER = #{updateUser},
+		UPDATE_DATE = NOW()
+		WHERE DISH_ID = #{dishID}
+	</update>
+
+	<update id="deleteDish" parameterType="com.viettel.vtnet360.vt02.vt020002.entity.VT020002Dish">
+		UPDATE DISH_SETTING
+		SET DELETE_FLAG = #{deleteFG},
+		UPDATE_USER = #{updateUser},
+		UPDATE_DATE = NOW()
+		WHERE DISH_ID IN
+		<foreach collection="listDishID" item="item" index="index"
+			open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</update>
+
+	<delete id="deleteDishInMenu"
+		parameterType="com.viettel.vtnet360.vt02.vt020002.entity.VT020002InfoToDeleteDishInMenu">
+		DELETE FROM MENU_SETTING
+		WHERE DATE(DATE_OF_MENU) >= DATE(#{dayOfMenu})
+		AND DISH_ID IN
+		<foreach collection="listDishID" item="item" index="index"
+			open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+	<select id="checkRoleUpdate"
+		parameterType="com.viettel.vtnet360.vt02.vt020002.entity.VT020002Dish"
+		resultType="java.lang.Integer">
+		SELECT COUNT(*)
+		FROM DISH_SETTING
+		WHERE KITCHEN_ID = #{kitchenID}
+		AND DISH_ID IN
+		<foreach collection="listDishID" item="item" index="index"
+			open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</select>
+
+	<select id="findKitchenByUserName"
+		resultType="com.viettel.vtnet360.vt02.vt020002.entity.VT020002Kitchen"
+		parameterType="com.viettel.vtnet360.vt02.vt020002.entity.VT020002InfoToFindKitchen">
+		SELECT ks.KITCHEN_ID as kitchenID ,
+		CONCAT(ks.KITCHEN_NAME, IF(qp.PLACE_NAME IS NULL,'',CONCAT(' -
+		',qp.PLACE_NAME))) as kitchenName,
+		ks.STATUS as status
+		FROM KITCHEN_SETTING ks JOIN QLDV_EMPLOYEE qe ON
+		ks.CHEF_ACCOUNT = qe.USER_NAME
+		LEFT JOIN QLDV_PLACE qp ON ks.PLACE_ID = qp.PLACE_ID
+		WHERE ks.CHEF_ACCOUNT
+		= #{chefUserName}
+		AND ks.DELETE_FLAG = #{deleteFG}
+	</select>
+
+	<select id="findKitchenByChef"
+		resultType="com.viettel.vtnet360.vt02.vt020002.entity.VT020002Kitchen"
+		parameterType="com.viettel.vtnet360.vt02.vt020002.entity.VT020002InfoToFindKitchen">
+		SELECT 
+            ks.KITCHEN_ID as kitchenID, 
+            ks.STATUS as status,
+            (SELECT GROUP_CONCAT(CHEF_NAME separator ',')
+                FROM KITCHEN_SETTING_CHEF 
+                WHERE KITCHEN_SETTING_ID = ks.KITCHEN_ID
+                GROUP BY ks.KITCHEN_ID) as chefName,
+            CASE 
+                WHEN ks.STATUS = 0 THEN CONCAT(ks.KITCHEN_NAME, IF(qp.PLACE_NAME IS NULL,'',CONCAT(' - ',qp.PLACE_NAME)), '(Bếp không hoạt động)') 
+                else CONCAT(ks.KITCHEN_NAME, IF(qp.PLACE_NAME IS NULL,'',CONCAT(' - ',qp.PLACE_NAME))) 
+            END as kitchenName
+        FROM KITCHEN_SETTING_CHEF kc 
+             LEFT JOIN KITCHEN_SETTING ks ON kc.KITCHEN_SETTING_ID = ks.KITCHEN_ID 
+             LEFT JOIN QLDV_PLACE qp ON ks.PLACE_ID = qp.PLACE_ID
+        WHERE kc.CHEF_ACCOUNT = #{chefUserName} AND ks.DELETE_FLAG = 0
+        ORDER BY kitchenName ASC;
+	</select>
+	<select id="checkKitchenActive" resultType="java.lang.Integer"
+		parameterType="com.viettel.vtnet360.vt02.vt020002.entity.VT020002InfoToCheckKitchenExist">
+		SELECT COUNT(*)
+		FROM KITCHEN_SETTING
+		WHERE KITCHEN_ID =
+		#{kitchenID}
+		AND DELETE_FLAG = #{deleteFG}
+		AND STATUS = #{status}
+	</select>
+
+	<select id="checkConditionBeforeUpdate"
+		parameterType="com.viettel.vtnet360.vt02.vt020002.entity.VT020002Dish"
+		resultType="java.lang.Integer">
+		SELECT COUNT(*)
+		FROM DISH_SETTING
+		WHERE DELETE_FLAG = #{deleteFG}
+		AND DISH_ID IN
+		<foreach collection="listDishID" item="item" index="index"
+			open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</select>
+
+	<select id="findDishById"
+		resultType="com.viettel.vtnet360.vt02.vt020002.entity.VT020002Dish"
+		parameterType="java.lang.String">
+		SELECT dish_ID as dishID, KITCHEN_ID as kitchenID,image
+		FROM DISH_SETTING
+		WHERE DISH_ID = #{dishID}
+	</select>
+
+</mapper>

@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt03.vt030003.dao.VT030003DAO">
+	<select id="getAllDriver" resultType="com.viettel.vtnet360.vt03.vt030000.entity.Employee">
+
+		SELECT a.EMPLOYEE_ID as
+		employeeId, a.CODE as employeeCode,
+		CONCAT(a.FULL_NAME,SPACE(1),'-',SPACE(1),a.PHONE_NUMBER,SPACE(1),'-',SPACE(1),b.UNIT_NAME)
+		as fullName,
+		a.PHONE_NUMBER
+		as employeePhone, a.EMAIL as employeeEmail,
+		a.UNIT_ID as unitId, a.TITLE as
+		title,
+		a.LEVEL_EMPLOYEE as
+		levelEmployee, a.`ROLE` as role, a.PLACE_ID as
+		placeId, a.COMMENTS as
+		comment,
+		a.USER_NAME as userName, a.STATUS as status
+		FROM
+		QLDV_EMPLOYEE a
+		INNER JOIN QLDV_UNIT b on a.UNIT_ID=b.UNIT_ID
+		where `ROLE`LIKE
+		"%PMQT_Doi_xe%"
+		LIMIT 50
+
+	</select>
+
+	<select id="findDriver" parameterType="com.viettel.vtnet360.vt03.vt030000.entity.Employee"
+		resultType="com.viettel.vtnet360.vt03.vt030000.entity.Employee">
+
+		SELECT
+		a.EMPLOYEE_ID as employeeId,
+		a.CODE as employeeCode,
+		CONCAT(a.FULL_NAME,SPACE(1),'-',SPACE(1),
+		a.PHONE_NUMBER,SPACE(1),'-',SPACE(1),
+		b.UNIT_NAME) as fullName,
+		a.PHONE_NUMBER as employeePhone,
+		a.EMAIL as employeeEmail,
+		a.UNIT_ID as unitId,
+		a.TITLE as title,
+		a.LEVEL_EMPLOYEE as levelEmployee,
+		a.`ROLE` as role,
+		a.PLACE_ID as placeId,
+		a.COMMENTS as comment,
+		a.USER_NAME as userName,
+		a.STATUS as status
+		FROM QLDV_EMPLOYEE a LEFT JOIN QLDV_UNIT b ON a.UNIT_ID=b.UNIT_ID
+		WHERE
+		`ROLE`LIKE "%PMQT_Doi_xe%"
+		AND b.`PATH` like '%234841%'
+		AND a.STATUS=1
+
+		<if test="fullName!=null">
+			<bind name="pattern" value="'%' + fullName + '%'" />
+			AND
+			(a.FULL_NAME LIKE #{pattern} or a.PHONE_NUMBER LIKE #{pattern} or
+			b.UNIT_NAME
+			LIKE #{pattern})
+
+		</if>
+		order by a.FULL_NAME
+		LIMIT 50
+	</select>
+
+
+
+
+	<select id="getListDrive" resultType="com.viettel.vtnet360.vt03.vt030003.entity.DriveInsert">
+		select
+		a.DRIVER_ID as
+		driveId,
+		a.DRIVE_SQUAD_ID as squadId,
+		c.EMPLOYEE_ID as
+		employeeId,
+		b.SQUAD_NAME as squadName,
+		a.STATUS as status,
+		a.PROCESS_STATUS as
+		processStatus,
+		a.EMPLOYEE_USER_NAME as userName,
+		c.FULL_NAME as
+		fullName,
+		c.PHONE_NUMBER as employeePhone
+		from DRIVER a
+		LEFT JOIN
+		DRIVES_SQUAD b
+		on a.DRIVE_SQUAD_ID=
+		b.DRIVE_SQUAD_ID and b.DELETE_FLAG=0
+		INNER
+		JOIN
+		QLDV_EMPLOYEE c on
+		a.EMPLOYEE_USER_NAME = c.USER_NAME
+		where
+		a.STATUS=1
+		and c.STATUS=1
+		and a.DELETE_FLAG=0
+	</select>
+
+
+	<select id="searchData" parameterType="com.viettel.vtnet360.vt03.vt030003.entity.DriveInsert"
+		resultType="com.viettel.vtnet360.vt03.vt030003.entity.Drive">
+		SELECT
+		a.DRIVER_ID as driveId,
+		a.DRIVE_SQUAD_ID as squadId,
+		b.SQUAD_NAME as squadName,
+		e.EMPLOYEE_ID as employeeId,
+		a.EMPLOYEE_USER_NAME as userName,
+        e.FULL_NAME as fullName,
+        e.PHONE_NUMBER as employeePhone,
+		GROUP_CONCAT(d.LICENSE_PLATE SEPARATOR ', ') as selectedLicensePlate,
+		a.STATUS as status,
+		a.PROCESS_STATUS as processStatus
+
+		FROM DRIVER a
+		LEFT JOIN DRIVES_SQUAD b ON a.DRIVE_SQUAD_ID= b.DRIVE_SQUAD_ID 
+		LEFT JOIN DRIVE_CAR c ON a.DRIVE_SQUAD_ID = c.DRIVE_SQUAD_ID AND a.EMPLOYEE_USER_NAME = c.EMPLOYEE_USER_NAME
+		LEFT JOIN CARS d ON  c.CAR_ID = d.CAR_ID
+		LEFT JOIN QLDV_EMPLOYEE e on a.EMPLOYEE_USER_NAME = e.USER_NAME
+		LEFT JOIN QLDV_UNIT f ON e.UNIT_ID=f.UNIT_ID
+		LEFT JOIN QLDV_PLACE g ON b.PLACE_ID=g.PLACE_ID
+		
+		WHERE
+		a.STATUS=#{status} AND e.STATUS=1 AND a.DELETE_FLAG=0 AND b.DELETE_FLAG=0 AND
+		e.`ROLE`LIKE "%PMQT_Doi_xe%" AND f.`PATH` like '%234841%' AND b.STATUS=1 
+
+		<if test="squadName !=null">
+            AND
+            <bind name="pattern1" value="'%' + squadName + '%'" />
+            CONCAT(b.SQUAD_NAME,SPACE(1),'-',SPACE(1),g.PLACE_NAME) LIKE
+            #{pattern1}
+        </if>
+		<if test="squadId !=null">
+			AND a.DRIVE_SQUAD_ID = #{squadId}
+		</if>
+		
+        <if test="fullName!=null and fullName!=''">
+            <bind name="pattern" value="'%' + fullName + '%'" />
+            AND
+            (e.FULL_NAME LIKE #{pattern} OR e.PHONE_NUMBER LIKE #{pattern} OR
+            f.UNIT_NAME
+            LIKE #{pattern})
+
+        </if>
+		<if test="userName !=null">
+			AND a.EMPLOYEE_USER_NAME LIKE #{userName}
+		</if>
+
+		<if test="listIdCar !=null">
+			AND a.EMPLOYEE_USER_NAME IN 
+			(SELECT driveCar.EMPLOYEE_USER_NAME FROM (
+			   (SELECT GROUP_CONCAT(CAR_ID) AS carId, EMPLOYEE_USER_NAME 
+                 FROM DRIVE_CAR GROUP BY EMPLOYEE_USER_NAME ) AS driveCar)
+                 WHERE 1=1 
+                 <foreach item="item1" collection="listIdCar" >
+                    AND carId LIKE CONCAT('%', + #{item1}, + '%')
+                </foreach>
+			)
+			
+		</if>
+		<if test="loginRole !=null and loginRole == 'PMQT_QL_Doi_xe'">
+            AND b.EMPLOYEE_USER_NAME = #{userLogin}
+        </if>
+		GROUP BY a.EMPLOYEE_USER_NAME, a.DRIVE_SQUAD_ID
+		ORDER BY squadName
+		<if test="startRow != null and rowSize != null">
+            LIMIT #{startRow}, #{rowSize}
+        </if>
+	</select>
+	<select id="totalDrive" parameterType="com.viettel.vtnet360.vt03.vt030003.entity.DriveInsert"
+		resultType="int">
+		
+		SELECT COUNT(*) FROM (
+		SELECT
+            a.DRIVER_ID
+        FROM DRIVER a
+        LEFT JOIN DRIVES_SQUAD b ON a.DRIVE_SQUAD_ID= b.DRIVE_SQUAD_ID 
+        LEFT JOIN DRIVE_CAR c ON a.DRIVE_SQUAD_ID = c.DRIVE_SQUAD_ID AND a.EMPLOYEE_USER_NAME = c.EMPLOYEE_USER_NAME
+        LEFT JOIN CARS d ON  c.CAR_ID = d.CAR_ID
+        LEFT JOIN QLDV_EMPLOYEE e on a.EMPLOYEE_USER_NAME = e.USER_NAME
+        LEFT JOIN QLDV_UNIT f ON e.UNIT_ID=f.UNIT_ID
+        LEFT JOIN QLDV_PLACE g ON b.PLACE_ID=g.PLACE_ID
+        
+        WHERE
+        a.STATUS=#{status} AND e.STATUS=1 AND a.DELETE_FLAG=0 AND b.DELETE_FLAG=0 AND
+        e.`ROLE`LIKE "%PMQT_Doi_xe%" AND f.`PATH` like '%234841%' AND b.STATUS=1 
+
+        <if test="squadName !=null">
+            AND
+            <bind name="pattern1" value="'%' + squadName + '%'" />
+            CONCAT(b.SQUAD_NAME,SPACE(1),'-',SPACE(1),g.PLACE_NAME) LIKE
+            #{pattern1}
+        </if>
+        <if test="squadId !=null">
+            AND a.DRIVE_SQUAD_ID = #{squadId}
+        </if>
+        
+        <if test="fullName!=null and fullName!=''">
+            <bind name="pattern" value="'%' + fullName + '%'" />
+            AND
+            (e.FULL_NAME LIKE #{pattern} OR e.PHONE_NUMBER LIKE #{pattern} OR
+            f.UNIT_NAME
+            LIKE #{pattern})
+
+        </if>
+        <if test="userName !=null">
+            AND a.EMPLOYEE_USER_NAME LIKE #{userName}
+        </if>
+
+        <if test="listIdCar !=null">
+            AND a.EMPLOYEE_USER_NAME IN 
+            (SELECT driveCar.EMPLOYEE_USER_NAME FROM (
+               (SELECT GROUP_CONCAT(CAR_ID) AS carId, EMPLOYEE_USER_NAME 
+                 FROM DRIVE_CAR GROUP BY EMPLOYEE_USER_NAME ) AS driveCar)
+                 WHERE 1=1 
+                 <foreach item="item1" collection="listIdCar" >
+                    AND carId LIKE CONCAT('%', + #{item1}, + '%')
+                </foreach>
+            )
+            
+        </if>
+        <if test="loginRole !=null and loginRole == 'PMQT_QL_Doi_xe'">
+            AND b.EMPLOYEE_USER_NAME = #{userLogin}
+        </if>
+        GROUP BY a.EMPLOYEE_USER_NAME, a.DRIVE_SQUAD_ID ) AS d
+		
+	</select>
+
+	<insert id="insertDrive" parameterType="com.viettel.vtnet360.vt03.vt030003.entity.DriveInsert">
+		INSERT INTO DRIVER
+		(DRIVER_ID, DRIVE_SQUAD_ID, EMPLOYEE_USER_NAME, STATUS,
+		PROCESS_STATUS,
+		CREATE_USER, CREATE_DATE, UPDATE_USER, UPDATE_DATE)
+		VALUES(CONCAT('DVTN_SR_',
+		NEXT VALUE FOR VTN_S), #{squadId},
+		#{userName},
+		#{status},#{processStatus}, #{createUser}, #{createDate},
+		NULL, NULL);
+	</insert>
+
+	<insert id="insertDriveCar" parameterType="com.viettel.vtnet360.vt03.vt030003.entity.DriveInsert">
+	
+		INSERT INTO DRIVE_CAR
+	
+		(DRIVE_SQUAD_ID, EMPLOYEE_USER_NAME, CAR_ID, CREATE_USER, CREATE_DATE)
+		VALUES
+		<foreach item="item" collection="selectedLicensePlate"
+			separator=",">
+			(#{squadId}, #{userName} , #{item.carId} , #{createUser},
+			#{createDate})
+		</foreach>
+	</insert>
+
+	<insert id="updateDrive" parameterType="com.viettel.vtnet360.vt03.vt030003.entity.DriveInsert">
+		UPDATE DRIVER
+		SET
+		DRIVE_SQUAD_ID=#{squadId}, EMPLOYEE_USER_NAME=#{userName},
+		STATUS=#{status},
+		PROCESS_STATUS=#{processStatus},
+		UPDATE_USER=#{updateUser},
+		UPDATE_DATE=#{updateDate}
+		WHERE
+		DRIVER_ID=#{driveId};
+	</insert>
+
+	<select id="getSquad"
+		resultType="com.viettel.vtnet360.vt03.vt030000.entity.VT030000EntityDriveSquad">
+		select a.DRIVE_SQUAD_ID as
+		squadId,
+		a.SQUAD_NAME as
+		squadName,b.PLACE_NAME as
+		placeName
+		from DRIVES_SQUAD a LEFT JOIN
+		QLDV_PLACE
+		b on a.PLACE_ID=b.PLACE_ID where DELETE_FLAG=0
+		LIMIT 50
+	</select>
+
+	<select id="findSquad"
+		parameterType="com.viettel.vtnet360.vt03.vt030000.entity.VT030000EntityDriveSquad"
+		resultType="com.viettel.vtnet360.vt03.vt030000.entity.VT030000EntityDriveSquad">
+		select a.DRIVE_SQUAD_ID as
+		squadId,
+		a.SQUAD_NAME as
+		squadName,b.PLACE_NAME as
+		placeName
+		from DRIVES_SQUAD a LEFT JOIN
+		QLDV_PLACE
+		b on a.PLACE_ID=b.PLACE_ID
+		where a.STATUS=1 and DELETE_FLAG=0
+		<if test="squadName !=null">
+			AND
+			<bind name="pattern" value="'%' + squadName + '%'" />
+			CONCAT(a.SQUAD_NAME,SPACE(1),'-',SPACE(1),b.PLACE_NAME) LIKE
+			#{pattern}
+		</if>
+		<if test="loginRole !=null and loginRole == 'PMQT_QL_Doi_xe'">
+            AND a.EMPLOYEE_USER_NAME = #{userName}
+        </if>
+		order by a.SQUAD_NAME
+		LIMIT 50
+	</select>
+
+	<delete id="deleteDrive" parameterType="com.viettel.vtnet360.vt03.vt030003.entity.Drive">
+		UPDATE DRIVER
+		SET
+		UPDATE_USER=#{updateUser},
+		UPDATE_DATE=#{updateDate},
+		DELETE_FLAG=1
+		WHERE DRIVER_ID=#{driveId};
+	</delete>
+
+	<update id="updateDeleteFlag" parameterType="com.viettel.vtnet360.vt03.vt030003.entity.Drive">
+		UPDATE DRIVER
+        SET
+        CREATE_USER=#{createUser},
+        CREATE_DATE=#{createDate},
+        DELETE_FLAG=0
+        WHERE DRIVER_ID=#{driveId};
+	</update>
+
+	<update id="updateDriverStatus" parameterType="com.viettel.vtnet360.vt03.vt030003.entity.Drive">
+		UPDATE
+		QLDV_EMPLOYEE
+		SET STATUS=#{status}
+		WHERE EMPLOYEE_ID=
+		#{employeeId}
+	</update>
+
+	<delete id="deleteMatchedCar" parameterType="com.viettel.vtnet360.vt03.vt030003.entity.Drive">
+		DELETE from
+		DRIVE_CAR WHERE EMPLOYEE_USER_NAME=#{userName} AND DRIVE_SQUAD_ID = #{squadId}
+	</delete>
+
+	<select id="getProcessStatus" parameterType="java.lang.String"
+		resultType="int">
+		select PROCESS_STATUS from DRIVER WHERE
+		DRIVER_ID=#{driveId}
+	</select>
+
+	<select id="checkActiveDrive" parameterType="java.lang.String"
+		resultType="int">
+		SELECT COUNT(*)
+		FROM DRIVER
+		WHERE STATUS = 1 AND
+		PROCESS_STATUS
+		!= 7 AND PROCESS_STATUS
+		!= 0 AND DELETE_FLAG=0 AND
+		DRIVER_ID =
+		#{driveId}
+	</select>
+
+
+	<select id="checkDeleted" parameterType="com.viettel.vtnet360.vt03.vt030003.entity.Drive"
+		resultType="int">
+		SELECT DELETE_FLAG FROM DRIVER where DRIVER_ID=#{driveId}
+	</select>
+	
+ 	<select id="detailDrive" parameterType="com.viettel.vtnet360.vt03.vt030003.entity.DriveInsert"
+        resultType="com.viettel.vtnet360.vt03.vt030003.entity.DriveInsert">
+SELECT
+        a.DRIVER_ID as driveId,
+        a.DRIVE_SQUAD_ID as squadId,
+        b.SQUAD_NAME as squadName,
+        e.EMPLOYEE_ID as employeeId,
+        a.EMPLOYEE_USER_NAME as userName,
+        e.FULL_NAME as fullName,
+        e.PHONE_NUMBER as employeePhone,
+        GROUP_CONCAT(d.LICENSE_PLATE) as selectedLicensePlate,
+        GROUP_CONCAT(c.CAR_ID) as idCar,
+        a.STATUS as status,
+        a.PROCESS_STATUS as processStatus,
+        a.DELETE_FLAG as deleteFlag
+
+        FROM DRIVER a
+        LEFT JOIN DRIVES_SQUAD b ON a.DRIVE_SQUAD_ID= b.DRIVE_SQUAD_ID 
+        LEFT JOIN DRIVE_CAR c ON a.DRIVE_SQUAD_ID = c.DRIVE_SQUAD_ID AND a.EMPLOYEE_USER_NAME = c.EMPLOYEE_USER_NAME
+        LEFT JOIN CARS d ON  c.CAR_ID = d.CAR_ID
+        LEFT JOIN QLDV_EMPLOYEE e on a.EMPLOYEE_USER_NAME = e.USER_NAME
+        WHERE a.EMPLOYEE_USER_NAME = #{userName} AND a.DRIVE_SQUAD_ID = #{squadId}
+        GROUP BY a.EMPLOYEE_USER_NAME, a.DRIVE_SQUAD_ID
+          <!--   SELECT DRIVER_ID AS driveId 
+            FROM DRIVER 
+            LEFT JOIN 
+            WHERE EMPLOYEE_USER_NAME = #{userName} AND DRIVE_SQUAD_ID = #{squadId} -->
+    </select>  
+    
+ 	<select id="findListCar" parameterType="com.viettel.vtnet360.vt03.vt030003.entity.DriveInsert"
+        resultType="com.viettel.vtnet360.vt03.vt030004.entity.DriveCar">
+SELECT
+        c.CAR_ID AS carId,
+        c.DRIVE_SQUAD_ID AS squadId
+        ,CONCAT(c.LICENSE_PLATE , ' - ' , msc1.CODE_NAME, ' - ' , msc2.CODE_NAME) AS licensePlate
+        FROM CARS c LEFT JOIN M_SYSTEM_CODE msc1 on c.TYPE = msc1.CODE_VALUE 
+         LEFT JOIN M_SYSTEM_CODE msc2 on c.SEAT = msc2.CODE_VALUE 
+        
+        WHERE  msc2.MASTER_CLASS ='S002' AND msc2.STATUS =1
+         AND  msc1.MASTER_CLASS ='S001' AND msc1.STATUS =1 AND CAR_ID IN 
+            <foreach item="item1" collection="listIdCar" separator="," open="(" close=")">
+                     #{item1}
+             </foreach>
+          <!--   SELECT DRIVER_ID AS driveId 
+            FROM DRIVER 
+            LEFT JOIN 
+            WHERE EMPLOYEE_USER_NAME = #{userName} AND DRIVE_SQUAD_ID = #{squadId} -->
+    </select>  
+    
+    <select id="findDriveById" parameterType="com.viettel.vtnet360.vt03.vt030003.entity.DriveInsert"
+        resultType="com.viettel.vtnet360.vt03.vt030003.entity.DriveInsert">
+SELECT
+        a.DRIVER_ID as driveId,
+        a.DRIVE_SQUAD_ID as squadId,
+        a.EMPLOYEE_USER_NAME as userName,
+        a.STATUS as status,
+        a.PROCESS_STATUS as processStatus
+
+        FROM DRIVER a
+        
+        WHERE DRIVER_ID=#{driveId}
+    </select>  
+</mapper>

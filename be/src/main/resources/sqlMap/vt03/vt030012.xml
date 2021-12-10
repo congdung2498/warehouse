@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt03.vt030012.dao.VT030012DAO">
+
+	<update id="updateRatting" parameterType="com.viettel.vtnet360.vt03.vt030012.entity.Ratting">
+		UPDATE CAR_BOOKING
+		SET
+		RATTING=#{numberOfStar}, FEEDBACK=#{note},UPDATE_USER=#{userName},
+		UPDATE_DATE=#{updateDate}
+		WHERE CAR_BOOKING_ID=#{bookCarId};
+	</update>
+
+<update id="updateRattingUser" parameterType="com.viettel.vtnet360.vt03.vt030012.entity.Ratting">
+		UPDATE CAR_BOOKING
+		SET
+		DRIVER_RATING=#{numberOfStar}, DRIVER_FEEDBACK=#{note},UPDATE_USER=#{userName},
+		UPDATE_DATE=#{updateDate}
+		WHERE CAR_BOOKING_ID=#{bookCarId};
+	</update>
+	
+</mapper>
+
+
+

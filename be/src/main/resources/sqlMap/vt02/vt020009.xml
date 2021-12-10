@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt02.vt020009.dao.VT020009DAO">
+	<select id="findReportItem" resultType="com.viettel.vtnet360.vt02.vt020009.entity.VT020009Report"
+								parameterType="com.viettel.vtnet360.vt02.vt020009.entity.VT020009InfoToFindReport">
+		SELECT
+			lc.LUNCH_DATE as lunchDate,
+			qe.FULL_NAME as fullName,
+			lc.COMMENT as comment,
+			lc.RATTING as rating
+		FROM
+		LUNCH_CALENDAR lc JOIN QLDV_EMPLOYEE qe ON qe.USER_NAME = lc.EMPLOYEE_USER_NAME
+		WHERE 	lc.KITCHEN_ID = #{kitchenID}
+				AND MONTH(lc.LUNCH_DATE) = #{month}
+				AND YEAR(lc.LUNCH_DATE) = #{year}
+				AND lc.RATTING IS NOT NULL
+		GROUP BY lunchDate, fullName
+		ORDER BY lunchDate ASC, fullName ASC
+	</select>
+	
+	<select id="findKitchenID" resultType="java.lang.String" parameterType="com.viettel.vtnet360.vt02.vt020009.entity.VT020009InfoToFindKitchenID">
+		SELECT KITCHEN_ID 
+		FROM KITCHEN_SETTING 
+		WHERE CHEF_ACCOUNT = #{userName} 
+				AND STATUS = #{status}
+				AND DELETE_FLAG = 0
+	</select>
+</mapper>

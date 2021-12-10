@@ -1,0 +1,132 @@
+<div class="container">
+  <div class="container-fluid text-center mt-5">
+    <h1 class="text-center">DANH MỤC NGƯỜI TIẾP NHẬN</h1>
+  </div>
+  <div class="row ">
+    <div class="col-sm-12 " style="margin: auto;">
+      <form ngNoForm onsubmit="return false;">
+        <p-fieldset legend="Thông tin đăng ký">
+
+          <div class="row">
+            <div class="col-sm-6">
+              <div class="row form-group">
+                <div class="col-3 col-form-label">
+                  <label>Đơn vị
+                    <span style="color: red;">*</span>:
+                  </label>
+                </div>
+                <div class="col-9 ui-fluid" style="margin-top: -5px" *ngIf="showTree" >
+                  <p-scrollPanel [style]="{'margin-left': '-15px', 'height': '200px'}">
+                    <p-tree #inputTree
+                            id="shortTreeAdd" [value]="sectors"
+                            [selectionMode]="selectionMode"
+                            [propagateSelectionUp]="false"
+                            [propagateSelectionDown]="false"
+                            [(selection)]="selectedSector" (onNodeUnselect)="changeUnOn()"
+                            (onNodeExpand)="nodeExpand($event)" (onNodeSelect)="changeOn()"
+                            [loading]="loadingTree" class="no-border"></p-tree>
+                  </p-scrollPanel>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-sm-6">
+              <div class="form-group row">
+                <label class="col-sm-3 ">Vị trí
+                  <span style="color: red;">*</span>:</label>
+                <div class="col-sm-9 ui-fluid">
+                  <p-multiSelect defaultLabel="-- Chọn vị trí --" [options]="lstSgsPlace" emptyFilterMessage ="Vị trí không tồn tại, xin kiểm tra lại"
+                                 [(ngModel)]="lstSelectedPlace" dataKey="placeId" optionLabel="placeName" selectedItemsLabel ="{0} vị trí đã chọn"
+                                 [panelStyle]="{width:'100%'}"></p-multiSelect>
+                </div>
+              </div>
+
+              <div class="form-group row">
+                <label class="col-sm-3 ">Vai trò
+                  <span style="color: red;">*</span>:</label>
+                <div class="col-sm-9 ui-fluid">
+                  <p-dropdown #inputRole [options]="listRole" [(ngModel)]="role" placeholder="--Vai trò--" [showClear]="true" filter="true" filterBy="value.roleName"
+                              emptyFilterMessage ="Vai trò không tồn tại, xin kiểm tra lại"
+                    optionLabel="roleName" [style]="{'width':'100%'}" (ngModelChange)="setRole()" [disabled]="disableRole" ></p-dropdown>
+                </div>
+              </div>
+
+              <div class="form-group row">
+                <label class="col-sm-3 ">Tên nhân viên
+                  <span style="color: red;">*</span>:</label>
+                <div class="col-sm-9 ui-fluid">
+                  <p-autoComplete #inputEmployee [(ngModel)]="employee" [suggestions]="listFilterEmployee" (completeMethod)="filterEmployee($event)" [size]="30"
+                    [minLength]="1" placeholder="--Chọn nhân viên--" (onSelect)="employeeSelect($event)"
+                    field="fullName" [minLength]="1" [dropdown]="true" class="fix-drop-down"
+                    emptyMessage="Tên nhân viên không tồn tại, xin kiểm tra lại">
+                  </p-autoComplete>
+                </div>
+              </div>
+            </div>
+          </div>
+        </p-fieldset>
+        <div class="row row-button">
+          <div class="col-sm-4"></div>
+          <div class="col-sm-4">
+            <p-button label="Tìm kiếm" icon="pi pi-search" (click)="handleSearch()"></p-button>
+            <p-button class="ui-button-danger" icon="pi pi-plus" label="Lưu" (click)="handleAdd()"></p-button>
+            <button type="button" tabindex="0" pButton icon="fa fa-refresh" iconPos="left" label="Làm mới" (click)="resetButton()" style="text-align: center;"></button>
+          </div>
+          <div class="col-sm-4"></div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-sm-12">
+      <p-table [columns]="cols" [value]="listReceiver" [totalRecords]="total_record" [paginator]="true" [rows]="10" [resizableColumns]="true"
+        (onPage)="paginate($event)" #myTable>
+        <ng-template pTemplate="colgroup" let-columns>
+          <colgroup>
+            <col *ngFor="let col of columns" [style.width]="col.width">
+          </colgroup>
+        </ng-template>
+        <ng-template pTemplate="header" let-columns>
+          <tr>
+            <th *ngFor="let col of columns" pResizableColumn style="text-align: center; font-weight: bold;">
+              {{col.header}}
+            </th>
+          </tr>
+        </ng-template>
+        <ng-template let-ri="rowIndex" pTemplate="body" let-rowData let-columns="columns">
+          <tr>
+            <td>{{ri+1}}</td>
+            <td style="width: 400px;">
+              <div class="row">
+                <div class="col-sm-5">
+                  <p-button icon="pi pi-trash" [disabled]="isEdit" (onClick)="doDelete(rowData)"></p-button>
+                </div>
+
+                <div class="col-sm-7">
+                  <p-button icon="pi pi-pencil" [disabled]="isEdit" (onClick)="doEdit(rowData)"></p-button>
+                </div>
+              </div>
+            </td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="rowData.placeNames" style="width: 9rem; text-align: left !important;">{{rowData["placeNames"]}}</td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="rowData.threeLevelUnit" style="width: 9rem; text-align: left !important;">{{rowData["threeLevelUnit"]}}</td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="rowData.fullName" style="width: 9rem; text-align: left !important;">{{rowData["fullName"]}}</td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="rowData.employeePhone" style="width: 9rem; text-align: right !important;">{{rowData["employeePhone"]}}</td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="rowData.roleName" style="width: 9rem; text-align: left !important;">{{rowData["roleName"]}}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage" let-columns>
+          <tr>
+            <td [attr.colspan]="columns.length" style="text-align: center;">
+              Không có dữ liệu
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="paginatorright">
+          <span style="position: absolute; right: 30px; bottom: 6px;">{{total_record == 0 ? pageNumber : pageNumber + 1}} - {{pageNumber+pageSize>total_record ? total_record : pageNumber+pageSize}}
+            / {{total_record}}</span>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</div>

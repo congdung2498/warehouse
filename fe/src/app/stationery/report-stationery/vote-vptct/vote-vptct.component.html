@@ -1,0 +1,127 @@
+<div class="container">
+  <div class="row"></div>
+  <div class="row" style="margin-top: 20px;">
+    <div class="col-sm-6">
+      <div class="form-group row">
+        <label class="col-sm-6">Người yêu cầu:</label> <div class="col-sm-6"><b>{{rpItemsName}}</b></div>
+
+      </div>
+
+      <div class="form-group row">
+        <label class="col-sm-6">Ngày yêu cầu: </label> <div class="col-sm-6"><b>{{rpItemsDateRequest | date: 'dd/MM/yyyy' }}</b></div>
+
+      </div>
+
+    </div>
+
+    <div class="col-sm-6">
+
+      <div class="form-group row">
+        <label class="col-sm-6">Số lượng yêu cầu:</label> <div class="col-sm-6"><b>{{rpItemsQuantity}}</b></div>
+
+      </div>
+
+      <div class="form-group row">
+        <label class="col-sm-6">Số lượng đáp ứng: </label><div class="col-sm-6"><b>{{rpItemsQuantityRequest}}</b></div>
+
+      </div>
+    </div>
+
+    <div class="col-sm-6">
+      <div class="form-group row">
+        <label class="col-sm-6">Nội dung: </label> <div class="col-sm-6"><b>{{rpItemsMessage}}</b></div>
+
+      </div>
+
+      <div class="form-group row">
+        <label class="col-sm-6">Trạng thái: </label> <div class="col-sm-6"><b style="color: red;font-family: 'Helvetica Neue';font-size: 15px"
+                                                                              *ngIf="rpItemsStatus != null"> {{convertStatus[rpItemsStatus]}} </b></div>
+      </div>
+    </div>
+
+    <div class="col-sm-6">
+      <div class="form-group row">
+        <label class="col-sm-6">Tổng tiền yêu cầu:</label> <div class="col-sm-6"><b>{{rpItemsTotalMoney |  number:'1.2-2'}}</b></div>
+
+      </div>
+      <div class="form-group row">
+        <label class="col-sm-6">Tổng tiền đáp ứng : </label> <div class="col-sm-6"><b>{{rpTotalMoneyFullfill |  number:'1.2-2'}}</b></div>
+
+      </div>
+    </div>
+    <div class="col-sm-6">
+      <div class="form-group row" *ngIf="checkStatus == 2 ||checkStatus == 5 ||checkStatus == 8" >
+        <label class="col-sm-6">Lý do từ chối xác nhận: </label> <div class="col-sm-6"><b>{{ldReasonReject}}</b></div>
+      </div>
+    </div>
+
+    <div class="col-sm-12">
+      <p-table [columns]="colsBeta" [value]="listSearchDetails" [totalRecords]="" [paginator]="true"
+               [rows]="10" [resizableColumns]="true"
+               #dt >
+        <ng-template pTemplate="colgroup" let-columns>
+          <colgroup>
+            <col *ngFor="let col of columns" [style.width]="col.width">
+          </colgroup>
+        </ng-template>
+        <ng-template pTemplate="header" let-columns>
+          <tr>
+            <th *ngFor="let col of columns" pResizableColumn
+
+                style="text-align: center; font-weight: bold;">
+              {{col.header}}
+            </th>
+          </tr>
+        </ng-template>
+        <ng-template let-ri="rowIndex" pTemplate="body" let-rowData let-columns="columns">
+          <tr>
+            <td>{{ri+1}}</td>
+            <td style="width: 9rem; text-align: left !important;">{{rowData["stationeryName"]}}</td>
+            <td style="width: 9rem; text-align: right !important;">{{rowData["quantity"]}}</td>
+            <td style="width: 9rem; text-align: right !important;">{{rowData["totalFullfill"] | number:0}}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage" let-columns>
+          <tr>
+            <td [attr.colspan]="4" style="text-align: center;">
+              Không có dữ liệu
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+
+  <div class="col-sm-12" style="padding-top: 20px;"><label>Đánh giá :</label> </div>
+  <div class="row mt-2">
+    <div class="col-sm-12">
+      <div style="text-align: center">
+        <p-rating [(ngModel)]="ratting" [iconOnStyle]="{'color': 'orange', 'font-size': '40px'}"
+                  [iconOffStyle]="{'font-size': '40px'}" [cancel]="false"></p-rating>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-12" style="padding-top: 5px;">
+    <div class="form-group row">
+      <label class="col-sm-12">Góp ý :</label>
+
+    </div>
+    <div class="form-group row">
+      <div class="col-sm-12 ui-fluid">
+        <textarea pInputTextarea [ngModelOptions]="{standalone: true}" rows="4"
+                  [style]="{'width': '100%'}" maxlength="255" [(ngModel)]="feedback"></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="row row-button">
+  <div class="col-sm-4"></div>
+  <div class="col-sm-4">
+    <button pButton class="ui-button-info"  label="Đánh giá"
+            (click)="voteCPTCT()"></button>
+  </div>
+  <div class="col-sm-4"></div>
+</div>

@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt02.vt020004.dao.VT020004DAO">
+
+	<select id="findListMenu" resultType="com.viettel.vtnet360.vt02.vt020004.entity.VT020004MenuItem"
+							parameterType="com.viettel.vtnet360.vt02.vt020004.entity.VT020004InfoToFindMenu">
+		SELECT ms.DATE_OF_MENU as dateOfMenu, 
+		       ds.DISH_ID as dishID, 
+		       ds.DISH_NAME as dishName,
+		       ds.IMAGE as image
+		FROM MENU_SETTING ms JOIN DISH_SETTING ds ON ms.DISH_ID = ds.DISH_ID 
+				RIGHT JOIN (
+								SELECT DATE_OF_MENU 
+								FROM MENU_SETTING 
+								<where>
+									<if test="kitchenID != null">
+										KITCHEN_ID = #{kitchenID}
+									</if>
+									<if test="dateFrom != null and dateTo != null">
+										AND DATE_OF_MENU BETWEEN #{dateFrom} AND #{dateTo}
+									</if>
+									<if test="dateFrom == null and dateTo != null">
+										AND DATE_OF_MENU &lt;= #{dateTo}
+									</if>
+									<if test="dateFrom != null and dateTo == null">
+										AND DATE_OF_MENU >= #{dateFrom}
+									</if>
+								</where>
+								GROUP BY DATE_OF_MENU 
+								ORDER BY DATE_OF_MENU DESC
+								<if test="pageNumber >=0 and pageSize > 0">
+									LIMIT #{pageNumber}, #{pageSize}
+								</if>
+								) as listDate 
+						ON ms.DATE_OF_MENU = listDate.DATE_OF_MENU
+		WHERE ms.KITCHEN_ID = #{kitchenID}
+		ORDER BY dateOfMenu DESC
+	</select>
+	
+	
+	<select id="findListDishByKitchen" resultType="com.viettel.vtnet360.vt02.vt020004.entity.VT020004Dish"
+                            parameterType="com.viettel.vtnet360.vt02.vt020004.entity.VT020004InfoToFindDishByChefID">
+        SELECT ds.DISH_ID as dishID, ds.DISH_NAME as dishName , ds.IMAGE as image
+        FROM DISH_SETTING ds
+        WHERE   
+                ds.KITCHEN_ID = #{kitchenID}
+                AND ds.STATUS = 1
+                AND ds.DELETE_FLAG = 0
+        ORDER BY ds.DISH_NAME ASC
+    </select>
+	
+	<select id="findListDishByChefID" resultType="com.viettel.vtnet360.vt02.vt020004.entity.VT020004Dish"
+							parameterType="com.viettel.vtnet360.vt02.vt020004.entity.VT020004InfoToFindDishByChefID">
+		SELECT ds.DISH_ID as dishID, ds.DISH_NAME as dishName , ds.IMAGE as image
+		FROM DISH_SETTING ds
+		WHERE 	<if test="kitchenID != null">
+					ds.KITCHEN_ID = #{kitchenID}
+				</if>
+				<if test="kitchenID == null">
+					ds.KITCHEN_ID = (SELECT ks.KITCHEN_ID FROM KITCHEN_SETTING ks WHERE ks.CHEF_ACCOUNT = #{chefID} AND DELETE_FLAG = 0)
+				</if>
+				AND ds.STATUS = #{status}
+				AND ds.DELETE_FLAG = #{deleteFG}
+				<if test="dishName != null">
+					 <bind name="pattern" value="'%' + dishName + '%'" />
+					 AND ds.DISH_NAME LIKE #{pattern}
+			 	</if>
+		ORDER BY ds.DISH_NAME ASC
+	</select>
+	
+	<select id="checkMenuExist" resultType="java.lang.Integer" 
+					parameterType="com.viettel.vtnet360.vt02.vt020004.entity.VT020004InfoToFindDishInMenu">
+		SELECT COUNT(*) 
+		FROM MENU_SETTING 
+		WHERE DATE_OF_MENU = #{dateOfMenu} 
+				AND KITCHEN_ID = #{kitchenID}
+	</select>
+	
+	<delete id="deleteMenuByday" parameterType="com.viettel.vtnet360.vt02.vt020004.entity.VT020004InfoToFindDishInMenu">
+		DELETE FROM MENU_SETTING
+		WHERE DATE_OF_MENU = #{dateOfMenu}  
+				<if test="kitchenID != null">
+					AND KITCHEN_ID = #{kitchenID}
+				</if>
+				<if test="kitchenID == null">
+					AND CHEF_ID = #{chefID}
+				</if>
+	</delete>
+	
+	<insert id="inserMenu" parameterType="com.viettel.vtnet360.vt02.vt020004.entity.VT020004Menu">
+				INSERT INTO MENU_SETTING(	MENU_ID, 
+									DATE_OF_MENU, 
+									DISH_ID, 
+									CHEF_ID, 
+									KITCHEN_ID, 
+									CREATE_USER, 
+									CREATE_DATE,
+									UPDATE_USER,
+									UPDATE_DATE
+									)
+				VALUES
+					<foreach collection="listDish" item="item" index="index" separator=",">
+						(
+							CONCAT('VTN_SR_', NEXT VALUE FOR VTN_S), 
+							#{dateOfMenu}, 
+							#{item.dishID}, 
+							#{chefID},
+							#{kitchenID},
+							#{chefID}, 
+							NOW(),
+							#{chefID}, 
+							NOW()
+						)
+   					</foreach>
+	</insert>
+	
+	
+	
+	<select id="checkKitchenExisted" resultType="java.lang.Integer" parameterType="com.viettel.vtnet360.vt02.vt020004.entity.VT020004InfoToFindKitchen">
+		SELECT COUNT(*) 
+		FROM KITCHEN_SETTING
+		WHERE 	<if test="kitchenID != null">
+					KITCHEN_ID = #{kitchenID}
+				</if>
+				<if test="kitchenID == null">
+					CHEF_ACCOUNT = #{userName}
+				</if>
+				AND DELETE_FLAG = #{deleteFG}
+				AND STATUS = #{status}
+	</select>
+	
+	<select id="findKitchenIDByChefUserName" resultType="java.lang.String" parameterType="java.lang.String">
+		SELECT KITCHEN_ID 
+		FROM KITCHEN_SETTING 
+		WHERE CHEF_ACCOUNT = #{userName}
+		AND DELETE_FLAG = 0
+	</select>
+	
+	
+</mapper>

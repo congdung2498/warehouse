@@ -1,0 +1,846 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.driving.request.dao.DrivingDAO">
+
+	<select id="searchData" resultType="com.viettel.vtnet360.driving.entity.Manager" parameterType="String">
+		SELECT q.FULL_NAME as fullName , q.USER_NAME as userName
+		FROM QLDV_EMPLOYEE q INNER JOIN QLDV_UNIT b on q.UNIT_ID=b.UNIT_ID
+		WHERE 
+		  q.ROLE LIKE "%PMQT_QL%" AND 
+		  (q.EMPLOYEE_ID LIKE '%' #{searchDTO} '%' OR 
+		   q.EMAIL LIKE '%' #{searchDTO} '%' OR 
+		   q.PHONE_NUMBER LIKE '%' #{searchDTO} '%' )
+		ORDER BY q.FULL_NAME
+	</select>
+
+	<select id="searchManagerUnit" resultType="com.viettel.vtnet360.driving.entity.Manager"
+		parameterType="String">
+		SELECT q.FULL_NAME as fullName , q.USER_NAME as userName
+		FROM QLDV_EMPLOYEE q INNER JOIN QLDV_UNIT b on q.UNIT_ID=b.UNIT_ID
+		WHERE 
+		  (q.ROLE="PMQT_QL" OR q.ROLE="PMQT_CVP") AND 
+		  (q.EMPLOYEE_ID LIKE '%' #{searchDTO} '%' OR
+		      q.EMAIL LIKE '%' #{searchDTO} '%' OR
+		      q.PHONE_NUMBER LIKE '%' #{searchDTO} '%' )
+		ORDER BY q.FULL_NAME
+	</select>
+
+	<select id="searchManagerChief" resultType="com.viettel.vtnet360.driving.entity.Manager" parameterType="String">
+		SELECT q.FULL_NAME as fullName , q.USER_NAME as userName
+		FROM QLDV_EMPLOYEE q INNER JOIN QLDV_UNIT b on q.UNIT_ID=b.UNIT_ID
+		WHERE q.ROLE LIKE "%PMQT_CVP%" AND 
+		( q.EMPLOYEE_ID LIKE '%' #{searchDTO} '%' OR
+		  q.EMAIL LIKE '%' #{searchDTO} '%' OR
+		  q.PHONE_NUMBER LIKE '%' #{searchDTO} '%' )
+		ORDER BY q.FULL_NAME
+	</select>
+
+	<select id="searchPlaceStart" resultType="com.viettel.vtnet360.driving.entity.Place" 
+	       parameterType="com.viettel.vtnet360.driving.dto.SearchData">
+		SELECT q.PLACE_ID as placeId , q.PLACE_NAME as placeName
+		FROM QLDV_PLACE q
+		WHERE q.PLACE_NAME LIKE '%' #{searchDTO} '%'
+		ORDER BY q.PLACE_NAME
+		LIMIT 50
+	</select>
+
+	<select id="searchUnit" resultType="String" parameterType="Int">
+		SELECT UNIT_NAME as unitName
+		FROM QLDV_UNIT
+		WHERE UNIT_ID = #{searchDTO}
+	</select>
+	
+	<select id="searchFullName" resultType="String" parameterType="Int">
+		SELECT FULL_NAME as fullName
+		FROM QLDV_EMPLOYEE
+		WHERE UNIT_ID = #{searchDTO}
+		LIMIT 1
+	</select>
+
+	<select id="searchPhoneNumber" resultType="String" parameterType="Int">
+		SELECT PHONE_NUMBER as phoneNumber
+		FROM QLDV_EMPLOYEE
+		WHERE UNIT_ID = #{searchDTO}
+		LIMIT 1
+	</select>
+
+	<select id="searchDriveName" resultType="com.viettel.vtnet360.driving.entity.Manager" parameterType="String">
+		SELECT q.FULL_NAME as fullName , q.USER_NAME as userName
+		FROM QLDV_EMPLOYEE q
+		WHERE q.`ROLE` LIKE CONCAT('%PMQT_Doi_xe%') AND 
+		      q.FULL_NAME LIKE CONCAT('%', #{searchDTO}, '%')
+		ORDER BY q.FULL_NAME
+	</select>
+
+	<select id="searchApproverQltt" resultType="String" parameterType="String">
+		SELECT qe.FULL_NAME , qe.USER_NAME
+		FROM QLDV_EMPLOYEE qe JOIN CAR_BOOKING cb ON qe.USER_NAME = cb.EMPLOYEE_USER_NAME
+		WHERE cb.APPOVER_QLTT LIKE '%' #{searchDTO} '%'
+		ORDER BY qe.FULL_NAME
+	</select>
+
+	<select id="searchApproverQldv" resultType="String" parameterType="String">
+		SELECT qe.FULL_NAME , qe.USER_NAME
+		FROM QLDV_EMPLOYEE qe JOIN CAR_BOOKING cb ON qe.USER_NAME = cb.EMPLOYEE_USER_NAME
+		WHERE cb.APPOVER_LDDV LIKE '%' #{searchDTO} '%'
+		ORDER BY qe.FULL_NAME
+	</select>
+
+	<select id="searchApproverQlcvp" resultType="String" parameterType="String">
+		SELECT qe.FULL_NAME , qe.USER_NAME
+		FROM QLDV_EMPLOYEE qe JOIN CAR_BOOKING cb ON qe.USER_NAME = cb.EMPLOYEE_USER_NAME
+		WHERE cb.APPOVER_CVP LIKE '%' #{searchDTO} '%'
+		ORDER BY qe.FULL_NAME
+	</select>
+	
+	<select id="searchPlaceName" resultType="com.viettel.vtnet360.vt03.vt030014.entity.VT030014ListCondition"
+		parameterType="com.viettel.vtnet360.driving.dto.SearchData">
+		SELECT PLACE_ID as startPlace,
+		PLACE_NAME as placeName
+		FROM QLDV_PLACE
+		<if test="searchDTO != null and searchDTO.length &gt; 0">
+			WHERE PLACE_ID = #{searchDTO} 
+		</if>
+	</select>
+	
+	<select id="searchPlaceStartAll" resultType="com.viettel.vtnet360.vt03.vt030014.entity.VT030014ListCondition">
+		SELECT q.PLACE_ID as startPlace , q.PLACE_NAME as placeName
+		FROM QLDV_PLACE q
+		ORDER BY q.PLACE_NAME
+	</select>
+	
+	<select id="findAllListTrip" parameterType="com.viettel.vtnet360.vt03.vt030014.entity.VT030014ListCondition"
+		                          resultType="com.viettel.vtnet360.vt03.vt030014.entity.VT030014ListCondition">
+			SELECT
+	            d.SQUAD_NAME AS squadName,
+	            d.DRIVE_SQUAD_ID AS squadId,
+	            u.UNIT_NAME AS unitName,
+	            CASE
+	                WHEN
+	                u.UNIT_ID = 234841 THEN IFNULL(u.UNIT_NAME, '')
+	                WHEN b.UNIT_ID = 234841
+	                THEN CONCAT(IFNULL(u.UNIT_NAME, ''),
+	                IFNULL(CONCAT(' / ', b.UNIT_NAME), ''))
+	                WHEN u2.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''),
+	                IFNULL(CONCAT(' / ', b.UNIT_NAME), ''), IFNULL(CONCAT(' / ', u2.UNIT_NAME), ''))
+	                ELSE CONCAT(IFNULL(b.UNIT_NAME, ''), IFNULL(CONCAT(' / ', u2.UNIT_NAME), ''), 
+	                IFNULL(CONCAT(' / ', u3.UNIT_NAME), ''))
+	            END AS detailUnit,
+	            ebooker.FULL_NAME AS empName,
+	            ebooker.PHONE_NUMBER AS empPhone,
+	            edriver.FULL_NAME AS driverName,
+	            ms.CODE_NAME AS carType,
+	            ca.LICENSE_PLATE AS licensePlate,
+	            c.`START` AS dateStart,
+	            p.PLACE_NAME as placeName,
+	            c.`END` AS dateEnd,
+	            c.TIME_START as timeReadyStart,
+	            c.TIME_FINISH as timeReadyEnd,
+	            c.TOTAL_PASSAGE AS numOfPassenger,
+	            c.LIST_PASSAGE AS listOfPassenger,
+	            c.ROUTE_TYPE AS routeType,
+	            c.APPOVER_QLTT AS appoverQltt,
+	            c.APPOVER_LDDV AS appoverLddv,
+	            c.APPOVER_CVP AS appoverCvp,
+	            c.START_PLACE AS startPlace,
+	            c.TAGET_PLACE AS tagetPlace,
+	            c.SEAT AS seat,
+	            c.ROUTE AS route,
+	            c.STATUS AS statusTrips,
+	            c.RATTING AS rating,
+	            c.FEEDBACK AS feedback,
+	            c.REASON_REFUSE AS reasonRefuse,
+	            c.REASON_ASSIGNER AS reasonAssigner,
+	            c.FLAG_QLTT as flagQltt ,
+	            c.FLAG_LDDV as flagLddv ,
+	            c.FLAG_CVP as flagCvp,
+	            c.CAR_BOOKING_ID as carBookingId,
+	            c.CREATE_USER as createUser,
+	            c.REASON as reason,
+	            c.START_PLACE as startPlace,
+	            c.TAGET_PLACE as tagetPlace ,
+	            c.TIME_START as timeReadyStart ,
+	            c.TIME_FINISH as timeReadyEnd,
+	            c.DRIVER_RATING as driverRating,
+	            c.DRIVER_FEEDBACK as driverFeedback,
+	            c.BOOKED_ACTUALY_TIME as bookedActualyTime,
+	            ms.CODE_NAME as carName,
+	            c.CAR_ID as carId,
+	            c.DRIVE_USER as driverUser,
+	            c.TYPE as typeId,
+	            (SELECT CODE_NAME FROM M_SYSTEM_CODE WHERE MASTER_CLASS = 'S001' AND CODE_VALUE = ca.TYPE) as realyCarType
+	        FROM 
+	          CAR_BOOKING c
+	          LEFT JOIN QLDV_EMPLOYEE ebooker ON c.EMPLOYEE_USER_NAME = ebooker.USER_NAME
+	          LEFT JOIN QLDV_EMPLOYEE edriver ON c.DRIVE_USER = edriver.USER_NAME
+	          LEFT JOIN DRIVES_SQUAD d ON c.DRIVER_SQUAD_ID = d.DRIVE_SQUAD_ID
+	          LEFT JOIN QLDV_PLACE p ON d.PLACE_ID = p.PLACE_ID
+	          LEFT JOIN QLDV_UNIT u ON ebooker.UNIT_ID = u.UNIT_ID
+	          LEFT JOIN QLDV_UNIT b ON u.PARENT_UNIT_ID = b.UNIT_ID
+	          LEFT JOIN QLDV_UNIT u2 ON b.PARENT_UNIT_ID = u2.UNIT_ID
+	          LEFT JOIN QLDV_UNIT u3 ON u2.PARENT_UNIT_ID = u3.UNIT_ID
+	          LEFT JOIN CARS ca ON c.CAR_ID = ca.CAR_ID
+	          LEFT JOIN M_SYSTEM_CODE ms ON c.`TYPE` = ms.CODE_VALUE
+	        WHERE
+	          ms.MASTER_CLASS = 'S001' AND ms.STATUS =1 AND  
+	          ebooker.STATUS = 1
+            <!-- get list trip of manager -->
+            <if test="loginRole == 'PMQT_QL' or loginRole == 'PMQT_CVP'">
+                AND ((c.APPOVER_QLTT = #{loginUserName} OR c.APPOVER_LDDV = #{loginUserName} OR c.APPOVER_CVP= #{loginUserName})
+                OR u.`PATH` LIKE CONCAT('%', #{unitIdManager}, '%'))
+            </if>
+            <!-- <if test="unitIdManager != null and unitIdManager.length &gt; 0">
+                <bind name="patternManager" value="'%' + unitIdManager + '%'" />
+                AND u.`PATH` LIKE #{patternManager}
+            </if> -->
+            <if test="squadId != null and squadId.length &gt; 0">
+                AND d.DRIVE_SQUAD_ID = #{squadId}
+            </if>
+            <if test="squadName != null and squadName.length &gt; 0">
+                <bind name="pattern" value="'%' + squadName + '%'" />
+                AND d.SQUAD_NAME LIKE #{pattern}
+            </if>
+            <if
+                test="userNameDriver == null and driverInfo != null and driverInfo.length &gt; 0">
+                <bind name="pattern1" value="'%' + driverInfo + '%'" />
+                AND edriver.FULL_NAME LIKE #{pattern1}
+            </if>
+            <if
+                test="userNameDriver != null and userNameDriver.length &gt; 0 and driverInfo == null">
+                AND edriver.USER_NAME = #{userNameDriver}
+            </if>
+            <if test="carType != null and carType.length &gt; 0">
+                AND c.`TYPE` = #{carType}
+            </if>
+            <if
+                test="userNameBooker == null and empInfo != null and empInfo.length &gt; 0">
+                <bind name="pattern2" value="'%' + empInfo + '%'" />
+                AND ebooker.FULL_NAME LIKE #{pattern2}
+            </if>
+            <if
+                test="userNameBooker != null and userNameBooker.length > 0 and empInfo == null">
+                AND ebooker.USER_NAME = #{userNameBooker}
+            </if>
+            <if test="selectedCarStatus != null and selectedCarStatus.length &gt; 0" >
+	            AND
+		        <foreach item="status" index="index" collection="selectedCarStatus"
+		                open="(" separator="or" close=")">
+		                c.STATUS = #{status}
+		            </foreach>
+	        </if>
+            <if test="dateStart != null">
+                AND c.`START` &gt;= CAST(#{dateStart} AS DATETIME)      
+            </if>
+            <if test="dateEnd != null">
+                AND c.`START` &lt;= CAST(#{dateEnd} AS DATETIME)            
+            </if>
+		ORDER BY c.`START` DESC
+		<if test="startRow != -1 and rowSize != -1">
+			LIMIT #{startRow}, #{rowSize}
+		</if>
+	</select>
+	
+	<update id="updateBooking" parameterType="com.viettel.vtnet360.driving.entity.ListTrip">
+        UPDATE CAR_BOOKING
+        SET 
+            START = #{dateStart},
+            END = #{dateEnd},
+            UPDATE_USER = #{updateUser},
+            UPDATE_DATE = SYSDATE()
+        WHERE CAR_BOOKING_ID = #{carBookingId}
+    </update>
+
+	<update id="updateCarDetails" parameterType="com.viettel.vtnet360.driving.entity.ListTrip">
+		UPDATE CAR_BOOKING
+		SET 
+			STATUS = 10,
+			START = #{dateStart},
+			END = #{dateEnd},
+			FLAG_QLTT = CASE WHEN APPOVER_QLTT IS NOT NULL THEN 0 else null END,
+            FLAG_LDDV = 0,
+            FLAG_CVP = CASE WHEN APPOVER_CVP IS NOT NULL THEN 0 else null END,
+			UPDATE_USER = #{updateUser},
+			UPDATE_DATE = SYSDATE()
+		WHERE CAR_BOOKING_ID = #{carBookingId}
+	</update>
+	
+	<update id="updateRejectCarDetails" parameterType="com.viettel.vtnet360.driving.entity.ListTrip">
+		UPDATE CAR_BOOKING
+		SET
+			STATUS = 3,
+			UPDATE_USER = #{updateUser},
+			UPDATE_DATE = SYSDATE()
+		WHERE CAR_BOOKING_ID = #{carBookingId}
+	</update>
+
+	<!-- insert CarDetails -->
+	<insert id="insertCarDetails" parameterType="com.viettel.vtnet360.driving.entity.ListTrip">
+		INSERT INTO CAR_BOOKING ( 
+			 CAR_BOOKING_ID
+			,EMPLOYEE_USER_NAME
+			,DRIVER_SQUAD_ID
+			,ROUTE_TYPE
+			,TYPE
+			,`START` 
+			,`END` 
+			,SEAT
+			,START_PLACE
+			,TAGET_PLACE
+			,ROUTE
+			,TOTAL_PASSAGE
+			,LIST_PASSAGE
+			,REASON
+			,RATTING
+			,CREATE_USER
+			,STATUS
+			<if test="appoverQltt != null and appoverQltt.length &gt; 0">
+				,APPOVER_QLTT
+			,FLAG_QLTT
+			</if>
+			<if test="appoverLddv != null and appoverLddv.length &gt; 0">
+				,APPOVER_LDDV
+				,FLAG_LDDV
+			</if>
+			<if test="appoverCvp != null and appoverCvp.length &gt; 0">
+				,APPOVER_CVP
+				,FLAG_CVP
+			</if>
+		)
+
+		VALUES( CONCAT('VTN_SR_', NEXT VALUE FOR VTN_S),
+			#{empName}
+			,#{squadId}
+			,#{routeType}
+			,#{carType}
+			,#{dateStart}
+			,#{dateEnd} 
+			,#{seat}
+			,#{startPlace}
+			,#{tagetPlace}
+			,#{route}
+			,#{numOfPassenger}
+			,#{listOfPassenger}
+			,#{reason}
+			,0
+			,#{createUser}
+			,0
+			<if test="appoverQltt != null and appoverQltt.length &gt; 0">
+				,#{appoverQltt}
+			,0
+			</if>
+			<if test="appoverLddv != null and appoverLddv.length &gt; 0">
+				,#{appoverLddv}
+				,0
+			</if>
+			<if test="appoverCvp != null and appoverCvp.length &gt; 0">
+				,#{appoverCvp}
+				,0
+	
+			</if>
+		)
+	</insert>
+
+	<update id="updateNewCarDetails" parameterType="com.viettel.vtnet360.driving.entity.ListTrip">
+		UPDATE CAR_BOOKING
+		SET
+			STATUS = 0,
+			UPDATE_USER = #{updateUser},
+			UPDATE_DATE = SYSDATE()
+		WHERE CAR_BOOKING_ID = #{carBookingId}
+	</update>
+
+	<update id="updateCompleteCarDetails" parameterType="com.viettel.vtnet360.driving.entity.ListTrip">
+		UPDATE CAR_BOOKING
+		SET
+			RATTING = #{rating},
+			FEEDBACK = #{feedback},
+			UPDATE_USER =
+			#{updateUser},
+			UPDATE_DATE = SYSDATE()
+		WHERE CAR_BOOKING_ID = #{carBookingId}
+	</update>
+
+	<update id="updateRenewCarDetails" parameterType="com.viettel.vtnet360.driving.entity.ListTrip">
+		UPDATE CAR_BOOKING
+		SET
+			STATUS = 9,
+			START = #{dateStart},
+			END = #{dateEnd},
+			UPDATE_USER = #{updateUser},
+			UPDATE_DATE = SYSDATE()
+		WHERE CAR_BOOKING_ID = #{carBookingId}
+	</update>
+	
+	<select id="searchDriveNameIsFree" resultType="com.viettel.vtnet360.driving.entity.ListTrip" 
+		parameterType="com.viettel.vtnet360.driving.entity.ListTrip">
+		SELECT  d.EMPLOYEE_USER_NAME as employeeUserName , qe.FULL_NAME as fullName 
+		FROM 
+		  DRIVER d
+		  JOIN QLDV_EMPLOYEE qe on d.EMPLOYEE_USER_NAME = qe.USER_NAME 
+		  JOIN CAR_BOOKING cb on d.DRIVE_SQUAD_ID = cb.DRIVER_SQUAD_ID
+		  JOIN QLDV_PLACE qp on qe.PLACE_ID = qp.PLACE_ID
+		WHERE 
+		  d.PROCESS_STATUS = 7 AND qp.PLACE_ID = #{startPlace} AND 
+		  cb.START = #{dateStart} AND 
+		  cb.END = #{dateEnd}
+	</select>
+
+	<select id="searchCARSIsFree" resultType="com.viettel.vtnet360.driving.entity.ListTrip"
+		                                              parameterType="com.viettel.vtnet360.driving.entity.ListTrip">
+		SELECT 
+		  dc.CAR_ID as carId , 
+		  c.LICENSE_PLATE as licensePlate
+		FROM 
+		  DRIVER_CAR dc 
+		  JOIN CARS c on dc.CAR_ID = c.CAR_ID
+		  JOIN CAR_BOOKING cb on cb.CAR_ID = dc.CAR_ID
+		  JOIN M_SYSTEM_CODE msc on msc.CODE_VALUE = c.TYPE
+		WHERE 
+		  c.PROCESS_STATUS = 7 AND 
+		  msc.MASTER_CLASS = 'S001' AND 
+		  AND msc.STATUS =1
+		  cb.START = #{dateStart} AND 
+		  cb.END = #{dateEnd}
+	</select>	
+	
+	<update id="updateCarJourney" parameterType="com.viettel.vtnet360.driving.entity.ListTrip">
+		UPDATE
+		CAR_BOOKING
+		SET
+		STATUS = 5,
+		UPDATE_USER = #{updateUser},
+		TIME_START = SYSDATE()
+		WHERE CAR_BOOKING_ID = #{carBookingId}
+	</update>	
+		
+	<update id="updateCarRoute" parameterType="com.viettel.vtnet360.driving.entity.ListTrip">
+		UPDATE CAR_BOOKING
+		SET
+			STATUS = 7,
+			UPDATE_USER = #{updateUser},
+			UPDATE_DATE = SYSDATE()
+		WHERE CAR_BOOKING_ID = #{carBookingId}
+	</update>	
+	
+	<select id="searchDriveSquadName" resultType="com.viettel.vtnet360.driving.entity.DrivesSquad"
+	                                   parameterType="com.viettel.vtnet360.driving.dto.SearchData">
+		SELECT
+			CREATE_DATE as createDate ,
+			CREATE_USER as createUser ,
+			DELETE_FLAG as  deleteFlag,
+			DRIVE_SQUAD_ID as squadId,
+			SQUAD_NAME as squadName,
+			PLACE_ID as placeId,
+			EMPLOYEE_USER_NAME as employeeUserName,
+			STATUS as status,
+			UPDATE_USER as updateUser,
+			UPDATE_DATE as updateDate
+		FROM DRIVES_SQUAD 
+		WHERE STATUS = 1 AND  DELETE_FLAG = 0
+		<if test="searchDTO != null and searchDTO.length &gt; 0">
+		 AND SQUAD_NAME LIKE CONCAT('%', #{searchDTO}, '%')
+		</if>
+		ORDER BY SQUAD_NAME
+	</select>
+	
+    <select id="searchLicensePlate" resultType="com.viettel.vtnet360.driving.entity.Cars"
+	                               parameterType="com.viettel.vtnet360.driving.dto.SearchData">
+		SELECT
+			CAR_ID as carId ,
+			DRIVE_SQUAD_ID as squadId ,
+			LICENSE_PLATE as licensePlate,
+			TYPE as type,
+			SEAT as seat,
+			STATUS as status,
+			PROCESS_STATUS as processStatus,
+			DELETE_FLAG as deleteFlag,
+			CREATE_USER as createUser,
+			CREATE_DATE as createDate,
+			UPDATE_USER as updateUser,
+			UPDATE_DATE as updateDate
+		FROM CARS
+		<if test="searchDTO != null and searchDTO.length &gt; 0">
+			WHERE LICENSE_PLATE LIKE '%' #{searchDTO} '%'
+		</if>
+    </select> 
+	
+	<select id="searchSuggestionLicensePlate" resultType="com.viettel.vtnet360.driving.entity.Cars" 
+		parameterType="com.viettel.vtnet360.driving.dto.SearchData">
+		SELECT 
+		    c.CAR_ID as carId  
+			,CONCAT(c.LICENSE_PLATE , ' - ' , msc1.CODE_NAME, ' - ' , msc2.CODE_NAME) as licensePlate
+			, c.CREATE_DATE  as createDate
+			, c.CREATE_USER as createUser
+			, c.DELETE_FLAG  as deleteFlag
+			, c.DRIVE_SQUAD_ID as squadId
+			, c.PROCESS_STATUS as processStatus
+			, c.SEAT  as seat
+			, c.STATUS  as status
+			, c.TYPE as type
+			, c.UPDATE_DATE as updateDate
+			, c.UPDATE_USER as updateUser
+		
+		 FROM 
+		      CARS c 
+		      LEFT JOIN M_SYSTEM_CODE msc1 on c.TYPE = msc1.CODE_VALUE 
+		      LEFT JOIN M_SYSTEM_CODE msc2 on c.SEAT = msc2.CODE_VALUE 
+		 WHERE 
+		      c.DELETE_FLAG = 0 AND 
+		      c.STATUS = 1 AND 
+		      c.DRIVE_SQUAD_ID = #{driveSquadId}
+		      AND  msc2.MASTER_CLASS ='S002' AND msc2.STATUS =1
+		      AND  msc1.MASTER_CLASS ='S001' AND msc1.STATUS =1
+			 <if test="searchDTO != null and searchDTO.length &gt; 0">
+				 <bind name="pattern" value="'%' + searchDTO + '%'" />
+			       AND (
+			           (msc1.CODE_NAME LIKE #{pattern} ) 
+			           OR (msc2.CODE_NAME LIKE #{pattern} )
+			           OR c.LICENSE_PLATE LIKE #{pattern}
+			       )
+			</if>
+		
+	</select>
+	<select id="getPlaceByAll" resultType="com.viettel.vtnet360.driving.entity.Place" >
+		SELECT 
+		  PLACE_ID as placeId,
+		  PLACE_NAME as placeName,
+		  PLACE_CODE as placeCode,
+		  AREA as area,
+		  DESCRIPTION as description,
+		  STATUS as status,
+		  UPDATE_USER as updateUser,
+		  UPDATE_DATE as updateDate
+		FROM QLDV_PLACE
+	</select>
+	
+	<select id="getListCarBookingToAlert" resultType="com.viettel.vtnet360.driving.entity.CarBookingMessage">
+		SELECT
+			a.EMPLOYEE_USER_NAME employeeUserName,
+			a.APPOVER_QLTT appoverQltt,
+			a.APPOVER_CVP appoverCvp,
+			a.APPOVER_LDDV appoverLddv,
+			b.CAR_BOOKING_id carBookingIdMessage,
+			a.CAR_BOOKING_id carBookingId,
+			a.DRIVE_USER driveUser,
+			a.DRIVER_SQUAD_ID driverSquadId,
+			a.START,
+			a.END
+		FROM
+			CAR_BOOKING a
+			LEFT JOIN CAR_BOOKING_MESSAGE b ON a.CAR_BOOKING_ID = b.CAR_BOOKING_id 
+		WHERE
+			a.CREATE_DATE >= DATE_SUB(NOW(), INTERVAL 1 DAY) 
+			AND (b.CREATE_TIME IS NULL OR b.create_time >= DATE_SUB(NOW(), INTERVAL 1 DAY))
+			AND a.STATUS IN (0, 1, 4, 10)
+			AND NOW() > a.END
+	</select>
+	
+	<select id="getPhoneByUserName" resultType="java.lang.String" parameterType="java.lang.String">
+		SELECT PHONE_NUMBER 
+		FROM QLDV_EMPLOYEE
+		WHERE USER_NAME=#{userName}
+	</select>
+	
+	<select id="getPhoneBySquadLeader" resultType="com.viettel.vtnet360.vt03.vt030000.entity.Employee" parameterType="java.lang.String">
+		SELECT
+			a.PHONE_NUMBER phoneNumber,
+			a.USER_NAME userName
+		FROM
+			QLDV_EMPLOYEE a
+			JOIN DRIVES_SQUAD b on a.USER_NAME = b.EMPLOYEE_USER_NAME
+		WHERE
+			b.DRIVE_SQUAD_ID = #{driverSquadId}
+	</select>
+	
+	<select id="getQlttByUserName" resultType="com.viettel.vtnet360.vt03.vt030014.entity.VT030014ListCondition"
+		parameterType="com.viettel.vtnet360.driving.dto.SearchData" >
+		select   q.FULL_NAME as fullName , q.USER_NAME as userNameBooker
+		from QLDV_EMPLOYEE q 
+		
+		<if test="searchDTO != null  and searchDTO.length &gt; 0 ">
+			where q.USER_NAME = #{searchDTO}
+		</if>
+	</select>
+
+	<select id="getQltt"
+		resultType="com.viettel.vtnet360.vt03.vt030014.entity.VT030014ListCondition">
+		SELECT
+		q.FULL_NAME as fullName , q.USER_NAME as
+		userNameBooker
+
+		FROM QLDV_EMPLOYEE q
+		inner JOIN QLDV_UNIT b on
+		q.UNIT_ID=b.UNIT_ID
+		WHERE
+		q.ROLE="PMQT_QL"
+
+	</select>
+	
+	<select id="getQldv" resultType="com.viettel.vtnet360.vt03.vt030014.entity.VT030014ListCondition"
+		 >
+		SELECT
+		q.FULL_NAME as fullName , q.USER_NAME as userNameBooker
+
+		FROM QLDV_EMPLOYEE q
+		inner JOIN QLDV_UNIT b on q.UNIT_ID=b.UNIT_ID
+		WHERE
+		(q.ROLE="PMQT_QL" and q.ROLE="PMQT_CVP")
+
+	</select>
+	
+	<select id="getCvp" resultType="com.viettel.vtnet360.vt03.vt030014.entity.VT030014ListCondition"
+		 >
+		SELECT
+		q.FULL_NAME as fullName , q.USER_NAME as userNameBooker
+		FROM QLDV_EMPLOYEE q
+		inner JOIN QLDV_UNIT b on q.UNIT_ID=b.UNIT_ID
+		WHERE q.ROLE="PMQT_CVP"
+
+
+	</select>
+		
+	<select id="getQldvByUserName"
+	   resultType="com.viettel.vtnet360.vt03.vt030014.entity.VT030014ListCondition"
+	   parameterType="com.viettel.vtnet360.driving.dto.SearchData">
+	   select
+	       q.FULL_NAME as fullName , q.USER_NAME as userNameBooker
+	   from QLDV_EMPLOYEE q
+		<if test="searchDTO != null  and searchDTO.length &gt; 0 ">
+			where
+			q.USER_NAME = #{searchDTO}
+		</if>
+	</select>
+	
+	<select id="getQlcvpByUserName" resultType="com.viettel.vtnet360.vt03.vt030014.entity.VT030014ListCondition"	
+		parameterType="com.viettel.vtnet360.driving.dto.SearchData" >
+		select  
+		q.FULL_NAME as fullName , q.USER_NAME as userNameBooker
+		 from  QLDV_EMPLOYEE q 
+		  <if test="searchDTO != null  and searchDTO.length &gt; 0 ">
+		  where q.USER_NAME = #{searchDTO}
+		  </if>
+	</select>
+			
+	<select id="searchRoueType" resultType="String"
+		parameterType="String">
+		select CODE_NAME from M_SYSTEM_CODE where MASTER_CLASS = 'S003' AND STATUS =1 and CODE_VALUE = #{searchDTO}
+	</select>
+	
+	<select id="getRoleByUser" parameterType="String" resultType="String">
+        SELECT ROLE 
+        FROM QLDV_EMPLOYEE
+        WHERE USER_NAME = #{searchDTO}
+    </select>
+    <update id="updateCarRefuse"  parameterType="com.viettel.vtnet360.driving.entity.ListTrip">
+		UPDATE CAR_BOOKING
+		SET 
+		STATUS = 2
+		<if test="isAQltt == true ">
+		,APPOVER_QLTT = #{appoverQltt},
+		FLAG_QLTT =2 
+		</if>
+		<if test="isAQldv == true ">
+		,APPOVER_LDDV = #{appoverLddv},
+		FLAG_LDDV =2
+		</if>
+		<if test="isACvp == true ">
+		,APPOVER_CVP = #{appoverCvp},
+		FLAG_CVP =2
+		</if>
+		<if test="reasonRefuse != null  and reasonRefuse.length &gt; 0 ">
+		,REASON_REFUSE = #{reasonRefuse}
+		</if>
+		WHERE CAR_BOOKING_ID = #{carBookingId}
+	</update>
+	<update id="updateCarApprove" parameterType="com.viettel.vtnet360.driving.entity.ListTrip">
+		UPDATE CAR_BOOKING
+		SET 
+		STATUS = 1
+		<if test="isAQltt == true ">
+		
+		,FLAG_QLTT =1
+		</if>
+		<if test="isAQldv == true ">
+		
+	,	FLAG_LDDV =1
+		</if>
+		<if test="isACvp == true ">
+		
+		,FLAG_CVP =1
+		</if>
+		
+		WHERE CAR_BOOKING_ID = #{carBookingId}
+	</update>
+    	
+    	
+    	<update id="updateListCarApprove" parameterType="com.viettel.vtnet360.driving.entity.ListCarBooking">
+		UPDATE CAR_BOOKING
+		SET 
+		STATUS = 1
+		<if test="isAQltt == true ">
+		,APPOVER_QLTT = #{appoverQltt},
+		FLAG_QLTT =1 
+		</if>
+		<if test="isAQldv == true ">
+		,APPOVER_LDDV = #{appoverLddv},
+		FLAG_LDDV =1
+		</if>
+		<if test="isACvp == true ">
+		,APPOVER_CVP = #{appoverCvp},
+		FLAG_CVP =1
+		</if>
+		
+		WHERE
+	
+		<foreach item="carBookingId" index="index" collection="listCar"
+				open="(" separator="or" close=")">
+		 CAR_BOOKING_ID = #{carBookingId}
+		 </foreach>
+		 
+	</update>
+    	
+    	
+    	<select id="findAllListTripById"
+			parameterType="com.viettel.vtnet360.vt03.vt030014.entity.VT030014ListCondition"
+		resultType="com.viettel.vtnet360.vt03.vt030014.entity.VT030014ListCondition">
+		SELECT
+		d.SQUAD_NAME AS driveSquadName,
+		d.DRIVE_SQUAD_ID AS squadId,
+		u.UNIT_NAME AS unitName,
+		CASE
+		WHEN
+		u.UNIT_ID = 234841 THEN IFNULL(u.UNIT_NAME, '')
+		WHEN b.UNIT_ID = 234841
+		THEN CONCAT(IFNULL(u.UNIT_NAME, ''),
+		IFNULL(CONCAT(' / ', b.UNIT_NAME),
+		''))
+		WHEN u2.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''),
+		IFNULL(CONCAT(' / ', b.UNIT_NAME), ''), IFNULL(CONCAT(' / ',
+		u2.UNIT_NAME), ''))
+		ELSE CONCAT(IFNULL(b.UNIT_NAME, ''),
+		IFNULL(CONCAT(' / ', u2.UNIT_NAME),
+		''), IFNULL(CONCAT(' / ',
+		u3.UNIT_NAME), ''))
+		END AS detailUnit,
+		ebooker.FULL_NAME AS empName,
+		ebooker.PHONE_NUMBER AS empPhone,
+		 edriver.FULL_NAME AS driverName,
+		<!--d.SQUAD_NAME AS driverName,  -->
+		ms.CODE_VALUE AS carType,
+		ca.LICENSE_PLATE AS licensePlate,
+		c.`START` AS
+		dateStart,
+		p.PLACE_NAME as placeName,
+		c.`END` AS dateEnd,
+		c.TIME_START as timeReadyStart,
+		c.TIME_FINISH as timeReadyEnd,
+		c.TOTAL_PASSAGE AS numOfPassenger,
+		c.LIST_PASSAGE AS listOfPassenger,
+		c.ROUTE_TYPE AS routeType,
+		c.APPOVER_QLTT AS appoverQltt,
+		c.APPOVER_LDDV AS appoverLddv,
+		c.APPOVER_CVP AS appoverCvp,
+		c.START_PLACE AS startPlace,
+		c.TAGET_PLACE
+		AS tagetPlace,
+		c.SEAT AS seat,
+		c.ROUTE AS route,
+		c.STATUS AS statusTrips,
+		c.RATTING AS rating,
+		c.FEEDBACK AS feedback,
+		c.REASON_REFUSE AS reasonRefuse,
+		c.REASON_ASSIGNER AS reasonAssigner,
+		c.FLAG_QLTT as flagQltt ,
+		c.FLAG_LDDV as flagLddv ,
+		c.FLAG_CVP as flagCvp,
+		c.CAR_BOOKING_ID as carBookingId,
+		c.CREATE_USER
+		as createUser,
+		c.REASON as reason,
+		c.START_PLACE as startPlace,
+		c.TAGET_PLACE as tagetPlace ,
+		c.TIME_START as timeReadyStart ,
+		c.TIME_FINISH as timeReadyEnd
+
+		FROM CAR_BOOKING c
+		LEFT JOIN QLDV_EMPLOYEE
+		ebooker ON c.EMPLOYEE_USER_NAME = ebooker.USER_NAME
+		LEFT JOIN
+		QLDV_EMPLOYEE edriver ON c.DRIVE_USER =
+		edriver.USER_NAME
+		LEFT JOIN
+		DRIVES_SQUAD d ON c.DRIVER_SQUAD_ID =
+		d.DRIVE_SQUAD_ID
+		LEFT JOIN QLDV_PLACE p ON
+			d.PLACE_ID = p.PLACE_ID
+		LEFT JOIN
+		QLDV_UNIT u ON ebooker.UNIT_ID = u.UNIT_ID
+		LEFT JOIN QLDV_UNIT b ON
+		u.PARENT_UNIT_ID = b.UNIT_ID
+		LEFT JOIN
+		QLDV_UNIT u2 ON b.PARENT_UNIT_ID
+		= u2.UNIT_ID
+		LEFT JOIN QLDV_UNIT u3 ON
+		u2.PARENT_UNIT_ID = u3.UNIT_ID
+		LEFT JOIN CARS ca ON c.CAR_ID =
+		ca.CAR_ID
+		LEFT JOIN M_SYSTEM_CODE ms ON
+		c.`TYPE` = ms.CODE_VALUE
+		WHERE
+		ms.MASTER_CLASS = 'S001' AND ms.STATUS =1 AND 
+		ebooker.STATUS = 1
+		<if test="carBookingId != null  and carBookingId.length &gt; 0">
+		AND c.CAR_BOOKING_ID = #{carBookingId}
+		</if>
+	</select>
+    	<update id="updateCarRefuseOrder" parameterType="com.viettel.vtnet360.driving.entity.ListTrip">
+		UPDATE
+		DRIVER_CAR
+		SET
+		STATUS = 9,
+		UPDATE_USER = #{updateUser},
+		UPDATE_DATE = SYSDATE(),
+		REASON_REFUSE = #{reasonRefuse}
+		WHERE CAR_BOOKING_ID = #{carBookingId}
+	</update>	
+    	
+    	
+    	
+    	<update id="updateRattingUser" parameterType="com.viettel.vtnet360.vt03.vt030012.entity.Ratting">
+		UPDATE CAR_BOOKING
+		SET
+		RATTING=#{numberOfStar}, FEEDBACK=#{note},UPDATE_USER=#{userName},
+		UPDATE_DATE=SYSDATE()
+		WHERE CAR_BOOKING_ID=#{bookCarId};
+	</update>
+	
+	<update id="updateDriveCarApprove" parameterType="com.viettel.vtnet360.driving.entity.ListTrip">
+		UPDATE
+		DRIVER_CAR
+		SET
+		UPDATE_USE = #{driverName},
+		UPDATE_DATE = SYSDATE()
+		WHERE CAR_BOOKING_ID = #{carBookingId}
+	</update>	
+	
+	<update id="updateCarOrderApprove" parameterType="com.viettel.vtnet360.driving.entity.ListTrip">
+		UPDATE
+		CARS
+		SET
+		PROCESS_STATUS = 4 ,
+		UPDATE_USE = #{driverName},
+		UPDATE_DATE = SYSDATE()
+		WHERE CAR_BOOKING_ID = #{carBookingId}
+	</update>	
+	
+	<update id="updateBookingCarApprove" parameterType="com.viettel.vtnet360.driving.entity.ListTrip">
+		UPDATE
+		CAR_BOOKING
+		SET
+		UPDATE_USE = #{driverName},
+		UPDATE_DATE = SYSDATE(),
+		BOOKED_ACTUALY_TIME  = SYSDATE()
+		WHERE CAR_BOOKING_ID = #{carBookingId}
+	</update>	
+			
+</mapper>

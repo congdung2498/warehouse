@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt02.vt020010.dao.VT020010DAO">
+
+    <select id="getChildVTNetUnit" resultType="com.viettel.vtnet360.vt02.vt020010.entity.VT020010Unit">
+        SELECT u.UNIT_NAME as unitName,
+               u.UNIT_ID as unitID,
+               u.PARENT_UNIT_ID as parentId, 
+               u.path as path
+        FROM QLDV_UNIT u
+        WHERE u.PARENT_UNIT_ID = 234841 AND STATUS = 1;
+    </select>
+
+    <select id="reportByUnit" resultType="com.viettel.vtnet360.vt02.vt020010.entity.VT020010DataResponse" 
+                                parameterType="com.viettel.vtnet360.vt02.vt020010.entity.VT020010RequestParam">
+    SELECT 
+		CASE WHEN lc.UNIT_ID = 234841 
+		     THEN IFNULL(
+			( SELECT SHORT_NAME 
+			FROM UNIT_SHORTENING 
+			WHERE UNIT_ID = qu.UNIT_ID and KITCHEN_ID = #{kitchenID}), qu.UNIT_NAME) 
+		ELSE IFNULL((
+			SELECT SHORT_NAME 
+			FROM UNIT_SHORTENING 
+			WHERE UNIT_ID = qu.UNIT_ID and KITCHEN_ID = #{kitchenID}), 
+			CONCAT(IFNULL(qu.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''))) 
+		END AS unitName, 
+		lc.UNIT_ID as unitID,
+		lc.LUNCH_DATE as lunchDate,
+		SUM(lc.QUANTITY) as total
+		
+	FROM 
+		LUNCH_CALENDAR lc
+		LEFT JOIN QLDV_UNIT qu ON lc.UNIT_ID = qu.UNIT_ID 
+		LEFT JOIN QLDV_UNIT b ON qu.PARENT_UNIT_ID = b.UNIT_ID 
+    WHERE     
+        lc.QUANTITY > 0
+        AND lc.HAS_BOOKING = 1
+        <if test="unitId != null and unitId > 0">
+            AND lc.UNIT_ID = #{unitId}
+        </if>
+        <if test="kitchenID != null">
+            AND lc.KITCHEN_ID = #{kitchenID}
+        </if>
+        <if test="fromDate != null">
+            AND lc.LUNCH_DATE &gt;= CAST(#{fromDate} AS DATETIME)       
+        </if>
+        <if test="toDate != null">
+            AND lc.LUNCH_DATE &lt;= CAST(#{toDate} AS DATETIME)         
+        </if>
+     GROUP BY unitId, lunchDate
+     ORDER BY lunchDate DESC, unitName ASC
+    </select>
+    
+	<select id="findReportItem" resultType="com.viettel.vtnet360.vt02.vt020010.entity.VT020010ReportDetail" 
+								parameterType="com.viettel.vtnet360.vt02.vt020010.entity.VT020010RequestParam">
+		SELECT    DATE(lc.LUNCH_DATE) as lunchDate,
+                lc.QUANTITY as total,
+                qu.`PATH` as unitPath,
+                lc.UNIT_ID as unitId
+        FROM    LUNCH_CALENDAR lc
+                LEFT JOIN QLDV_UNIT qu ON lc.UNIT_ID = qu.UNIT_ID
+        WHERE     
+		        lc.QUANTITY > #{quantity}
+                AND lc.HAS_BOOKING = #{hasBooking}
+                <if test="unitId != null and unitId > 0">
+                    AND lc.UNIT_ID IN (
+                                                SELECT UNIT_ID
+                                                FROM QLDV_UNIT
+                                                WHERE PATH LIKE CONCAT('%', #{unitId}, '%'))
+                </if>
+                
+				<if test="kitchenID != null">
+					AND lc.KITCHEN_ID = #{kitchenID}
+				</if>
+				<if test="fromDate != null">
+                    AND lc.LUNCH_DATE &gt;= CAST(#{fromDate} AS DATETIME)       
+	            </if>
+	            <if test="toDate != null">
+	                AND lc.LUNCH_DATE &lt;= CAST(#{toDate} AS DATETIME)         
+	            </if>
+	</select>
+	
+	<select id="findReportItemByDate" resultType="com.viettel.vtnet360.vt02.vt020010.entity.VT020010ReportDetail" 
+								parameterType="com.viettel.vtnet360.vt02.vt020010.entity.VT020010RequestParam">
+		SELECT 	DATE(lc.LUNCH_DATE) as lunchDate,
+				lc.QUANTITY as total,
+				qu.`PATH` as unitPath,
+				lc.UNIT_ID as unitId
+		FROM 	LUNCH_CALENDAR lc LEFT JOIN QLDV_UNIT qu ON lc.UNIT_ID = qu.UNIT_ID
+		WHERE 	DATE(lc.LUNCH_DATE) = DATE(#{lunchDate})
+				AND lc.KITCHEN_ID = #{kitchenID}
+				AND lc.QUANTITY > #{quantity}
+				AND lc.HAS_BOOKING = #{hasBooking}
+	</select>
+	
+	<select id="findReportItemByDateLog" resultType="java.lang.String" 
+                                parameterType="com.viettel.vtnet360.vt02.vt020010.entity.VT020010RequestParam">
+        SELECT  CONCAT(
+				    '[', 
+				    GROUP_CONCAT(JSON_OBJECT(
+				            'LUNCH_CALENDAR_ID', LUNCH_CALENDAR_ID,
+				            'EMPLOYEE_USER_NAME', EMPLOYEE_USER_NAME,
+				            'LUNCH_DATE', LUNCH_DATE,
+				            'QUANTITY', QUANTITY,
+				            'PRICE', PRICE,
+				            'HAS_BOOKING', HAS_BOOKING,
+				            'KITCHEN_ID', KITCHEN_ID,
+				            'IS_PERIODIC', IS_PERIODIC,
+				            'RATTING', RATTING,
+				            'CREATE_USER', CREATE_USER,
+				            'CREATE_DATE', CREATE_DATE,
+				            'UPDATE_USER', UPDATE_USER,
+				            'UNIT_ID', lc.UNIT_ID,
+				            'UNIT_NAME', UNIT_NAME,
+				            'UNIT_CODE', UNIT_CODE,
+				            'PARENT_UNIT_ID', PARENT_UNIT_ID,
+				            'DESCRIPTION', DESCRIPTION,
+				            'STATUS', STATUS,
+				            'PATH', PATH,
+				            'ORDER_NUMBER', ORDER_NUMBER,
+				            'KPI_UNIT_ID', KPI_UNIT_ID,
+				            'USER_UPDATE', USER_UPDATE
+				            )),
+				    ']'
+				) 
+        FROM    LUNCH_CALENDAR lc LEFT JOIN QLDV_UNIT qu ON lc.UNIT_ID = qu.UNIT_ID
+        WHERE   DATE(lc.LUNCH_DATE) = DATE(#{lunchDate})
+                AND lc.KITCHEN_ID = #{kitchenID}
+                AND lc.QUANTITY > #{quantity}
+                AND lc.HAS_BOOKING = #{hasBooking}
+    </select>
+	
+	<select id="findAllUnitNotLikeKhoi" parameterType="com.viettel.vtnet360.vt02.vt020010.entity.VT020010InfoToFindUnit" 
+	               resultType="com.viettel.vtnet360.vt02.vt020010.entity.VT020010Unit">
+		SELECT IFNULL((
+                      SELECT SHORT_NAME
+                      FROM UNIT_SHORTENING 
+                      WHERE UNIT_ID = qu.UNIT_ID and KITCHEN_ID = #{kitchenId}), 
+                                            CONCAT(IFNULL(qu.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''))) as unitName,
+                qu.UNIT_ID as unitID,
+                qu.PARENT_UNIT_ID as parentId,
+                qu.PATH
+        FROM QLDV_UNIT qu LEFT JOIN QLDV_UNIT b ON qu.PARENT_UNIT_ID = b.UNIT_ID
+		WHERE qu.PARENT_UNIT_ID = #{unitParentID}
+			<foreach collection="listUnitName" item="item" index="index">
+				AND qu.UNIT_NAME NOT LIKE #{item}
+			</foreach>
+				
+	</select>
+	
+	<select id="findAllUnitLikeKhoi" parameterType="com.viettel.vtnet360.vt02.vt020010.entity.VT020010InfoToFindUnit" resultType="java.lang.String">
+		SELECT UNIT_ID as unitID
+		FROM QLDV_UNIT
+		WHERE PARENT_UNIT_ID = #{unitParentID}
+				AND 
+				<foreach collection="listUnitName" item="item" index="index" open="(" separator="OR" close=")">
+					UNIT_NAME LIKE #{item}
+				</foreach>
+					
+	</select>
+	
+	<select id="findAllUnitChildOfKhoi" parameterType="com.viettel.vtnet360.vt02.vt020010.entity.SearchingUnit" 
+	               resultType="com.viettel.vtnet360.vt02.vt020010.entity.VT020010Unit">
+		SELECT 
+                CASE 
+                    WHEN qu.UNIT_ID = 234841 THEN IFNULL((
+                      SELECT SHORT_NAME
+                      FROM UNIT_SHORTENING 
+                      WHERE UNIT_ID = qu.UNIT_ID and KITCHEN_ID = #{kitchenId}), qu.UNIT_NAME)
+                    ELSE IFNULL((SELECT SHORT_NAME
+                        FROM UNIT_SHORTENING 
+                        WHERE UNIT_ID = qu.UNIT_ID and KITCHEN_ID = #{kitchenId}), 
+                      CONCAT(IFNULL(qu.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), '')))
+                END AS unitName,
+                qu.UNIT_ID as unitID
+        FROM QLDV_UNIT qu LEFT JOIN QLDV_UNIT b ON qu.PARENT_UNIT_ID = b.UNIT_ID
+        WHERE qu.PARENT_UNIT_ID IN 
+				<foreach collection="parentIds" item="item" index="index" open="(" close=")" separator=",">
+					#{item}
+ 				</foreach>
+	</select>
+	
+	<select id="findAllUnitChildOfKhoiNoParent" parameterType="java.util.List" resultType="com.viettel.vtnet360.vt02.vt020010.entity.VT020010Unit">
+		SELECT u.UNIT_NAME as unitName,
+				u.UNIT_ID as unitID,
+				u.PARENT_UNIT_ID as parentId, 
+				u.path as path
+		FROM QLDV_UNIT u
+		WHERE u.PARENT_UNIT_ID IN 
+				<foreach collection="list" item="item" index="index" open="(" close=")" separator=",">
+					#{item}
+ 				</foreach>
+	</select>
+	
+	<select id="getUnitShortName" parameterType="com.viettel.vtnet360.vt02.vt020010.entity.VT020010Unit" resultType="java.lang.String">
+		SELECT IFNULL((
+                    SELECT SHORT_NAME
+                    FROM UNIT_SHORTENING 
+                    WHERE UNIT_ID = #{unitID} and KITCHEN_ID = #{kitchenId}), 
+            qu.UNIT_NAME) as unitName
+			FROM QLDV_UNIT qu 
+			WHERE qu.UNIT_ID = #{unitID};
+	</select>
+	
+	<select id="getUnitShortNameKhoi" parameterType="com.viettel.vtnet360.vt02.vt020010.entity.VT020010Unit" resultType="java.lang.String">
+        SELECT IFNULL((
+                  SELECT SHORT_NAME
+                  FROM UNIT_SHORTENING 
+                  WHERE UNIT_ID = #{unitID} and KITCHEN_ID = #{kitchenId}), 
+               qu.UNIT_NAME) as unitName
+       FROM 
+          QLDV_UNIT qu 
+      WHERE qu.UNIT_ID = #{unitID};
+    </select>
+</mapper>

@@ -1,0 +1,83 @@
+<!-- Picasso Hoang -->
+<div class="container">
+    <div class="container-fluid text-center mt-3">
+      <h1>CẬP NHẬT HỒ SƠ</h1>
+    </div>
+    <div class="row mb-3">
+      <div class="col-xl-12 mb-3">
+        <p-fieldset legend="Tìm hồ sơ">
+          <div class="row">
+            <div class="col-lg-1 hidden-md-down"></div>
+            <div class="col-lg-10 col-md-12">              
+              <div class="row mb-3" style="margin-left: 20px;">
+                <div class="col-lg-3" style="padding-top: 5px;">
+                  Mã, tên thùng hoặc hồ sơ<span style="color: red;">*</span>:
+                </div>
+                <div class="col-lg-9 ui-fluid" style="margin-left: -10px;">
+                  <input autofocus type="text" maxlength="255" [style]="{'width': '100%'}" pInputText [(ngModel)]="keyword" (ngModelChange)="preventSpecialChar(inputKeyword)" #inputKeyword/>
+                </div>
+              </div>
+  
+            </div>
+            <div class="col-lg-1 hidden-md-down"></div>
+          </div>
+        </p-fieldset>
+      </div>
+      <div class="col-xl-12">
+        <div class="text-center">
+          <!-- search button -->
+          <button type="button" pButton icon="fa fa-search" iconPos="left" label="Tìm kiếm" [disabled]="keyword.trim() == ''" (click)="searchBtnClick(searchResultTable)" style="text-align: center;"></button>       
+          <!-- refresh button -->
+          <button type="button" pButton icon="fa fa-refresh" iconPos="left" label="Làm mới" (click)="refresh(searchResultTable)" style="text-align: center;"></button>
+          
+        </div>
+      </div>
+    </div>
+
+  <!-- search result table -->
+  <div class="row">
+    <div class="col-xs-12">
+      <p-table [columns]="cols" [value]="foundFolder" [totalRecords]="totalFoundRecord" [lazy]="true" [paginator]="true" [rows]="pageSize" [resizableColumns]="true"
+        (onPage)="paginateSearch($event, searchResultTable)" [(first)]="(pageNumber-1)*pageSize" #searchResultTable>
+        <ng-template pTemplate="colgroup" let-columns>
+          <colgroup>
+            <col *ngFor="let col of columns" [style.width]="col.width" [ngClass]="{'hidden-when-small': col.header=='STT'}">
+          </colgroup>
+        </ng-template>
+        <ng-template pTemplate="header" let-columns>
+          <tr>
+            <th *ngFor="let col of columns" pResizableColumn class="column-header" [ngClass]="{'hidden-when-small': col.header=='STT'}">
+              <span class="center-align" [ngClass]="{'hidden-stt': col.header=='STT'}">{{col.header}}</span>
+            </th>
+          </tr>
+        </ng-template>
+        <ng-template let-ri="rowIndex" pTemplate="body" let-rowData let-columns="columns">
+          <tr>
+            <td class="hidden-when-small">{{ri+1}}</td>
+            <td>{{rowData.tinBoxQrCode}}</td>
+            <td class="left-align">{{rowData.tinBoxName}}</td>
+            <td>{{rowData.folderQrCode}}</td>
+            <td class="left-align">{{rowData.folderName}}</td>
+            <td>
+              <button type="button" pButton icon="fa fa-list" iconPos="left" label="Chi tiết" (click)="goFolderDetails(rowData)"></button>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage" let-columns>
+          <tr>
+            <td [attr.colspan]="6" style="text-align: center;">
+              <span *ngIf="isSearched">Không có dữ liệu</span>
+              <span *ngIf="!isSearched">Bạn cần nhập mã QR</span>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="paginatorright">
+          <span style="position: absolute; right: 30px; bottom: 6px;">{{pagingState}}</span>
+        </ng-template>
+      </p-table>
+
+    </div>
+  </div>
+  <!-- end search result table-->
+    
+  </div>

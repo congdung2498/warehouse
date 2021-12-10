@@ -1,0 +1,86 @@
+<div class="container">
+
+  <!--<div class="row" style="margin-top: 20px;">-->
+  <p-fieldset legend="Thông tin tìm kiếm">
+    <div class="row">
+      <div class="col-sm-6">
+        <div class="form-group row">
+          <div class="col-sm-2"></div>
+          <label class="col-sm-3 ">Loại tham số <span style="color: red;">*</span>: </label>
+          <div class="col-sm-7">
+            <p-dropdown #msClassDrop [options]="msClassConfigList" [style]="{'width': '100%'}" [(ngModel)]="masterParam"
+                        placeholder="-- Chọn loại tham số --" emptyFilterMessage="Không có dữ liệu"  [disabled] = "isShow"
+                        filter="true" optionLabel="masterClass" [showClear]="true"></p-dropdown>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="col-sm-6">
+        <div class="form-group row">
+          <label class="col-ms-4" style="margin-left: 14px;">Tên loại tham số <span style="color: red;">*</span>:  </label>
+          <div class="col-sm-7 ui-fluid" style="margin-left: 5px;">
+            <input #msClassText type="text" [(ngModel)]="paramName" pInputText style="width: 100%;"/>
+          </div>
+          <div class="col-sm-1"></div>
+        </div>
+      </div>
+    </div>
+  </p-fieldset>
+
+  <div class="mb-3 mt-3" style="text-align: center">
+
+      <button pButton class="ui-button-info" icon="pi pi-search" label="Tìm kiếm" *ngIf="isSearch;"
+              (click)="handleSearch()"></button>
+      <button pButton class="ui-button-info" icon="fa fa-refresh" label="Làm mới"
+              (click)="handleReset()"></button>
+      <button *ngIf="isShow;"  pButton class="ui-button-info" icon="fa fa-save" label="Lưu"
+              (click)="handleSave()"></button>
+  </div>
+  <div class="col-sm-12">
+    <p-table #myTable [value]="searchClassConfigList" [totalRecords]="totalRecords" [paginator]="true" (onLazyLoad)="onLazyLoad($event)" [lazy]="true"
+             [rows]="15" [resizableColumns]="true"
+             >
+      <ng-template pTemplate="header">
+        <tr style="font-weight: bold;">
+          <th rowspan="1" style="width: 3rem; font-weight: bold;text-align: center">STT</th>
+          <th rowspan="5" style="width: 3rem; font-weight: bold;text-align: center">Thao tác</th>
+          <th rowspan="5" style="width: 7rem; font-weight: bold;text-align: center">Loại tham số</th>
+          <th rowspan="5" style="width: 8rem; font-weight: bold;text-align: center">Tên loại tham số</th>
+        </tr>
+
+      </ng-template>
+      <ng-template let-ri="rowIndex" pTemplate="body" let-item>
+        <tr>
+          <td style="width: 1rem; padding: 2px 1.5px !important;">{{ri+1}}</td>
+          <td class="wrapText"
+              style="width: 5rem; text-align: center !important;">
+            <p-button  icon="pi pi-pencil" [disabled] ="isDisabled" (onClick)="doEdit(item)"></p-button>
+          </td>
+          <td class="wrapText"  [pTooltip]="item.dateRequest"
+              style="width: 5rem; text-align: left !important;">
+            {{item.masterCode}}
+          </td>
+          <td class="wrapText"  [pTooltip]="item.stationeryName"
+              style="width: 5rem; text-align: left !important;">
+            {{item.masterName}}
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td [attr.colspan]="4">
+            Không có dữ liệu
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="paginatorright">
+          <span style="position: absolute; right: 30px; bottom: 6px;">{{totalRecords == 0 ? pageNumber : pageNumber + 1}} - {{pageNumber+pageSize>totalRecords ? totalRecords : pageNumber+pageSize}}
+            / {{totalRecords}}</span>
+      </ng-template>
+    </p-table>
+  </div>
+
+
+  <!--</div>-->
+</div>

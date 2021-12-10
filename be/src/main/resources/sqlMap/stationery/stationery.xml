@@ -1,0 +1,444 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.stationery.request.dao.StationeryDAO">
+    
+    <select id="calTotalByItems" parameterType="com.viettel.vtnet360.stationery.entity.RequestParamEdit"  
+                    resultType="java.lang.Double">
+        select IFNULL(SUM(TOTAL_REQUEST * UNIT_PRICE), 0)
+        FROM ISSUES_STATIONERY_ITEMS 
+        WHERE 
+          ISSUES_STATIONERY_ITEM_ID IN
+        <foreach item="stationery" collection="listStationery" open="(" separator="," close=")">
+           #{stationery.issuesStationeryItemId}
+        </foreach>
+   </select>
+   
+    <select id="checkValidStationeryItems" parameterType="com.viettel.vtnet360.vt05.vt050004.entity.VT050004ParamToInsert"  
+                    resultType="java.lang.Integer">
+        select COUNT(*)
+		FROM ISSUES_STATIONERY_ITEMS 
+		WHERE 
+		  STATUS != 0 AND 
+		  ISSUES_STATIONERY_ITEM_ID IN
+		<foreach item="itemId" collection="listRequestID" open="(" separator="," close=")">
+           #{itemId}
+        </foreach>
+   </select>
+    
+    <select id="checkValidStationery" parameterType="java.lang.String"  resultType="java.lang.Integer">
+        SELECT STATUS
+        FROM ISSUES_STATIONERY
+        WHERE ISSUE_STATIONERY_ID = #{issueStationeryId}
+   </select>
+    
+     <select id="checkValidStationeryReport" parameterType="java.lang.String"  resultType="java.lang.Integer">
+        SELECT STATUS
+        FROM ISSUES_STATIONERY_APPROVED
+        WHERE ISSUES_STATIONERY_APPROVED_ID = #{issueStationeryId}
+   </select>
+    
+    <select id="checkVoteHCDVValidStationeryReport" parameterType="java.lang.String"  resultType="java.lang.Integer">
+        SELECT IFNULL(RATING_TO_HCDV, 0 )   as rating
+        FROM ISSUES_STATIONERY_APPROVED
+        WHERE ISSUES_STATIONERY_APPROVED_ID = #{issueStationeryId}
+   </select>
+    <select id="checkVoteVPTCTValidStationeryReport" parameterType="java.lang.String"  resultType="java.lang.Integer">
+        SELECT IFNULL(RATING_TO_VPTCT, 0 )   as rating
+        FROM ISSUES_STATIONERY_APPROVED
+        WHERE ISSUES_STATIONERY_APPROVED_ID = #{issueStationeryId}
+   </select>
+    <select id="getHCDVByUnitId" parameterType="java.lang.Integer" resultType="java.lang.String">
+		select EMPLOYEE_USERNAME
+		from STATIONERY_STAFF
+		where
+			UNIT_ID = #{unitId} AND
+			JOB_CODE = '01' AND
+			DELETE_FLAG = 0;
+   </select>
+    
+    <select id="getHCDVRequest" parameterType="java.lang.String" resultType="java.lang.Double">
+       select IFNULL(SUM(isi.UNIT_PRICE * isi.TOTAL_REQUEST), 0)
+	   from 
+		    ISSUES_STATIONERY_ITEMS isi
+		    LEFT JOIN ISSUES_STATIONERY ist ON isi.ISSUES_STATIONERY_ID = ist.ISSUE_STATIONERY_ID
+	   where  
+	       isi.`STATUS` = 0 
+	       AND MONTH ( ist.REQUEST_DATE ) = MONTH ( NOW( ) ) 
+           AND YEAR ( ist.REQUEST_DATE ) = YEAR ( NOW( ) ) 
+		   AND ist.EMPLOYEE_USERNAME IN 
+	         <foreach item="username" collection="usernames" open="(" separator="," close=")">
+	           #{username}
+	         </foreach>
+   </select>
+    
+    <select id="getStationeryItems" parameterType="java.lang.String" 
+                resultType="com.viettel.vtnet360.stationery.service.StationeryItem">
+        select 
+		    STATIONERY_ID as stationeryId,
+		    STATIONERY_NAME as stationeryName,
+		    CALCULATION_UNIT as unit,
+		    UNIT_PRICE as price
+		from STATIONERY_ITEMS 
+		WHERE DELETE_FLAG = 0;
+    </select>
+    
+    <select id="getStationeryIdByName" parameterType="java.lang.String" 
+                resultType="com.viettel.vtnet360.stationery.entity.StationeryNameAllResponseTemplate">
+        SELECT
+        STATIONERY_ID as stationeryId,
+        STATIONERY_NAME as stationeryName,
+        CALCULATION_UNIT as calculationUnit,
+        UNIT_PRICE as unitPrice
+        FROM STATIONERY_ITEMS
+        where STATIONERY_NAME = #{name}
+    </select>
+    
+    <select id="getPlaceIdByName" parameterType="java.lang.String"
+                            resultType="java.lang.Integer">
+        SELECT PLACE_ID FROM QLDV_PLACE WHERE PLACE_NAME = #{name}
+    </select>
+    
+    <select id="getUnitInfo" parameterType="java.lang.Integer"
+                            resultType="com.viettel.vtnet360.vt02.vt020000.entity.VT020000Unit">
+        SELECT 
+            a.UNIT_ID as unitId,
+            a.UNIT_NAME as unitName,
+            a.PARENT_UNIT_ID  as parentId,
+            a.`PATH` as `path`,
+            a.ORDER_NUMBER as `order`,
+            a.UNIT_ID as `isLeaf` 
+        FROM QLDV_UNIT  a
+        WHERE a.STATUS = 1 AND a.UNIT_ID = #{unitId}
+    </select>
+    
+    <select id="getItemApproved" resultType="java.lang.Integer"
+                            parameterType="java.lang.String">
+        select count(*)
+		from ISSUES_STATIONERY_ITEMS
+		where ISSUES_STATIONERY_ID = #{issueStationeryId} and ISSUES_STATIONERY_APPROVED_ID IS NOT NULL;
+    </select>
+    
+    <select id="getStationeryQuotas" resultType="com.viettel.vtnet360.stationery.service.StationeryQuota"
+                            parameterType="java.lang.Integer">
+        select 
+            UNIT_ID as unitId,
+            QUANTITY as quantity,
+            QUOTA as quota
+		from    
+		        STATIONERY_QUOTA sq
+		where (select SUBSTRING_INDEX(SUBSTRING_INDEX(PATH, '234841', 2), '234841', -1) from QLDV_UNIT where UNIT_ID = #{unitId})  
+		        LIKE CONCAT('%', sq.UNIT_ID, '%');
+    </select>
+    
+    <select id="getStationeryStaffByUser" resultType="com.viettel.vtnet360.stationery.service.StationeryStaff"
+                            parameterType="java.lang.String">
+        SELECT 
+            UNIT_ID as unitId,
+            STATIONERY_STAFF_ID as stationeryStaffId
+        FROM STATIONERY_STAFF 
+        WHERE EMPLOYEE_USERNAME = #{username}  AND DELETE_FLAG = 0 AND JOB_CODE = '01'
+    </select>
+    
+    <select id="getStationeryStaffVPTCTByUser" resultType="com.viettel.vtnet360.stationery.service.StationeryStaff"
+                            parameterType="java.lang.String">
+        SELECT 
+            UNIT_ID as unitId,
+            STATIONERY_STAFF_ID as stationeryStaffId
+        FROM STATIONERY_STAFF 
+        WHERE EMPLOYEE_USERNAME = #{username}  AND DELETE_FLAG = 0 AND JOB_CODE = '02'
+    </select>
+    
+    <select id="getStationeryStaffByUserByUnitID" resultType="com.viettel.vtnet360.stationery.service.StationeryStaff"
+                            parameterType="java.lang.String">
+        SELECT 
+            UNIT_ID as unitId,
+            STATIONERY_STAFF_ID as stationeryStaffId
+        FROM STATIONERY_STAFF 
+        WHERE UNIT_ID = #{unitID}  AND DELETE_FLAG = 0
+    </select>
+    
+    <select id="getApproveById" resultType="com.viettel.vtnet360.vt05.vt050013.entity.VT050013DataGetAll"
+                            parameterType="java.lang.String">
+        SELECT      
+            isa.CREATE_DATE as createDate, 
+            isa.STATUS as status, 
+            isa.HCDV_MESSAGE as hcdvMessage,
+            isa.FEEDBACK_TO_VPTCT as feedbackToVptct,
+            (SELECT FULL_NAME FROM QLDV_EMPLOYEE WHERE USER_NAME = isa.HCDV_USERNAME) as hcdvUserName,
+            (SELECT FULL_NAME FROM QLDV_EMPLOYEE WHERE USER_NAME = isa.VPTCT_USERNAME ) as tptctUserName,
+            isa.FEEDBACK_TO_HCDV as feedbackToHcdv,
+            isa.RATING_TO_HCDV as ratingToUser,
+            isa.RATING_TO_VPTCT as ratingToVptct ,
+            isa.HCDV_REASON_REJECT as hcdvReasonReject,
+            isa.VPTCT_REASON as vptctReason,
+            qe.PHONE_NUMBER as phoneNumber,
+            isa.VPTCT_POSTPONE_TO_TIME as vptctPostponeToTime,
+            isa.LD_REASON_REJECT as ldReasonReject,
+            isa.VPTCT_REASON_REJECT as vptctReasonReject,
+            	CASE
+            WHEN u.UNIT_ID = 234841 THEN IFNULL(u.UNIT_NAME, '')
+            WHEN b.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''),
+            IFNULL(CONCAT(' / ', b.UNIT_NAME), ''))
+            WHEN c.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''),
+            IFNULL(CONCAT(' / ', b.UNIT_NAME), ''), IFNULL(CONCAT(' / ',
+            c.UNIT_NAME), ''))
+            ELSE CONCAT(IFNULL(b.UNIT_NAME, ''), IFNULL(CONCAT(' / ', c.UNIT_NAME),
+            ''), IFNULL(CONCAT(' / ', d.UNIT_NAME), ''))
+        END AS unitName
+        FROM 
+            ISSUES_STATIONERY_APPROVED isa 
+        	LEFT JOIN QLDV_EMPLOYEE qe ON isa.HCDV_USERNAME = qe.USER_NAME
+            LEFT JOIN QLDV_UNIT u ON u.UNIT_ID = qe.UNIT_ID
+	    	LEFT JOIN QLDV_UNIT b ON u.PARENT_UNIT_ID = b.UNIT_ID
+	    	LEFT JOIN QLDV_UNIT c ON b.PARENT_UNIT_ID = c.UNIT_ID
+	    	LEFT JOIN QLDV_UNIT d ON c.PARENT_UNIT_ID = d.UNIT_ID
+        WHERE 
+            isa.ISSUES_STATIONERY_APPROVED_ID = #{issuesStationeryApprovedId}
+    </select>
+    
+    <select id="getItemsByApproveId" parameterType="java.lang.String" 
+                resultType="com.viettel.vtnet360.stationery.service.ItemModel">
+        select 
+        	isi.ISSUES_STATIONERY_ITEM_ID as issuesStationeryItemId,
+            STATIONERY_ID as stationeryId,
+            UNIT_PRICE as unitPrice,
+            SUM(TOTAL_REQUEST) as quantity,
+            isi.CREATE_DATE as createDate,
+            SUM(TOTAL_REQUEST) as totalRequest,
+            qe.FULL_NAME as fullName,
+            (SUM(TOTAL_REQUEST) * UNIT_PRICE) as totalMoney,
+            STATIONERY_NAME as stationeryName
+        from 
+            ISSUES_STATIONERY_ITEMS isi
+            LEFT JOIN QLDV_EMPLOYEE qe ON isi.CREATE_USER = qe.USER_NAME 
+            		
+        where ISSUES_STATIONERY_APPROVED_ID = #{approveId}
+        GROUP BY STATIONERY_ID;
+    </select>
+    
+    <select id="getItemsByApproveIdDetails" parameterType="java.lang.String" 
+                resultType="com.viettel.vtnet360.stationery.service.ItemModel">
+        select 
+        	isi.ISSUES_STATIONERY_ITEM_ID as issuesStationeryItemId,
+            STATIONERY_ID as stationeryId,
+            UNIT_PRICE as unitPrice,
+            SUM(TOTAL_REQUEST) as quantity,
+            isi.CREATE_DATE as createDate,
+            SUM(TOTAL_REQUEST) as totalRequest,
+            qe.FULL_NAME as fullName,
+            (SUM(TOTAL_REQUEST) * UNIT_PRICE) as totalMoney,
+            STATIONERY_NAME as stationeryName
+        from 
+            ISSUES_STATIONERY_ITEMS isi
+            LEFT JOIN QLDV_EMPLOYEE qe ON isi.CREATE_USER = qe.USER_NAME 
+        where ISSUES_STATIONERY_APPROVED_ID = #{approveId}
+    </select>
+    
+    
+    <select id="getItemsProcessByApproveId" parameterType="java.lang.String" 
+                resultType="com.viettel.vtnet360.stationery.service.ItemModel">
+        select 
+            STATIONERY_ID as stationeryId,
+            UNIT_PRICE as unitPrice,
+            SUM(TOTAL_REQUEST) as quantity,
+            isi.CREATE_DATE as createDate,
+            SUM(TOTAL_REQUEST) as totalRequest,
+            qe.FULL_NAME as fullName,
+            (SUM(TOTAL_REQUEST) * UNIT_PRICE) as totalMoney,
+            CONCAT(STATIONERY_NAME, IF(TOTAL_REQUEST IS NULL,'',CONCAT(' : ',TOTAL_REQUEST))) as stationeryName
+        from 
+            ISSUES_STATIONERY_ITEMS isi
+            LEFT JOIN QLDV_EMPLOYEE qe ON isi.CREATE_USER = qe.USER_NAME 
+        where ISSUES_STATIONERY_APPROVED_ID = #{approveId}
+        GROUP BY STATIONERY_ID;
+    </select>
+    
+     <select id="getItemsProcessByApproveIdDetails" parameterType="java.lang.String" 
+                resultType="com.viettel.vtnet360.stationery.service.ItemModel">
+        select 
+            STATIONERY_ID as stationeryId,
+            UNIT_PRICE as unitPrice,
+            SUM(TOTAL_REQUEST) as quantity,
+            isi.CREATE_DATE as createDate,
+            SUM(TOTAL_REQUEST) as totalRequest,
+            qe.FULL_NAME as fullName,
+            (SUM(TOTAL_REQUEST) * UNIT_PRICE) as totalMoney,
+            CONCAT(STATIONERY_NAME, IF(TOTAL_REQUEST IS NULL,'',CONCAT(' : ',TOTAL_REQUEST))) as stationeryName
+        from 
+            ISSUES_STATIONERY_ITEMS isi
+            LEFT JOIN QLDV_EMPLOYEE qe ON isi.CREATE_USER = qe.USER_NAME 
+        where ISSUES_STATIONERY_APPROVED_ID = #{approveId}
+    </select>
+    
+    <select id="getStorageItemsByApproveId" parameterType="java.lang.String" 
+                resultType="com.viettel.vtnet360.stationery.service.StorageRequestItem">
+        select 
+            SUM(TOTAL_FULFILL) as totalFullFill,
+            STATIONERY_ID as stationeryId
+            
+        from STORAGE_HCDV_REQUEST 
+        where ISSUES_STATIONERY_APPROVED_ID = #{approveId}
+        GROUP BY STATIONERY_ID;
+    </select>
+
+ <select id="getStorageItemsByApproveIdDetails" parameterType="java.lang.String" 
+                resultType="com.viettel.vtnet360.stationery.service.StorageRequestItem">
+        select 
+            SUM(TOTAL_FULFILL) as totalFullFill,
+            STATIONERY_ID as stationeryId
+        from STORAGE_HCDV_REQUEST 
+        where ISSUES_STATIONERY_APPROVED_ID = #{approveId}
+    </select>
+    
+    <select id="getApprovingInfo" parameterType="java.lang.String" 
+                resultType="com.viettel.vtnet360.stationery.service.ApprovingInfo">
+        SELECT 
+            DISTINCT (ss.EMPLOYEE_USERNAME) as vptctUsername, 
+		    isa.ISSUES_STATIONERY_APPROVED_ID as approvedId, 
+		    isa.HCDV_USERNAME as hcdvUsername, 
+		    isa.HCDV_MESSAGE as hcdvMessage 
+		FROM 
+		    ISSUES_STATIONERY_ITEMS isi 
+		    LEFT JOIN ISSUES_STATIONERY_APPROVED isa ON isi.ISSUES_STATIONERY_APPROVED_ID = isa.ISSUES_STATIONERY_APPROVED_ID
+		    LEFT JOIN ISSUES_STATIONERY iss ON isi.ISSUES_STATIONERY_ID = iss.ISSUE_STATIONERY_ID
+		    LEFT JOIN STATIONERY_STAFF_PLACE ssp ON iss.ISSUE_LOCATION = ssp.PLACE_ID
+		    LEFT JOIN STATIONERY_STAFF ss ON ss.STATIONERY_STAFF_ID = ssp.STATIONERY_STAFF_ID
+		WHERE 
+		    isa.ISSUES_STATIONERY_APPROVED_ID = #{issueApproveId};
+    </select>
+    
+     <select id="getApprovingInfoVPP" parameterType="java.lang.String" 
+                resultType="com.viettel.vtnet360.stationery.service.ApprovingInfo">
+        SELECT 
+            DISTINCT (ss.EMPLOYEE_USERNAME) as vptctUsername, 
+            isa.ISSUES_STATIONERY_APPROVED_ID as approvedId, 
+            isa.HCDV_USERNAME as hcdvUsername, 
+            isa.HCDV_MESSAGE as hcdvMessage 
+        FROM 
+            ISSUES_STATIONERY_ITEMS isi 
+            LEFT JOIN ISSUES_STATIONERY_APPROVED isa ON isi.ISSUES_STATIONERY_APPROVED_ID = isa.ISSUES_STATIONERY_APPROVED_ID
+            LEFT JOIN ISSUES_STATIONERY iss ON isi.ISSUES_STATIONERY_ID = iss.ISSUE_STATIONERY_ID
+            LEFT JOIN STATIONERY_STAFF_PLACE ssp ON iss.ISSUE_LOCATION = ssp.PLACE_ID
+            LEFT JOIN STATIONERY_STAFF ss ON ss.STATIONERY_STAFF_ID = ssp.STATIONERY_STAFF_ID
+        WHERE 
+            isa.ISSUES_STATIONERY_APPROVED_ID = #{issueApproveId}
+            AND ssp.PLACE_ID = iss.ISSUE_LOCATION 
+            AND ss.JOB_CODE = '02' 
+            AND ss.DELETE_FLAG = 0;
+    </select>
+
+   <select id="getItemsByStationeryIds"
+        parameterType="com.viettel.vtnet360.stationery.service.GettingItemsByStationeryIds"
+        resultType="com.viettel.vtnet360.stationery.entity.StationeryEmployee">
+        SELECT 
+            isi.ISSUES_STATIONERY_ITEM_ID as issuesStationeryItemId,
+            isi.ISSUES_STATIONERY_ID as issuesStationeryId,
+            isi.STATIONERY_ID as stationeryId,
+            isi.TOTAL_REQUEST as totalRequest,
+            isi.UPDATE_USER as updateUser,
+            isi.UPDATE_DATE as updateDate,
+            isi.UNIT_PRICE as unitPrice,
+            (isi.TOTAL_REQUEST * isi.UNIT_PRICE) as totalMoneyRequest,
+            i.ISSUE_LOCATION as placeId,
+            i.STATUS as status,
+            i.NOTE as note,
+            isi.`STATUS` as statusUnit ,
+            isi.TOTAL_FULFILL as totalFulfill,
+            i.REQUEST_DATE as requestDate,
+            qe.FULL_NAME as fullName,
+            qe.EMPLOYEE_ID as employeeId,
+            qe.EMAIL as email,
+            (SELECT PLACE_NAME FROM QLDV_PLACE WHERE PLACE_ID = i.ISSUE_LOCATION) as startPlace,
+            i.ISSUE_LOCATION as startPlaceId,
+            qe.PHONE_NUMBER as phoneNumber,
+            CASE
+                WHEN u.UNIT_ID = 234841 THEN IFNULL(u.UNIT_NAME, '')
+                WHEN b.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''),
+                IFNULL(CONCAT(' / ', b.UNIT_NAME), ''))
+                WHEN c.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''),
+                IFNULL(CONCAT(' / ', b.UNIT_NAME), ''), IFNULL(CONCAT(' / ',
+                c.UNIT_NAME), ''))
+                ELSE CONCAT(IFNULL(b.UNIT_NAME, ''), IFNULL(CONCAT(' / ', c.UNIT_NAME),
+                ''), IFNULL(CONCAT(' / ', d.UNIT_NAME), ''))
+            END AS unitName,
+            msc.CODE_NAME as calUnit,
+            msc.CODE_VALUE as calUnitId ,
+            a.STATIONERY_NAME as stationeryName,
+            i.EMPLOYEE_USERNAME as employeeUsername,
+            (SELECT FULL_NAME FROM QLDV_EMPLOYEE WHERE USER_NAME = isa.HCDV_USERNAME) as hcdvFullname
+
+        from  
+            ISSUES_STATIONERY_ITEMS isi
+            JOIN ISSUES_STATIONERY i on isi.ISSUES_STATIONERY_ID = i.ISSUE_STATIONERY_ID
+            LEFT JOIN STATIONERY_ITEMS a ON a.STATIONERY_ID = isi.STATIONERY_ID 
+            LEFT JOIN M_SYSTEM_CODE msc ON a.CALCULATION_UNIT=msc.CODE_VALUE 
+            LEFT JOIN QLDV_EMPLOYEE qe ON i.EMPLOYEE_USERNAME = qe.USER_NAME
+            LEFT JOIN ISSUES_STATIONERY_APPROVED isa ON isi.ISSUES_STATIONERY_APPROVED_ID = isa.ISSUES_STATIONERY_APPROVED_ID
+            LEFT JOIN QLDV_UNIT u ON u.UNIT_ID = qe.UNIT_ID
+            LEFT JOIN QLDV_UNIT b ON u.PARENT_UNIT_ID = b.UNIT_ID
+            LEFT JOIN QLDV_UNIT c ON b.PARENT_UNIT_ID = c.UNIT_ID
+            LEFT JOIN QLDV_UNIT d ON c.PARENT_UNIT_ID = d.UNIT_ID
+        WHERE msc.MASTER_CLASS = 'S009' AND isi.STATUS = 0
+        
+        <if test="stationeryIds != null and stationeryIds.length > 0">
+            AND `ISSUES_STATIONERY_ITEM_ID` IN  
+            <foreach item="id" collection="stationeryIds" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+    </select>
+    
+   <select id="getStationerys"
+        parameterType="com.viettel.vtnet360.vt05.vt050003.entity.VT050003RequestParam"
+        resultType="com.viettel.vtnet360.vt05.vt050003.entity.VT050003StationeryParam">
+     SELECT 
+        UNIT_PRICE as unitPrice,
+        STATIONERY_ID as stationeryID
+     FROM STATIONERY_ITEMS
+     WHERE STATIONERY_ID IN  
+        <foreach item="stationery" collection="listStationery" open="(" separator="," close=")">
+                #{stationery.stationeryID}
+        </foreach>
+   </select>
+   
+   <select id="getHCDVLimit" parameterType="com.viettel.vtnet360.stationery.service.StationeryStaff" resultType="java.lang.Double">
+       SELECT
+		    IFNULL(SUM(
+		    (
+		        CASE
+		        
+		        WHEN isi.STATUS IN ( 7, 8, 10 ) THEN
+		        ( CASE WHEN (isi.TOTAL_REQUEST >= shr.TOTAL_FULFILL)  THEN shr.TOTAL_FULFILL ELSE isi.TOTAL_REQUEST END) 
+		        else isi.TOTAL_REQUEST END
+		        ) * isi.UNIT_PRICE ), 0 ) AS total
+		FROM
+		    ISSUES_STATIONERY_ITEMS isi
+		    LEFT JOIN ISSUES_STATIONERY ist ON ist.ISSUE_STATIONERY_ID = isi.ISSUES_STATIONERY_ID
+		    LEFT JOIN STORAGE_HCDV_REQUEST shr ON shr.ISSUES_STATIONERY_ITEM_ID = isi.ISSUES_STATIONERY_ITEM_ID
+		    LEFT JOIN QLDV_EMPLOYEE qe ON ist.EMPLOYEE_USERNAME = qe.USER_NAME
+		    LEFT JOIN QLDV_UNIT qu ON qu.UNIT_ID = qe.UNIT_ID 
+		WHERE
+		    MONTH ( ist.REQUEST_DATE ) = MONTH ( NOW( ) ) 
+		    AND YEAR ( ist.REQUEST_DATE ) = YEAR ( NOW( ) ) 
+		    AND isi.STATUS IN ( 1, 2, 4, 5, 7, 8, 10 ) 
+		    AND qu.PATH LIKE CONCAT('%', #{unitId}, '%')
+            
+            <if test="placeIds != null and placeIds.size() > 0">
+                AND ist.ISSUE_LOCATION IN
+	            <foreach item="placeId" collection="placeIds" open="(" separator="," close=")">
+	                #{placeId}
+	            </foreach>
+            </if>
+   </select>
+   
+   <select id="getPlaceIdByHCDV" parameterType="java.lang.String" resultType="java.lang.Integer">
+       SELECT 
+		        ssp.PLACE_ID
+	   FROM 
+		        STATIONERY_STAFF ss 
+		        INNER JOIN STATIONERY_STAFF_PLACE ssp ON ss.STATIONERY_STAFF_ID = ssp.STATIONERY_STAFF_ID
+	   WHERE EMPLOYEE_USERNAME = #{username} AND ss.DELETE_FLAG = 0
+   </select>
+   
+    
+</mapper>

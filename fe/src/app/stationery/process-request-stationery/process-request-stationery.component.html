@@ -1,0 +1,83 @@
+
+<div class="container">
+    <p-fieldset legend="Thông tin Người yêu cầu">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="row">
+                    <label class="col-sm-2">Người yêu cầu: </label>
+                    <div class="col-sm-4"><b>{{fullName}}</b></div>
+                    <label class="col-sm-2">Số điện thoại: </label>
+                    <div class="col-sm-4"><b>{{phoneNumber}}</b></div>
+                </div>
+
+                <div class=" row">
+                    <div class="col-sm-6"><b>Văn phòng phẩm Yêu Cầu:</b>
+                        <ul>
+                            <li *ngFor="let data of listSearchProcessDetails">{{data.stationeryName}} : {{data.quantity}} </li>
+                        </ul>
+                    </div>
+                    <div class="col-sm-2" style="padding-right: 0px">Đơn vị :</div>
+                    <div class="col-sm-4"><b>{{unitName}}</b></div>
+                </div>
+            </div>
+        </div>
+    </p-fieldset>
+
+
+    <div class="row mt-3 mb-3 text-center" >
+        <div class="col-sm-12 text-center" *ngIf="isShow"  >
+            <button style="width: 180px; height: 30px; background-color: #007ad9 ;border: 1px solid #007ad9;margin: 10px; color: #ffffff;"  (click)="doConfirm()"  >Xác nhận tiếp nhận</button>
+        </div>
+    </div>
+
+
+
+    <div class="row" style="padding-top: 15px;">
+        <div class="col-sm-12">Lý do không thực hiện được <span style="color: red;">*</span>:</div>
+        <div class="col-sm-12 ui-fluid">
+            <textarea #inputVptctReasonReject  type="text" class="ui-inputtext ui-widget ui-state-default ui-corner-all" maxlength="255"
+                      [(ngModel)]="vptctReasonReject" ></textarea>
+        </div>
+        <div class="col-sm-12 text-center mb-3">
+            <button style="width: 180px; height: 30px; background-color: #007ad9 ;border: 1px solid #007ad9;margin: 15px; color: #ffffff;"  (click)="notPossible()">Không thực hiện được</button>
+        </div>
+    </div>
+
+    <div class="row" style="padding-top: 50px;">
+        <div class="col-sm-12">
+            <label>Lý do hoãn thực hiện <span style="color: red;">*</span>:</label>
+        </div>
+        <div class="col-sm-12 ui-fluid mb-3">
+            <textarea #inputVptctReason type="text" class="ui-inputtext ui-widget ui-state-default ui-corner-all" maxlength="255"
+                      [(ngModel)]="vptctReason" [ngModelOptions]="{standalone: true}" cols="3"></textarea>
+        </div>
+
+        <label class="col-sm-3" > Thời gian hẹn <span style="color: red;">*</span>:</label>
+        <div class="col-sm-9">
+            <p-calendar #createStartTimeFld dateFormat="dd/mm/yy" placeholder="DD/MM/YYYY"
+                        [(ngModel)]="vptctPostponeToTime" [showIcon]="true"
+                        [readonlyInput]="true" [minDate]="minDate"
+                        showButtonBar="true" [locale]="vn" showTime="true"
+                        [monthNavigator]="true" [yearNavigator]="true" hourFormat="24"
+                        (ngModelChange)="selectFromDate()"></p-calendar>
+            <span *ngIf="vptctPostponeToTime != null" class="customIcon pi pi-times" (click)="clearFromDate($event)"></span>
+        </div>
+
+        <div class="col-sm-12 text-center">
+            <button style="width: 180px; height: 30px; background-color: #007ad9 ;border: 1px solid #007ad9;margin: 15px;px; color: #ffffff;"  (click)="postponedImplementation()">Hoãn thực hiện</button>
+        </div>
+    </div>
+
+    <div class="row" style="padding-top: 15px;" >
+        <div class="col-sm-12">Số lượng VPPP cấp phát <span style="color: red;">*</span>:</div>
+        <div class="col-sm-12"  *ngFor="let data of listSearchDetails" >
+            <input class="col-sm-7" style="padding-left: 5px"  [(ngModel)] = "data.stationeryName" disabled ="true" />
+            <input class="col-sm-3" style="padding-left: 5px"  [(ngModel)] = "data.quantity"
+                   type="number" min="1" max="9999999" onKeyUp="if(this.value > 9999999){this.value='9999999';}else if(this.value < 1){this.value='1';}"/>
+        </div>
+        <div class="col-sm-12 text-center" style="padding-right:0px; padding-top: 10px;">
+            <button style="width: 180px; height: 30px; background-color: #007ad9 ;border: 1px solid #007ad9;margin: 10px; color: #ffffff;"  (click)="complete()">Hoàn thành</button>
+        </div>
+    </div>
+</div>
+

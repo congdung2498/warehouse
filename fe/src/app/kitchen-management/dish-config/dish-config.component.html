@@ -1,0 +1,134 @@
+<div class="container">
+  <div class="container-fluid text-center mt-3">
+    <h1>CẤU HÌNH MÓN ĂN</h1>
+  </div>
+
+  <div class="row mb-3">
+    <div class="col-xl-12 mb-3">
+      <p-fieldset legend="Thông tin món">
+        <div class="row">
+          <div class="col-sm-12">
+            <div class="row" style="margin-left: 5px; margin-right:10px;">
+              <!-- dish name field -->
+              <div class="col-sm-12">
+                <div class="row mb-4">
+                  <div class="col-sm-3">Tên món</div>
+                  <div class="col-sm-9 ui-fluid">
+                    <p-autoComplete #searchDish [(ngModel)]="selectedDishName" [suggestions]="dishNames"
+                                    (completeMethod)="onSearchShortName($event)"></p-autoComplete>
+                  </div>
+                </div>
+              </div>
+              <!-- kitchen name field -->
+              <div class="col-sm-12">
+                <div class="row mb-4">
+                  <div class="col-sm-3">Bếp:</div>
+                  <div class="col-sm-9" >
+                    <p-dropdown #inputSelectedKitchen [options]="kitchens" optionLabel="kitchenName" [filter]="true"
+                                [style]="{'width': '100%'}" [(ngModel)]="selectedKitchen" filterBy="value.kitchenName"
+                                emptyFilterMessage="Không có dữ liệu" placeholder="-Lựa chọn bếp-">
+                    </p-dropdown>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-sm-12">
+                <div class="row mb-4">
+                  <div class="col-sm-3"></div>
+                  <div class="col-sm-9" >
+                    <span style="cursor: pointer; color: dodgerblue; text-decoration: underline;font-style: italic;" (click)="openDlgImage(1, null)" >Thêm ảnh món ăn</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="col-sm-12">
+              <div class="row mb-4">
+                <div class="col-sm-3">Hoạt động:</div>
+                <div class="col-sm-9 ui-fluid" >
+                  <p-checkbox binary="true" [(ngModel)]="isActive" ></p-checkbox>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </p-fieldset>
+    </div>
+    <div class="col-xl-12">
+      <div class="text-center">
+        <button type="button" tabindex="0" pButton icon="fa fa-search" iconPos="left" label="Tìm kiếm" (click)="onSearchListDish()" style="text-align: center;"></button>
+        <button *ngIf="isCreate" type="button" tabindex="0" pButton icon="fa fa-plus" iconPos="left" label="Thêm" (click)="onInsertDishConfig()" style="text-align: center;"></button>
+        <button *ngIf="isSave" type="button" tabindex="0" pButton icon="fa fa-save" iconPos="left" label="Lưu" (click)="onUpdateDishConfig()" style="text-align: center;"></button>
+        <button type="button" tabindex="0" pButton icon="fa fa-trash" iconPos="left" label="Xóa" (click)="onDeleteDish()" style="text-align: center;"></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-xl-12">
+      <div  class="errorMsg">
+        <!-- if no data is reasonable -->
+        <p-table #myTable (onPage)="paginate($event)" [lazy]="true" [value]="listDish" [rows]="10" [paginator]="true" [totalRecords]="totalRecords">
+          <ng-template pTemplate="header" style="width:100%">
+            <tr style="font-weight: bold;">
+              <th style="width: 5%">STT</th>
+              <th style="width: 5%">Ảnh</th>
+              <th style="width: 30%">Tên món</th>
+              <th style="width: 30%;">Tên bếp</th>
+              <th style="width: 30%;">Hoạt động</th>
+              <th style="width: 30%;"><p-checkbox binary="true" [(ngModel)]="isCheckAll" (onChange)="checkAll($event)" binary="true"></p-checkbox></th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td [attr.colspan]="13">
+                Không có dữ liệu
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template let-ri="rowIndex" pTemplate="body" let-item>
+            <tr [pSelectableRow]="item">
+              <td style="width: 2rem; padding: 2px 1.5px !important;">{{ri+1}}</td>
+              <td style="width: 2rem;">
+                <span *ngIf="item.isImage === 1" style="cursor: pointer;" class="fa fa-file-image-o" (click)="openDlgImage(0,item)"></span>
+              </td>
+              <td style="width: 5rem "><span class="date-link" (click)="selectRow(item);">{{item.dishName}}</span></td>
+              <td style="width: 18rem; text-align: left !important;">{{item.kitchenName}}</td>
+              <td style="width: 2rem; padding: 2px 1.5px !important;">
+                <p-checkbox [(ngModel)]="item.status" binary="true" [disabled]="true"></p-checkbox>
+              </td>
+              <td>
+                <p-checkbox name="groupname" value="{{item.dishID}}" (onChange)="checkItem($event)"
+                            [(ngModel)]="listActivity"></p-checkbox>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template *ngIf="totalRecord != -1" pTemplate="paginatorright">
+            <span style="position: absolute; right: 30px; bottom: 6px;">
+              {{startRow + 1}} - {{startRow + rowSize}} / {{totalRecords}}
+            </span>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+  </div>
+
+  <p-dialog header="Ảnh món ăn" id="dlgChef" [(visible)]="showDlgImage"
+            [modal]="true"
+            [positionTop]="100"
+            (onHide)="closeDlgImage()"
+            [closable]="true" [responsive]="true" [width]="700" [minWidth]="200" [minY]="70" [maximizable]="false"
+            [dismissableMask]="true" [baseZIndex]="10000" >
+
+    <p-fileUpload  #fileUpload  *ngIf="showDialogToInsert" (uploadHandler)="uploadImage($event)" customUpload="true"
+                   accept=".gif,.jpe,.png,.jpg"   maxFileSize="1000000" [showCancelButton]="false">
+    </p-fileUpload>
+    <div style="margin: auto;text-align: center;margin-top: 10px;">
+      <img style="max-height: 600px; max-width: 600px;"  *ngIf="imageData != null" src="data:image/JPEG;base64,{{imageData}}">
+    </div>
+    <div *ngIf="!showDialogToInsert && imageData == null " style="text-align: center; min-height: 500px; min-width: 200px;">
+      <span>{{textImage}}</span>
+    </div>
+  </p-dialog>
+</div>

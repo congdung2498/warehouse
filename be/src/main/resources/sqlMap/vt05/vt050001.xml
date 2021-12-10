@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt05.vt050001.dao.VT050001DAO">
+	<select id="getAllStationery"
+		resultType="com.viettel.vtnet360.vt05.vt050001.entity.Stationery">
+		select STATIONERY_ID as
+		stationeryId, STATIONERY_NAME as
+		stationeryName,
+		UNIT_PRICE as
+		unitPrice, b.CODE_NAME as calUnit,
+		b.CODE_VALUE as
+		calUnitId
+		from STATIONERY_ITEMS a
+		inner join
+		M_SYSTEM_CODE
+		b on
+		a.CALCULATION_UNIT=b.CODE_VALUE
+		where
+		b.MASTER_CLASS='S009' and DELETE_FLAG=0
+		order by STATIONERY_NAME
+
+	</select>
+
+
+	<select id="getCalulationUnit"
+		resultType="com.viettel.vtnet360.vt05.vt050001.entity.CalculationUnit">
+		select CODE_VALUE as
+		calUnitId, CODE_NAME as calUnit from
+		M_SYSTEM_CODE where
+		MASTER_CLASS='S009'
+	</select>
+
+	<select id="findCalulationUnit"
+		parameterType="com.viettel.vtnet360.vt05.vt050001.entity.CalculationUnit"
+		resultType="com.viettel.vtnet360.vt05.vt050001.entity.CalculationUnit">
+		select CODE_VALUE as
+		calId, CODE_NAME as calUnit from
+		M_SYSTEM_CODE
+		where
+		MASTER_CLASS='S009'
+		AND STATUS = 1 
+		<if test="calUnit !=null">
+			AND
+			<bind name="pattern" value="'%' + calUnit + '%'" />
+			CODE_NAME like #{pattern}
+		</if>
+		order by CODE_NAME
+		LIMIT 50
+	</select>
+
+	<select id="searchStationery"
+		parameterType="com.viettel.vtnet360.vt05.vt050001.entity.Stationery"
+		resultType="com.viettel.vtnet360.vt05.vt050001.entity.Stationery">
+		select STATIONERY_ID as
+		stationeryId, STATIONERY_NAME as
+		stationeryName,
+		UNIT_PRICE as
+		unitPrice, b.CODE_NAME as calUnit,
+		b.CODE_VALUE as
+		calUnitId
+		from STATIONERY_ITEMS a
+		inner join
+		M_SYSTEM_CODE
+		b on
+		a.CALCULATION_UNIT=b.CODE_VALUE
+		where
+		b.MASTER_CLASS='S009' and DELETE_FLAG=0
+
+		<if test="stationeryName !=null">
+			AND
+			<bind name="pattern1" value="'%' 
+			+ stationeryName + '%'" />
+			STATIONERY_NAME like #{pattern1}
+		</if>
+
+		<if test="unitPrice !=null and unitPrice > 0">
+			AND
+			UNIT_PRICE = #{unitPrice}
+		</if>
+
+		<if test="calUnit !=null">
+			AND
+			CODE_NAME = #{calUnit}
+		</if>
+		order by STATIONERY_NAME
+			LIMIT #{pageNumber}, #{pageSize}
+	</select>
+	
+	<select id="searchCountStationery"
+		parameterType="com.viettel.vtnet360.vt05.vt050001.entity.Stationery"
+		resultType="com.viettel.vtnet360.vt05.vt050001.entity.Stationery">
+		select STATIONERY_ID as
+		stationeryId, STATIONERY_NAME as
+		stationeryName,
+		UNIT_PRICE as
+		unitPrice, b.CODE_NAME as calUnit,
+		b.CODE_VALUE as
+		calUnitId
+		from STATIONERY_ITEMS a
+		inner join
+		M_SYSTEM_CODE
+		b on
+		a.CALCULATION_UNIT=b.CODE_VALUE
+		where
+		b.MASTER_CLASS='S009' and DELETE_FLAG=0
+
+		<if test="stationeryName !=null">
+			AND
+			<bind name="pattern1" value="'%' 
+			+ stationeryName + '%'" />
+			STATIONERY_NAME like #{pattern1}
+		</if>
+
+		<if test="unitPrice !=null and unitPrice > 0">
+			AND
+			UNIT_PRICE = #{unitPrice}
+		</if>
+
+		<if test="calUnit !=null">
+			AND
+			CODE_NAME = #{calUnit}
+		</if>
+	</select>
+
+
+	<insert id="insertStationery"
+		parameterType="com.viettel.vtnet360.vt05.vt050001.entity.Stationery">
+		
+		<selectKey keyProperty="stationeryId" resultType="String" order="BEFORE">
+            SELECT CONCAT( 'VTN_SR_',NEXT VALUE FOR VTN_S) as stationeryId
+        </selectKey>
+		
+		INSERT INTO STATIONERY_ITEMS (
+		  STATIONERY_ID,
+		  STATIONERY_NAME, STATIONERY_TYPE, 
+		  CALCULATION_UNIT, UNIT_PRICE, STATUS, 
+		  CREATE_USER, CREATE_DATE, UPDATE_USER, UPDATE_DATE)
+		VALUES(
+		  #{stationeryId}, 
+		  #{stationeryName},'',
+		  #{calUnitId}, #{unitPrice}, 1, 
+		  #{userName}, NOW(), NULL, NULL);
+	</insert>
+
+
+
+	<update id="updateStationery"
+		parameterType="com.viettel.vtnet360.vt05.vt050001.entity.Stationery">
+		UPDATE STATIONERY_ITEMS
+		SET
+		STATIONERY_NAME=#{stationeryName}, STATIONERY_TYPE='',
+		CALCULATION_UNIT=#{calUnitId},
+		UNIT_PRICE=#{unitPrice}, STATUS=1,
+		UPDATE_USER= #{userName}, UPDATE_DATE=#{updateDate}
+		WHERE
+		STATIONERY_ID=#{stationeryId};
+	</update>
+
+	<update id="deleteStationery"
+		parameterType="com.viettel.vtnet360.vt05.vt050001.entity.Stationery">
+		update STATIONERY_ITEMS set
+		UPDATE_USER=#{updateUser},
+		UPDATE_DATE=#{updateDate},
+		DELETE_FLAG=1
+		WHERE
+		STATIONERY_ID=#{stationeryId};
+
+	</update>
+
+
+	<select id="checkActive"
+		parameterType="com.viettel.vtnet360.vt05.vt050001.entity.Stationery"
+		resultType="int">
+		select COUNT (*) from STATIONERY_ITEMS a inner join
+		ISSUES_STATIONERY_ITEMS
+		b
+		on a.STATIONERY_ID=b.STATIONERY_ID and
+		a.STATIONERY_ID=#{stationeryId}
+		and
+		b.STATUS in
+		<foreach collection="listStatus" item="item" index="index"
+			open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</select>
+
+	<select id="getLimit" parameterType="java.lang.String"
+		resultType="com.viettel.vtnet360.vt05.vt050001.entity.LimitSpend">
+		select MASTER_CLASS as limitId,CODE_NAME as limitValue from
+		M_SYSTEM_CODE where
+		MASTER_CLASS=#{code}
+	</select>
+
+
+
+	<update id="updateLimit"
+		parameterType="com.viettel.vtnet360.vt05.vt050001.entity.LimitSpend">
+		UPDATE M_SYSTEM_CODE
+		SET CODE_NAME=#{limitValue},
+		CREATE_USER=NULL, CREATE_DATE=NULL, UPDATE_USER=NULL,
+		UPDATE_DATE='0000-00-00 00:00:00'
+		WHERE MASTER_CLASS=#{limitId};
+	</update>
+
+	<select id="checkDeleted"
+		parameterType="com.viettel.vtnet360.vt05.vt050001.entity.Stationery"
+		resultType="int">
+		select DELETE_FLAG from STATIONERY_ITEMS where
+		STATIONERY_ID=#{stationeryId}
+	</select>
+
+
+</mapper>

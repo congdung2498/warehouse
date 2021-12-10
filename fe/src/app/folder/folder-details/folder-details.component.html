@@ -1,0 +1,307 @@
+<!-- Picasso Hoang -->
+<div class="container">
+  <div class="container-fluid text-center mt-3">
+    <h1>THÔNG TIN HỒ SƠ</h1>
+  </div>
+  <div class="row mb-3">
+    <div class="col-xl-12 mb-3">
+      <p-fieldset legend="Chi tiết">
+        <div class="row">
+          <div class="col-lg-1 hidden-md-down"></div>
+          <div class="col-lg-10 col-md-12">              
+            <div class="row mb-3" style="margin-left: 20px;">
+              <div class="col-lg-2">
+                Tên hồ sơ:
+              </div>
+              <div class="col-lg-4 ui-fluid" style="margin-left: -10px;">
+                {{selectedFolder.folderName}}
+              </div>
+              <div class="col-lg-2">
+                Mã hồ sơ:
+              </div>
+              <div class="col-lg-4 ui-fluid" style="margin-left: -10px;">
+                {{selectedFolder.folderQrCode}}
+              </div>
+            </div>
+
+            <div class="row mb-3" style="margin-left: 20px;">
+              <div class="col-lg-2">
+                Tên thùng:
+              </div>
+              <div class="col-lg-4 ui-fluid" style="margin-left: -10px;">
+                {{selectedFolder.tinBoxName}}
+              </div>
+              <div class="col-lg-2">
+                Mã thùng:
+              </div>
+              <div class="col-lg-4 ui-fluid" style="margin-left: -10px;">
+                {{selectedFolder.tinBoxQrCode}}
+              </div>              
+            </div>
+
+          </div>
+          <div class="col-lg-1 hidden-md-down"></div>
+        </div>
+      </p-fieldset>
+    </div>
+    <div class="col-xl-12">
+      <div class="text-center">
+        <!-- add more project button -->
+        <button type="button" pButton icon="pi pi-plus" iconPos="left" label="Thêm dự án" (click)="addMorePrjClick()" style="text-align: center;"></button>       
+        <!-- refresh button -->
+        <button type="button" pButton icon="pi pi-arrow-left" iconPos="left" label="Quay lại" (click)="backToSearch()" style="text-align: center;"></button>
+        
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-xs-12">
+      <p-table [columns]="cols" [value]="projectsInFolder" [totalRecords]="totalRecord" [paginator]="true" [rows]="pageSize" [resizableColumns]="true"
+        (onPage)="paginate($event)" #projectsInFolderTable>
+        <ng-template pTemplate="colgroup" let-columns>
+          <colgroup>
+            <col *ngFor="let col of columns" [style.width]="col.width">
+          </colgroup>
+        </ng-template>
+        <ng-template pTemplate="header" let-columns>
+          <tr>
+            <th *ngFor="let col of columns" pResizableColumn class="column-header">
+              <span class="center-align" [ngClass]="{'hidden-stt': col.header=='STT'}">{{col.header}}</span>
+            </th>
+          </tr>
+        </ng-template>
+        <ng-template let-ri="rowIndex" pTemplate="body" let-rowData let-columns="columns">
+          <tr>
+            <td>{{ri+1}}</td>
+            <td class="left-align">{{rowData.name}}</td>
+            <td>
+              <button type="button" pButton icon="fa fa-list" iconPos="left" label="Chi tiết" (click)="showProjectDetails(rowData, true)"></button>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage" let-columns>
+          <tr>
+            <td [attr.colspan]="4" style="text-align: center;">
+              Không có hồ sơ
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="paginatorright">
+          <span style="position: absolute; right: 30px; bottom: 6px;">{{totalRecord == 0 ? 0 : (pageNumber-1)*pageSize +1}} - {{pageNumber*pageSize > totalRecord ? totalRecord : pageNumber*pageSize}} / {{totalRecord}}</span>
+        </ng-template>
+      </p-table>
+
+    </div>
+  </div>
+
+  <!-- start show projects not in any folder modal-->
+  <p-dialog [modal]="true" [(visible)]="isShowModal" class="row" header="Danh sách dự án có tài liệu không có trong hồ sơ" (onHide)="closeAddMorePrjModal(projectNotInAnyFolderTable)">
+    <div class="modal-table-container">
+      <div class="col-6" style="margin-bottom: 8px;">
+        Tìm dự án: <input autofocus [disabled]="isLoading" type="text" maxlength="255" pInputText [(ngModel)]="keyword" (keyup)="handleSearch(projectNotInAnyFolderTable)" (ngModelChange)="preventSpecialChar(inputKeyword)" #inputKeyword/>
+      </div>
+      <div class="col-xs-12">
+        <p-table class="col-xs-12 zero-padding" [columns]="cols" [value]="unhandleProjects" [totalRecords]="unhandleProjects.length" [paginator]="true" [rows]="10" [resizableColumns]="true"
+          (onPage)="paginateUnhandleProject($event)" [loading]="isLoading" #projectNotInAnyFolderTable>
+          <ng-template pTemplate="colgroup" let-columns>
+            <colgroup>
+              <col *ngFor="let col of columns" [style.width]="col.width">
+            </colgroup>
+          </ng-template>
+          <ng-template pTemplate="header" let-columns>
+            <tr>
+              <th *ngFor="let col of columns" pResizableColumn class="column-header">
+                <span [ngClass]="{'hidden-stt': col.header=='STT'}">{{col.header}}</span>
+              </th>
+            </tr>
+          </ng-template>
+          <ng-template let-ri="rowIndex" pTemplate="body" let-rowData let-columns="columns">            
+            <tr>
+              <td>{{ri+1}}</td>
+              <td class="left-align">{{rowData.name}}</td>
+              <td>
+                <button type="button" pButton icon="fa fa-list" iconPos="left" label="Thêm vào hồ sơ" (click)="showProjectDetails(rowData, false)" style="text-align: center;"></button>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage" let-columns>
+            <tr>
+              <td [attr.colspan]="4" style="text-align: center;">
+                Không có dữ liệu
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="paginatorright">
+            <span style="position: absolute; right: 30px; bottom: 6px;">
+              {{unhandleProjects.length == 0 ? 0 : (unhandleProjectsPageNumber-1)*pageSize +1}} 
+              - {{unhandleProjectsPageNumber*pageSize > unhandleProjects.length ? unhandleProjects.length : unhandleProjectsPageNumber*pageSize}} 
+              / {{unhandleProjects.length}}
+            </span>
+          </ng-template>
+        </p-table>
+
+      </div>
+    </div>
+    
+  </p-dialog>
+  <!-- end show projects not in any folder modal-->
+
+  <!-- start show details modal-->
+  <p-dialog [modal]="true" [width]="1000" [(visible)]="isShowFolderDetailsModal" header="Chi tiết dự án" id="project_details_modal" (onHide)="closeFolderDetailsModal()">
+    <!-- <div *ngIf="isFolderDetailsLoading" style="width: 100%; height: 100%; position: relative; z-index: 9999; opacity: 70%;">
+      <div style="position: absolute; top: 50%; left: 50%;">Loading</div>    
+    </div> -->
+    <div class="modal-table-container row" style="margin-bottom: 30px;">
+      <div class="col-1"></div>
+      <div class="col-10">
+        <div class="row" id="pj_detail_ct">
+          <!-- <div class="container-fluid text-center mt-3 col-12">
+            <h4>{{selectedProject.name}}</h4>
+          </div> -->
+          <div class="col-12">            
+            <p-fieldset legend="Chi tiết dự án" id="1432">  
+              <div class="row">
+                <div class="col-2"></div>
+                <div class="col-10">
+                  <div class="row">
+                    <div class="col-2">Tên dự án:</div>
+                    <div class="col-10">{{selectedProject.name}}</div>
+                    <!-- <div class="col-2">Mô tả:</div>
+                    <div class="col-10">{{selectedProject.description}}</div> -->
+                    <!-- <div class="col-5">Code:</div>
+                    <div class="col-7">{{selectedProject.code}}</div>
+                    <div class="col-5">ERP:</div>
+                    <div class="col-7">{{selectedProject.erpId}}</div> -->
+                  </div>
+                </div>          
+                <div class="col-2"></div>
+              </div>
+            </p-fieldset>
+          </div>
+          <div class="col-12"></div>
+          <div class="col-xl-12">
+            <div class="text-center">
+              <!-- bind project to folder button -->
+              <button type="button" pButton icon="pi pi-save" iconPos="left" label="Lưu" (click)="updateBindProjectToFolder()" style="font-size: 16px;"></button>
+              <!-- cancel button -->
+              <button type="button" pButton icon="pi pi-times" iconPos="left" label="Hủy" (click)="closeFolderDetailsModal()" style="font-size: 16px;"></button>         
+            </div>
+          </div>
+          <div class="col-12" style="padding-top: 10px;">
+            <label *ngIf="(selectedProject.docs && selectedProject.docs.length >0) || (selectedProject.packages && selectedProject.packages.length>0) || (selectedProject.contracts && selectedProject.contracts.length>0)" class="ckb-container">  Chọn tất cả
+              <input type="checkbox" [(ngModel)]="isSelectAll" (change)="toggleSelectAll()">
+              <span class="checkmark"></span>
+            </label>
+            <span *ngIf="(selectedProject.docs && selectedProject.docs.length == 0) && (selectedProject.packages && selectedProject.packages.length==0) && (selectedProject.contracts && selectedProject.contracts.length==0)">Tất cả các tài liệu trong dự án này đã được lưu vào hồ sơ khác.</span>
+            <!-- <p-checkbox (onChange)="toggleSelectAll()" label="Chọn tất cả" [(ngModel)]="isSelectAll" binary="true"></p-checkbox> -->
+          </div>
+
+          <!-- project document -->
+          <div class="col-12" *ngIf="selectedProject.docs && selectedProject.docs.length>0">
+            <div class="row">
+              <div class="col-12 clickable" (click)="toggleShowingDoc('project')"><span [className]="isShowingDoc['project'] ? 'fa fa-folder-open-o' : 'fa fa-folder-o'"></span> Tài liệu dự án</div>
+              <div class="col-12" *ngIf="isShowingDoc['project']">
+                <div class="tablike" *ngFor="let doc of selectedProject.docs">
+                  <!-- <input type="checkbox" (change)="markDocument(doc.projectDocId, 'project')"/>  - <span class="fa fa-file-text-o"></span> {{doc.name}} -->
+                  <label class="ckb-container">- {{doc.name}}
+                    <input type="checkbox" [(ngModel)]="doc.isInFolder" (change)="checkForTickAll()">
+                    <span class="checkmark"></span>
+                  </label>                    
+                </div>                
+              </div>
+            </div>
+          </div>
+
+          <!-- project package -->
+          <div class="col-12" *ngIf="selectedProject.packages && selectedProject.packages.length>0">
+            <div class="row">
+              <div class="col-12 clickable" (click)="toggleShowingDoc('package')"><span [className]="isShowingDoc['package'] ? 'fa fa-folder-open-o' : 'fa fa-folder-o'"></span> Gói thầu</div>
+              <div class="col-12" *ngIf="isShowingDoc['package']">
+                <div *ngFor="let package of selectedProject.packages">
+                  <div class="clickable tablike" (click)="toggleShow('pj_pck_'+package.packageId)">
+                    <span class="fa fa-archive"></span> {{package.name}}
+                  </div>
+                  <div id="pj_pck_{{package.packageId}}" class="row">
+                    <div class="col-12">
+                      <div *ngFor="let doc of package.docs" style="padding-left: 4vw;">
+                        <!-- <p-checkbox></p-checkbox>  - <span class="fa fa-file-text-o"></span> {{doc.name}} -->
+                        <label class="ckb-container">- {{doc.name}}
+                          <input type="checkbox" [(ngModel)]="doc.isInFolder" (change)="checkForTickAll()">
+                          <span class="checkmark"></span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+
+          <!-- project contract -->
+          <div class="col-12" *ngIf="selectedProject.contracts && selectedProject.contracts.length>0">
+            <div class="row">
+              <div class="col-12 clickable" (click)="toggleShowingDoc('contract')"><span [className]="isShowingDoc['contract'] ? 'fa fa-folder-open-o' : 'fa fa-folder-o'"></span> Hợp đồng</div>
+              <div class="col-12" *ngIf="isShowingDoc['contract']">
+                <div *ngFor="let contract of selectedProject.contracts">
+
+                  <div class="clickable tablike" (click)="toggleShow('pj_ctr_'+contract.contractId)">
+                    <span class="fa fa-pencil-square-o"></span> {{contract.name}}
+                  </div>
+
+                  <div class="row" id="pj_ctr_{{contract.contractId}}" style="padding-left: 4vw;">
+                    <div class="col-12" *ngFor="let doc of contract.docs">
+                      <!-- <p-checkbox></p-checkbox>  - <span class="fa fa-file-text-o"></span> {{doc.name}} -->
+                      <label class="ckb-container">- {{doc.name}}
+                        <input type="checkbox" [(ngModel)]="doc.isInFolder" (change)="checkForTickAll()">
+                        <span class="checkmark"></span>
+                      </label>
+                    </div>
+
+                    <!-- project construction -->
+                    <div class="col-12" *ngIf="contract.constructions && contract.constructions.length>0">
+                      <div class="row">
+                        <div class="col-12 clickable" (click)="toggleShow('ct_cons_folder_'+contract.contractId)"><span [className]="isShowingDoc['construction'] ? 'fa fa-folder-open-o' : 'fa fa-folder-o'"></span> Công trình:</div>
+                        <div class="col-12" id="ct_cons_folder_{{contract.contractId}}">
+                          <div class="row tablike" *ngFor="let construction of contract.constructions">
+                            <div class="col-12 clickable" (click)="toggleShow('pj_cons_'+construction.constructionId)">
+                              <span class="fa fa-building-o"></span> {{construction.name}}
+                            </div>
+                            <div class="col-12" id="pj_cons_{{construction.constructionId}}" >
+                              <div class="row tablike" *ngFor="let doc of construction.docs">
+                                <div class="col-12">
+                                  <!-- <p-checkbox></p-checkbox>  - <span class="fa fa-file-text-o"></span> {{doc.name}} -->
+                                  <label class="ckb-container">- {{doc.name}}
+                                    <input type="checkbox" [(ngModel)]="doc.isInFolder" (change)="checkForTickAll()">
+                                    <span class="checkmark"></span>
+                                  </label>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <!-- end project construction -->
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- end project contract -->
+        </div>
+      </div>
+      <div class="col-1"></div>
+      
+    </div>
+    
+  </p-dialog>
+  <!-- end show projects details modal-->
+  
+</div>
+
+<div [hidden]="!isBindingProjectToFolder" class="binding-loading">
+  <div class="binding-lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+</div>

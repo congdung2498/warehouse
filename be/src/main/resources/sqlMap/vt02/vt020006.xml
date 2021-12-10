@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt02.vt020006.dao.VT020006DAO">
+
+	<select id="findPeriodic" resultType="java.lang.Integer" 
+							parameterType="com.viettel.vtnet360.vt02.vt020006.entity.VT020006InfoToGetListLunchDate">
+		SELECT DISTINCT(WEEKDAY(LUNCH_DATE)) as dayOfWeek 
+		FROM LUNCH_CALENDAR 
+		WHERE EMPLOYEE_USER_NAME = #{userName} 
+			AND MONTH(LUNCH_DATE) = #{month} 
+			AND YEAR(LUNCH_DATE) = #{year} 
+			AND IS_PERIODIC = #{isPeriodic}
+			AND QUANTITY > #{quantity}
+			AND HAS_BOOKING = #{hasBooking}
+		ORDER BY dayOfWeek
+	</select>
+	
+	<select id="findKitchenIDPeriodic" resultType="com.viettel.vtnet360.vt02.vt020002.entity.VT020002Kitchen" 
+							parameterType="com.viettel.vtnet360.vt02.vt020006.entity.VT020006InfoToGetListLunchDate">
+		SELECT DISTINCT(lc.KITCHEN_ID) as kitchenID,
+				CONCAT(ks.KITCHEN_NAME, IF(qp.PLACE_NAME IS NULL,'',CONCAT(' - ',qp.PLACE_NAME))) as kitchenName
+		FROM 
+		      LUNCH_CALENDAR lc JOIN KITCHEN_SETTING ks ON lc.KITCHEN_ID = ks.KITCHEN_ID 
+              LEFT JOIN QLDV_PLACE qp ON ks.PLACE_ID = qp.PLACE_ID
+		WHERE EMPLOYEE_USER_NAME = #{userName} 
+			AND MONTH(LUNCH_DATE) = #{month} 
+			AND YEAR(LUNCH_DATE) = #{year} 
+			AND IS_PERIODIC = #{isPeriodic}
+			AND QUANTITY > #{quantity}
+			AND HAS_BOOKING = #{hasBooking}
+	</select>
+	
+	<select id="findListDate" resultType="com.viettel.vtnet360.vt02.vt020006.entity.VT020006LunchDate" 
+							parameterType="com.viettel.vtnet360.vt02.vt020006.entity.VT020006InfoToGetListLunchDate">
+		SELECT 
+		    LUNCH_DATE as lunchDate, 
+			QUANTITY as quantity,
+			HAS_BOOKING as hasBooking,
+		    LUNCH_CALENDAR_ID as lunchId,
+		    lc.PRICE as price,
+		    IS_PERIODIC as period,
+		    RATTING as rating,
+		    COMMENT as comment,
+		    ks.KITCHEN_ID as kitchenId,
+		    ks.KITCHEN_NAME as kitchenName
+		FROM 
+		    LUNCH_CALENDAR lc LEFT JOIN KITCHEN_SETTING ks ON lc.KITCHEN_ID = ks.KITCHEN_ID 
+		WHERE 
+		    EMPLOYEE_USER_NAME = #{userName}
+			AND MONTH(LUNCH_DATE) = #{month} 
+			AND YEAR(LUNCH_DATE) = #{year}
+			AND QUANTITY > #{quantity}
+			AND HAS_BOOKING = #{hasBooking}
+			
+		ORDER BY lunchDate
+		<if test="startRow != -1 and rowSize > 0">
+			LIMIT #{startRow}, #{rowSize}
+		</if>
+	</select>
+
+	<select id="findDayOff" resultType="java.util.Date" parameterType="java.lang.Integer">
+		SELECT DAY_OFF 
+		FROM DAY_OFF_SETTING 
+		WHERE STATUS = #{status}
+				AND DAY_OFF > NOW()
+				AND DAY_OFF > NOW()
+				AND YEAR(DAY_OFF) &lt;= YEAR(NOW()) + 1
+	</select>
+
+	<select id="findDayOffByMonth" resultType="java.util.Date" 
+	                               parameterType="com.viettel.vtnet360.vt02.vt020006.entity.VT020006InfoTofindDayOff">
+		SELECT DAY_OFF 
+		FROM DAY_OFF_SETTING 
+		WHERE STATUS = #{status}
+				AND MONTH(DAY_OFF) = #{month}
+				AND YEAR(DAY_OFF) = #{year}
+	</select>
+
+	<insert id="insertLunchDate" parameterType="com.viettel.vtnet360.vt02.vt020006.entity.VT020006Lunch">
+		INSERT INTO LUNCH_CALENDAR 
+							(LUNCH_CALENDAR_ID, 
+							EMPLOYEE_USER_NAME, 
+							LUNCH_DATE, 
+							QUANTITY, 
+							PRICE, 
+							HAS_BOOKING, 
+							KITCHEN_ID, 
+							IS_PERIODIC,
+							UNIT_ID, 
+							CREATE_USER, 
+							CREATE_DATE,
+							UPDATE_USER,
+							UPDATE_DATE)
+		VALUES
+			<foreach collection="listDateLunch" item="item" index="index" separator=",">
+				(
+					CONCAT('VTN_SR_', NEXT VALUE FOR VTN_S), 
+					#{userName}, 
+					#{item}, 
+					#{quantity}, 
+					(SELECT PRICE FROM KITCHEN_SETTING WHERE KITCHEN_ID = #{kitchenID}) , 
+					#{hasBooking}, 
+					#{kitchenID}, 
+					#{isPeriodic},
+					#{unitId},
+					#{userName}, 
+					NOW(),
+					#{userName}, 
+					NOW()
+				)
+			</foreach>
+	</insert>
+	
+	<delete id="deleteAllLunch" parameterType="com.viettel.vtnet360.vt02.vt020006.entity.VT020006Lunch">
+		DELETE FROM LUNCH_CALENDAR
+		WHERE EMPLOYEE_USER_NAME = #{userName} 
+		AND LUNCH_DATE >= #{lunchDate}
+	</delete>
+	
+	<update id="updatePeriodicToInactive" parameterType="com.viettel.vtnet360.vt02.vt020006.entity.VT020006Lunch">
+		UPDATE LUNCH_CALENDAR
+		SET IS_PERIODIC = #{isPeriodic}
+		WHERE EMPLOYEE_USER_NAME = #{userName}
+				AND LUNCH_DATE &lt; #{lunchDate}
+	</update>
+
+	<delete id="deleteLunch" parameterType="com.viettel.vtnet360.vt02.vt020006.entity.VT020006Lunch">
+		DELETE FROM LUNCH_CALENDAR
+		WHERE EMPLOYEE_USER_NAME = #{userName} 
+		AND LUNCH_DATE IN 
+			<foreach collection="listDateLunch" item="item" index="index" open="(" separator="," close=")">
+				#{item}
+  			</foreach>
+	</delete>
+
+	<update id="updateLunch" parameterType="com.viettel.vtnet360.vt02.vt020006.entity.VT020006Lunch">
+		UPDATE LUNCH_CALENDAR
+		SET  
+			QUANTITY = #{quantity}, 
+			HAS_BOOKING = #{hasBooking}, 
+			KITCHEN_ID = #{kitchenID},
+			IS_PERIODIC = #{isPeriodic}, 
+			PRICE = (SELECT PRICE FROM KITCHEN_SETTING WHERE KITCHEN_ID = #{kitchenID}),
+			UPDATE_USER = #{userName}, 
+			UPDATE_DATE = NOW()
+		WHERE LUNCH_DATE = #{lunchDate} 
+				AND EMPLOYEE_USER_NAME = #{userName}
+	</update>
+	
+	<select id="checkLunchDate" resultType="java.lang.Integer"  parameterType="com.viettel.vtnet360.vt02.vt020006.entity.VT020006Lunch">
+		SELECT COUNT(*) 
+		FROM LUNCH_CALENDAR 
+		WHERE 	EMPLOYEE_USER_NAME = #{userName}
+				AND LUNCH_DATE = #{lunchDate}
+	</select>
+
+	<select id="findLunchInfo" resultType="com.viettel.vtnet360.vt02.vt020006.entity.VT020006LunchInfo" 
+									parameterType="com.viettel.vtnet360.vt02.vt020006.entity.VT020006Lunch">
+		SELECT lc.KITCHEN_ID as kitchenID, 
+				ks.KITCHEN_NAME as kitchenName, 
+				lc.HAS_BOOKING as hasBooking, 
+				lc.QUANTITY as quantity,
+				lc.RATTING as rating,
+				lc.COMMENT as comment,
+				lc.LUNCH_CALENDAR_ID as lunchId
+		FROM LUNCH_CALENDAR lc, KITCHEN_SETTING ks
+		WHERE lc.KITCHEN_ID = ks.KITCHEN_ID
+				AND lc.EMPLOYEE_USER_NAME = #{userName} 
+				AND lc.LUNCH_DATE = #{lunchDate}
+	</select>
+	
+	<select id="findMenuInfo" resultType="com.viettel.vtnet360.kitchen.dto.Dish" 
+								parameterType="com.viettel.vtnet360.vt02.vt020006.entity.VT020006Lunch">
+		SELECT
+		  ds.DISH_ID as dishId, 
+		  ds.DISH_NAME as dishName,
+		  ds.IMAGE as image
+		FROM MENU_SETTING ms, DISH_SETTING ds
+		WHERE ms.DISH_ID = ds.DISH_ID
+				AND ms.KITCHEN_ID = #{kitchenID} 
+				AND ms.DATE_OF_MENU = #{lunchDate}
+	</select>
+
+	<select id="checkKitchenExisted" resultType="java.lang.Integer" 
+	                           parameterType="com.viettel.vtnet360.vt02.vt020006.entity.VT020006InfoToCheckKitchenExist">
+		SELECT COUNT(*) 
+		FROM KITCHEN_SETTING 
+		WHERE KITCHEN_ID = #{kitchenID} 
+				AND STATUS = #{status}
+	</select>
+
+	<!-- use for register auto by system for the lunch calendar of all employees in next month when start a new month -->
+	<select id="findListUser" resultType="com.viettel.vtnet360.vt02.vt020006.entity.VT020006UserInfoLunchDate"
+								parameterType="com.viettel.vtnet360.vt02.vt020006.entity.VT020006InfoToGetListLunchDate">
+		SELECT EMPLOYEE_USER_NAME userName, 
+				WEEKDAY(LUNCH_DATE) as dayOfWeek,
+				KITCHEN_ID as kitchenID
+		FROM LUNCH_CALENDAR	
+		WHERE 	IS_PERIODIC = #{isPeriodic}
+				AND MONTH(LUNCH_DATE) = MONTH(NOW()) 
+				AND YEAR(LUNCH_DATE) = YEAR(NOW())
+				AND IS_PERIODIC = #{isPeriodic}
+				AND QUANTITY > #{quantity}
+				AND HAS_BOOKING = #{hasBooking}
+		GROUP BY userName, dayOfWeek
+	</select>
+	
+	<select id="deleteLunchDateOfNextMonth" parameterType="java.util.Date">
+		DELETE FROM LUNCH_CALENDAR 
+		WHERE LUNCH_DATE >= #{date}
+	</select>
+
+	<!-- use for get total lunch date of tomorrow to send sms to chef -->
+	<select id="findTotalLunchDate" parameterType="com.viettel.vtnet360.vt02.vt020006.entity.VT020006InfoToFindTotalLunchDate" 
+	resultType="com.viettel.vtnet360.vt02.vt020006.entity.VT020006TotalLunchDate">
+		SELECT lc.KITCHEN_ID as kitchenID, 
+				ks.KITCHEN_NAME as kitchenName, 
+				qe.EMPLOYEE_ID as userID, 
+				ks.CHEF_NAME as chefName, 
+				kc.CHEF_PHONE as chefPhone, 
+				SUM(lc.QUANTITY) as total
+		FROM LUNCH_CALENDAR lc JOIN KITCHEN_SETTING ks ON lc.KITCHEN_ID = ks.KITCHEN_ID 
+				LEFT JOIN KITCHEN_SETTING_CHEF kc ON ks.KITCHEN_ID = kc.KITCHEN_SETTING_ID
+				LEFT JOIN QLDV_EMPLOYEE qe ON ks.CHEF_ACCOUNT = qe.USER_NAME
+				JOIN QLDV_EMPLOYEE qee ON qee.USER_NAME = lc.EMPLOYEE_USER_NAME
+		WHERE DATE(LUNCH_DATE) = DATE(#{lunchDate})
+				AND lc.HAS_BOOKING = #{hasBooking}
+		GROUP BY lc.KITCHEN_ID
+	</select>
+	
+	<!-- use for get info luch of employee each month -->
+	<select id="getInforLunchOfEmpEachMonth"
+	resultType="com.viettel.vtnet360.vt02.vt020006.entity.VT020006LunchInforEachMonth">
+		SELECT EMPLOYEE_USER_NAME as userName, FULL_NAME as fullName, MONTH(CURRENT_DATE()) - 1 as month,
+	        PHONE_NUMBER AS phoneNumber, SUM(QUANTITY) AS totalMeal,
+	        SUM(QUANTITY) * 30000 AS totalMoney, EMPLOYEE_ID AS employeeId FROM LUNCH_CALENDAR LC LEFT JOIN
+	        QLDV_EMPLOYEE QE ON LC.EMPLOYEE_USER_NAME = QE.USER_NAME
+		WHERE MONTH(LUNCH_DATE) = MONTH(CURRENT_DATE()) - 1 AND YEAR(LUNCH_DATE) =
+			YEAR(CURRENT_DATE()) AND HAS_BOOKING = 1
+		GROUP BY EMPLOYEE_USER_NAME
+	</select>
+	
+	<select id="findTotalLunchDateForDaily" parameterType="com.viettel.vtnet360.vt02.vt020006.entity.VT020006InfoToFindTotalLunchDate" 
+    resultType="com.viettel.vtnet360.vt02.vt020006.entity.VT020006TotalLunchDate">
+        SELECT lc.KITCHEN_ID as kitchenID, 
+                SUM(lc.QUANTITY) as total
+        FROM LUNCH_CALENDAR lc JOIN KITCHEN_SETTING ks ON lc.KITCHEN_ID = ks.KITCHEN_ID 
+        WHERE DATE(LUNCH_DATE) = DATE(#{lunchDate})
+                AND lc.HAS_BOOKING = #{hasBooking}
+        GROUP BY lc.KITCHEN_ID
+    </select>
+	
+	<insert id="insertDailyMeals" parameterType="com.viettel.vtnet360.vt02.vt020006.entity.VT020006InfoToInsertDailyMeals">
+		INSERT INTO DAILY_MEALS
+				(
+					DAILY_MEALS_ID, 
+					KITCHEN_ID, 
+					LUNCH_DATE, 
+					TOTAL,
+					CREATE_USER,
+					CREATE_DATE
+				)
+		VALUES	(
+					CONCAT('VTN_SR_', NEXT VALUE FOR VTN_S), 
+					#{kitchenID}, 
+					(DATE_ADD(DATE(NOW()), INTERVAL 1 DAY)), 
+					#{total},
+					'SYSTEM',
+					NOW()
+				)
+	</insert>
+	
+	<select id="findTotalLunchDateOld" resultType="java.lang.Integer" 
+	                           parameterType="com.viettel.vtnet360.vt02.vt020006.entity.VT020006InfoToInsertDailyMeals">
+		SELECT IFNULL
+			(
+				(
+					SELECT DISTINCT(TOTAL) 
+					FROM DAILY_MEALS
+					WHERE KITCHEN_ID = #{kitchenID}
+							AND DATE(LUNCH_DATE) = DATE(#{date})
+					LIMIT 0,1
+				), 0
+			)
+	</select>
+	
+	<select id="findTotalLunchDateNow" resultType="java.lang.Integer" 
+	                           parameterType="com.viettel.vtnet360.vt02.vt020006.entity.VT020006InfoToInsertDailyMeals">
+		SELECT IFNULL
+			(
+				(
+					SELECT	SUM(QUANTITY) as total
+					FROM LUNCH_CALENDAR 
+					WHERE DATE(LUNCH_DATE) = DATE(#{date})
+							AND KITCHEN_ID = #{kitchenID}
+					GROUP BY KITCHEN_ID
+				), 0
+			)
+	</select>
+	
+	<select id="getTotalLunchDate" resultType="java.lang.Integer" 
+							parameterType="com.viettel.vtnet360.vt02.vt020006.entity.VT020006InfoToGetListLunchDate">
+		SELECT IFNULL
+            ((SELECT 
+		    COUNT(*)
+		FROM 
+		    LUNCH_CALENDAR lc LEFT JOIN KITCHEN_SETTING ks ON lc.KITCHEN_ID = ks.KITCHEN_ID 
+		WHERE 
+		    EMPLOYEE_USER_NAME = #{userName}
+			AND MONTH(LUNCH_DATE) = #{month} 
+			AND YEAR(LUNCH_DATE) = #{year}
+			AND QUANTITY > #{quantity}
+			AND HAS_BOOKING = #{hasBooking}
+			), 0)
+	</select>
+	
+	
+	
+</mapper>

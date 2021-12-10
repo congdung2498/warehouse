@@ -1,0 +1,3 @@
+::ng-deep #shortTreeAdd > .ui-tree{
+    border: 0px !important;
+}

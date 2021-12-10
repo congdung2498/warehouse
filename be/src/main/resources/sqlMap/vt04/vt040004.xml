@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt04.vt040004.dao.VT040004DAO">
+	
+	<!-- Issuesed Service For Approve -->
+	<resultMap type="com.viettel.vtnet360.vt04.vt040004.entity.VT040004EntityDataForApprove" id="resultIssuesedServiceForApprove">
+		<result property="issuedServiceId" column="ISSUES_SERVICE_ID"/>
+		<result property="unitName" column="UNIT_NAME"/>
+		<result property="fullName" column="FULL_NAME"/>
+		<result property="nameService" column="SERVICE_NAME"/>
+		<result property="createDate" column="CREATE_DATE"/>
+	</resultMap>
+	
+	
+	<select id="issuesedServiceForApprove"  parameterType="java.util.Map" resultMap="resultIssuesedServiceForApprove">
+	
+	SELECT
+	*
+	FROM
+	(
+	SELECT
+	
+	IS_SV.ISSUES_SERVICE_ID,
+	IS_SV.ISSUES_USERNAME,
+	IS_SV.ISSUESE_LOCATION,
+	IS_SV.TIME_START_PLAN,
+	IS_SV.TIME_FINISH_PLAN,
+	IS_SV.STATUS,
+	IS_SV.SERVICE_ID,
+	IS_SV.CREATE_DATE,
+	IS_SV.APPOVER_QLTT,
+	IS_SV.FLAG_QLTT,
+	IS_SV.APPOVER_LDDV,
+	IS_SV.FLAG_LDDV,
+	IS_SV.APPOVER_CVP,
+	IS_SV.FLAG_CVP,
+	IS_SV.NOTE,
+	SV.SERVICE_NAME,
+	EMP.FULL_NAME,
+	EMP.UNIT_ID,
+	CASE 
+				WHEN u.UNIT_ID = 234841 THEN IFNULL(u.UNIT_NAME, '')
+				WHEN b.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''))
+				WHEN c.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''))
+				ELSE CONCAT(IFNULL(c.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''))
+			END AS UNIT_NAME,
+	EMP_UNIT.`PATH`
+	
+	FROM( 
+	(
+	( ISSUES_SERVICE as IS_SV 
+	LEFT JOIN QLDV_EMPLOYEE as EMP ON IS_SV.ISSUES_USERNAME =EMP.USER_NAME )
+	LEFT JOIN QLDV_UNIT as EMP_UNIT ON EMP.UNIT_ID = EMP_UNIT.UNIT_ID )
+	LEFT JOIN SERVICES as SV ON IS_SV.SERVICE_ID = SV.SERVICE_ID 
+	LEFT JOIN QLDV_UNIT u ON
+			EMP.UNIT_ID = u.UNIT_ID
+		LEFT JOIN QLDV_UNIT b ON
+			u.PARENT_UNIT_ID = b.UNIT_ID
+		LEFT JOIN QLDV_UNIT c ON
+			b.PARENT_UNIT_ID = c.UNIT_ID)
+	
+	) AS FINAL_ISSUED_SERVICE
+	
+	WHERE 1 
+	AND 
+	
+	( STATUS = 0 )  
+	
+	<if test="PMQT_ADMIN == null ">
+	
+	AND 
+	( CASE
+    WHEN ( APPOVER_QLTT = #{userName} AND FLAG_QLTT = 0 ) THEN (1)
+    WHEN ( APPOVER_LDDV = #{userName} AND FLAG_QLTT = 1 AND FLAG_LDDV = 0 ) THEN (1) 
+    WHEN ( APPOVER_CVP  = #{userName}  AND FLAG_QLTT = 1 AND FLAG_LDDV = 1 AND FLAG_CVP = 0 ) THEN (1)
+    ELSE 0
+	END 
+	)
+	
+	</if>
+	
+	
+	
+	<if test="requestParam.unitId != 0  and requestParam.unitId != null">
+	
+	<!-- AND FINAL_ISSUED_SERVICE.UNIT_ID = #{requestParam.unitId} -->
+	AND FINAL_ISSUED_SERVICE.`PATH` LIKE CONCAT('%',#{requestParam.unitId}, '%')
+	
+	</if>
+	
+	<if test="requestParam.userNameOfRequester != null">
+	
+	AND FINAL_ISSUED_SERVICE.ISSUES_USERNAME = #{requestParam.userNameOfRequester}
+	
+	</if>
+			
+	<if test="requestParam.phoneOfRequester != null">
+	
+	AND FINAL_ISSUED_SERVICE.PHONE_NUMBER LIKE #{requestParam.phoneOfRequester}
+	
+	</if>
+		
+	<if test="requestParam.idService != null">
+	
+	AND FINAL_ISSUED_SERVICE.SERVICE_ID = #{requestParam.idService}
+	
+	</if>
+	
+	<if test="requestParam.startTime != null and requestParam.endTime != null ">
+	
+		AND (FINAL_ISSUED_SERVICE.CREATE_DATE BETWEEN #{requestParam.startTime} AND #{requestParam.endTime})
+		
+	
+	</if>
+	
+	<if test="requestParam.startTime != null and requestParam.endTime == null ">
+	
+		<!-- 	xu ly	thoi gian bat dau co ket thuc khong   -->
+		AND (FINAL_ISSUED_SERVICE.CREATE_DATE >= #{requestParam.startTime}) 
+			
+	</if>
+	
+	
+	<if test="requestParam.startTime == null and requestParam.endTime != null ">
+	
+		AND (FINAL_ISSUED_SERVICE.CREATE_DATE BETWEEN 0 AND #{requestParam.endTime})		
+	
+	</if>
+		
+	ORDER BY FINAL_ISSUED_SERVICE.CREATE_DATE DESC
+	LIMIT #{fromIndex},#{getSize}  	
+	</select>
+
+</mapper>

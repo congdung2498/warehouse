@@ -1,0 +1,171 @@
+
+
+
+<!--&lt;!&ndash;&lt;!&ndash; POP-UPPPPP &ndash;&gt;&ndash;&gt;-->
+
+<div class="container-fluid text-center mt-3 mb-3">
+
+</div>
+
+
+<div class="container">
+  <div class="row" style="margin-top: 20px;">
+    <div class="col-sm-6">
+      <div class="form-group row">
+        <label class="col-sm-6">Người yêu cầu: </label>
+        <div class="col-sm-6"><b>{{rpItemsName}}</b></div>
+
+      </div>
+
+      <div class="form-group row">
+        <label class="col-sm-6">Số lượng yêu cầu : </label>
+        <div class="col-sm-6"><b>{{rpItemsQuantity}}</b></div>
+      </div>
+    </div>
+
+    <div class="col-sm-6">
+      <div class="form-group row">
+        <label class="col-sm-6">Ngày yêu cầu: </label>
+        <div class="col-sm-6"><b>{{rpItemsDateRequest | date: 'dd/MM/yyyy' }}</b></div>
+      </div>
+
+      <div class="form-group row">
+        <label class="col-sm-6">Nội dung trình kí:</label>
+        <div class="col-sm-6"><b> {{rpItemsMessage}}</b></div>
+      </div>
+    </div>
+
+    <div class="col-sm-6">
+      <div class="form-group row">
+        <label class="col-sm-6">Số lượng đáp ứng: </label>
+        <div class="col-sm-6"><b>{{rpItemsQuantityRequest}}</b></div>
+      </div>
+
+      <div class="form-group row">
+        <label class="col-sm-6">Tổng tiền yêu cầu: </label>
+        <div class="col-sm-6"><b>{{rpItemsTotalMoney | number:'1.2-2'}}</b></div>
+      </div>
+      <div class="form-group row">
+        <label class="col-sm-6">Tổng tiền đáp ứng: </label>
+        <div class="col-sm-6"><b>{{rpVPTCTTotal | number:'1.2-2'}}</b></div>
+      </div>
+    </div>
+
+    <div class="col-sm-6">
+
+      <div class="form-group row">
+        <label class="col-sm-6">Trạng thái:</label>
+        <div class="col-sm-6"><b> <span style="color: red;"> Đã cấp phát </span></b></div>
+      </div>
+
+      <div class="form-group row">
+        <label class="col-sm-6">Lý do :</label>
+        <div class="col-sm-6">{{ldReasonReject}}</div>
+      </div>
+    </div>
+    <div class="col-sm-12 mt-2 mb-2"><b>Danh sách văn phòng phẩm</b></div>
+
+    <div class="col-sm-12">
+      <p-table  #dt [value]="listSearchDetails" [totalRecords]="" [paginator]="true"
+                [rows]="10" [resizableColumns]="true">
+        <ng-template pTemplate="header">
+          <tr style="font-weight: bold;">
+            <th rowspan="1" style="width: 3rem; font-weight: bold;text-align: center">STT</th>
+            <th rowspan="5" style="width: 10rem; font-weight: bold;text-align: center">Người yêu cầu</th>
+            <th rowspan="5" style="width: 8rem; font-weight: bold;text-align: center">Ngày yêu cầu</th>
+            <th rowspan="5" style="width: 8rem; font-weight: bold;text-align: center">Tên VPP</th>
+            <th rowspan="9" style="width: 5rem; font-weight: bold;text-align: center">Số lượng  yêu cầu</th>
+            <th rowspan="7" style="width: 5rem; font-weight: bold;text-align: center">Đơn giá</th>
+            <th rowspan="7" style="width: 5rem; font-weight: bold;text-align: center">Số tiền yêu cầu</th>
+          </tr>
+
+        </ng-template>
+        <ng-template let-ri="rowIndex" pTemplate="body" let-item>
+          <tr>
+            <td style="width: 1rem; padding: 2px 1.5px !important;">{{ri+1}}</td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="item.fullName"
+                style="width: 5rem; text-align: left !important;">
+              {{item.fullName}}
+            </td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="item.dateRequest"
+                style="width: 5rem; text-align: left !important;">
+              {{item.dateRequest | date:'dd/MM/yyyy HH:mm' }}
+            </td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="item.stationeryName"
+                style="width: 5rem; text-align: left;">
+              {{item.stationeryName}}
+            </td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="item.quantity"
+                style="width: 9rem; text-align: right !important;">
+              {{item.quantity}}
+            </td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="item.price | number:'1.2-2'"
+                style="width: 7rem; text-align: right !important;">
+              {{item.price | number:'1.2-2'}}
+            </td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="item.totalMoney | number:'1.2-2'"
+                style="width: 7rem; text-align: right !important;">
+              {{item.totalMoney | number:'1.2-2'}}
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td [attr.colspan]="7">
+              Không có dữ liệu
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="paginatorright">
+            <!--<span style="position: absolute; right: 30px; bottom: 6px;">{{total_record == 0 ? pageNumber : pageNumber + 1}} - {{pageNumber+pageSize>total_record ? total_record : pageNumber+pageSize}}-->
+              <!--/ {{total_record}}</span>-->
+        </ng-template>
+      </p-table>
+    </div>
+
+
+
+    <div class="col-sm-12 pt-4 " style="padding-left:0px;padding-right: 0px;">
+      <div class="col-sm-12 ui-fluid">
+        <div class="row text-center">
+          <div class="col-sm-3" style="padding-right:0px;">
+          </div>
+          <div class="col-sm-3 text-center" style="padding-right:0px;">
+            <p-button label="Từ chối" styleClass="ui-button-danger"  (click)="refuseAccept()"></p-button>
+          </div>
+          <div class="col-sm-3 text-center" style="padding-left:0px;">
+            <p-button label="Xác nhận"  (click)="accept()"></p-button>
+          </div>
+          <div class="col-sm-3 " style="padding-right:0px;">
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+</div>
+
+<p-dialog header="Nhập lý do từ chối"  [(visible)]="dialogRefuseRequest" (onHide)="onHideRefuseRequestPopup()"
+          [width]="1000" >
+  <div class="container-fluid text-center mt-3 mb-3">
+  <div class="col-sm-12 ui-fluid">
+    <textarea type="text" class="ui-inputtext ui-widget ui-state-default ui-corner-all" maxlength="255" style="height: 200px; width: 400px"
+      [(ngModel)]="hcdvReasonReject" [ngModelOptions]="{standalone: true}"></textarea>
+  </div>
+  <div class="col-sm-12 " style="padding-left:0px;padding-right: 0px;">
+    <div class="col-sm-12 ui-fluid">
+      <div class="row text-center">
+        <div class="col-sm-2"></div>
+        <div class="col-sm-3 text-center" style="padding-right:0px;">
+          <button pButton label="Hủy bỏ" class="ui-button-danger" (click)=" cancelRefuse()"></button>
+        </div>
+        <div class="col-sm-2"></div>
+        <div class="col-sm-3 text-center" style="padding-left:0px;">
+          <button pButton label="Chọn"
+                  (click)=" approveHandleAccept()"></button>
+        </div>
+        <div class="col-sm-2"></div>
+      </div>
+    </div>
+  </div>
+  </div>
+</p-dialog>

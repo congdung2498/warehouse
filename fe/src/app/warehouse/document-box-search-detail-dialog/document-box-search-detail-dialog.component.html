@@ -1,0 +1,100 @@
+<p-dialog [modal]="true" [blockScroll]="true" [width]="dialogWidth" [(visible)]="showDialog" appendTo='body'>
+  <div class="modal-table-container doc-detail-dialog">
+    <div class="container-fluid text-center mt-3">
+      <h3 class="title-dialog">Chi tiết tài liệu</h3>
+    </div>
+    <div class="row p-m-0">
+      <div class="col-md-3 p-pl-0"></div>
+      <div class="col-md-9 p-pr-0">
+        <div class="row p-m-0">
+          <div class="col-md-6 p-pl-0">
+            <h5 class="total-scan">Số lượng tài liệu đã scan: <b>{{scan}}</b> Chưa scan: <b>{{notScan}}</b></h5>
+          </div>
+          <div class="col-md-6 p-pr-0 search-area">
+            <div class="group-search">
+              <i class="pi pi-search icon-search"></i>
+              <input class="searchBox" type="text" #keyword pInputText placeholder="Tìm theo tên tài liệu" [(ngModel)]="keySearch"
+                (ngModelChange)="changedKeyword($event)" />
+            </div>
+            <!-- <p-button label="Tìm" (click)="onSearchDocName(keySearch)"></p-button> -->
+            <p-button label="Export" (click)="onExport()"></p-button>
+          </div>
+        </div>
+      </div>
+      <input type="file" style="width:100%" style="display: none;" (change)="incomingfile($event)" #fileInputField
+        accept=".pdf,.docx,.doc,.svg,.xlsx,.xls">
+      <div class="col-md-3 p-pl-0">
+        <p-tree [loading]="loading" [value]="detailTree" class="doc-tree" selectionMode="single"
+          [(selection)]="selectedTree" (onNodeSelect)="nodeSelect($event)"></p-tree>
+      </div>
+      <div class="col-md-9 p-pr-0">
+        <p-table #documentTable [scrollable]="true" scrollHeight="450px" class="zero-padding" [loading]="loading"
+          [columns]="modal_cols" [value]="detailList" [totalRecords]="totalDocumentRecord" [paginator]="true"
+          [rows]="10" [resizableColumns]="true" (onPage)="paginateDocument($event)" #documentsTable id="documents_tbl">
+          <ng-template pTemplate="colgroup" let-columns>
+            <colgroup>
+              <col [style.width]="'50px'">
+              <col [style.width]="'120px'">
+              <col *ngFor="let col of columns" [style.width]="col.width">
+            </colgroup>
+          </ng-template>
+          <ng-template pTemplate="header" let-columns>
+            <tr>
+              <th pResizableColumn class="column-header">
+                <span>STT</span>
+              </th>
+              <th class="column-header">
+                <span>Thao tác</span>
+              </th>
+              <th *ngFor="let col of columns" pResizableColumn class="column-header">
+                <span>{{col.header}}</span>
+              </th>
+            </tr>
+          </ng-template>
+          <ng-template let-ri="rowIndex" pTemplate="body" let-rowData let-columns="columns">
+            <tr>
+              <td class="center-align">{{ri+1}}</td>
+
+              <td>
+                <div class="row">
+                  <div class="col-sm-12">
+                    <button pButton pRipple type="button" icon="pi pi-upload" class="p-button-rounded p-button-text"
+                      pTooltip="Tải lên" (click)="onUploadBtn(fileInputField, rowData)"></button>
+
+                    <button *ngIf="rowData.path" pButton pRipple type="button" icon="pi pi-eye"
+                      class="p-button-rounded p-button-text" pTooltip="Chi tiết"
+                      (click)="viewDocument(rowData)"></button>
+                  </div>
+                </div>
+
+              </td>
+              <td *ngFor="let col of columns" [ngClass]="col.class">
+                <div *ngIf="col.field === 'path'">
+                  {{rowData[col.field] ? 'Đã scan' : 'Chưa scan'}}
+                </div>
+                <div *ngIf="col.field !== 'path'">
+                  {{rowData[col.field]}}
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage" let-columns>
+            <tr>
+              <td [attr.colspan]="columns.length + 2" style="text-align: center;">
+                Không có tài liệu
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="paginatorright">
+            <span style="position: absolute; right: 30px; bottom: 6px;">{{totalDocumentRecord == 0 ? documentPageNumber
+              : documentPageNumber + 1}} - {{documentPageNumber+pageSize>totalDocumentRecord ? totalDocumentRecord :
+              documentPageNumber+pageSize}}
+              / {{totalDocumentRecord}}</span>
+          </ng-template>
+        </p-table>
+
+      </div>
+    </div>
+  </div>
+
+</p-dialog>

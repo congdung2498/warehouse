@@ -1,0 +1,30 @@
+th {
+    text-align: center;
+}
+
+.customIcon {
+    position: absolute;
+    top: 9px;
+    right: 46px;
+    cursor: pointer;
+    color: #848484;
+}
+
+.date-link {
+    color: dodgerblue;
+    border-bottom:1px solid dodgerblue;
+    cursor: pointer;
+}
+
+.dish-line {
+    list-style:none;
+    padding-inline-start: 20px;
+}
+
+.dish-line li {
+    padding-top: 15px;
+}
+
+.ui-button-danger {
+    margin-left: -20px;
+}

@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt02.vt020001.dao.VT020001DAO">
+
+	<!-- select list place -->
+	<select id="findPlace" parameterType="com.viettel.vtnet360.vt02.vt020001.entity.VT020001Place"
+		resultType="com.viettel.vtnet360.vt02.vt020001.entity.VT020001Place">
+		SELECT
+			p.PLACE_CODE AS placeCode,
+			p.PLACE_NAME AS placeName,
+			p.DESCRIPTION AS placeDescription,
+			p.STATUS AS status
+		FROM
+			QLDV_PLACE p
+		<where>
+			<if test="placeCode != null and placeCode.length &gt; 0">
+			<bind name="pattern" value="'%' + placeCode + '%'"/>
+				p.PLACE_CODE LIKE #{pattern}
+			</if>
+			<if test="placeName != null and placeName.length &gt; 0">
+			<bind name="pattern1" value="'%' + placeName + '%'"/>
+				AND p.PLACE_NAME LIKE #{pattern1}
+			</if>
+			<if test="placeDescription != null and placeDescription.length &gt; 0">
+			<bind name="pattern2" value="'%' + placeDescription + '%'"/>
+				AND p.DESCRIPTION LIKE #{pattern2}
+			</if>
+			<if test="status != -1">
+				AND p.STATUS = #{status}
+			</if>
+		</where>
+		ORDER BY
+			p.PLACE_CODE,
+			p.PLACE_NAME
+		<if test="startRow != -1 and rowSize != -1">
+			LIMIT #{startRow}, #{rowSize}
+		</if>
+	</select>
+
+	<!-- count total record place -->
+	<select id="countTotalRecord" parameterType="com.viettel.vtnet360.vt02.vt020001.entity.VT020001Place"
+		resultType="java.lang.Integer">
+		SELECT
+			COUNT(*)
+		FROM
+			QLDV_PLACE p
+		<where>
+			<if test="placeCode != null and placeCode.length &gt; 0">
+			<bind name="pattern" value="'%' + placeCode + '%'"/>
+				p.PLACE_CODE LIKE #{pattern}
+			</if>
+			<if test="placeName != null and placeName.length &gt; 0">
+			<bind name="pattern1" value="'%' + placeName + '%'"/>
+				AND p.PLACE_NAME LIKE #{pattern1}
+			</if>
+			<if test="placeDescription != null and placeDescription.length &gt; 0">
+			<bind name="pattern2" value="'%' + placeDescription + '%'"/>
+				AND p.DESCRIPTION LIKE #{pattern2}
+			</if>
+			<if test="status != -1">
+				AND p.STATUS = #{status}
+			</if>
+		</where>
+	</select>
+
+	<!-- check place code and name are existed or not -->
+	<select id="checkPlaceExist" parameterType="com.viettel.vtnet360.vt02.vt020001.entity.VT020001Place"
+		resultType="java.lang.Integer">
+		SELECT
+			COUNT(*)
+		FROM
+			QLDV_PLACE p
+		<where>
+			<if test="placeCode != null and placeCode.length &gt; 0">
+				p.PLACE_CODE = #{placeCode}
+			</if>
+			<if test="placeName != null and placeName.length &gt; 0">
+				OR p.PLACE_NAME = #{placeName}
+			</if>
+		</where>
+	</select>
+
+	<!-- check place name are existed or not -->
+	<select id="checkPlaceUpdate" parameterType="com.viettel.vtnet360.vt02.vt020001.entity.VT020001Place"
+		resultType="java.lang.Integer">
+		SELECT
+			COUNT(*)
+		FROM
+			QLDV_PLACE p
+		<where>
+			<if test="placeCode != null and placeCode.length &gt; 0">
+				p.PLACE_CODE != #{placeCode}
+			</if>
+			<if test="placeName != null and placeName.length &gt; 0">
+				AND p.PLACE_NAME = #{placeName}
+			</if>
+		</where>
+	</select>
+
+	<!-- insert place -->
+	<insert id="insertPlace" parameterType="com.viettel.vtnet360.vt02.vt020001.entity.VT020001Place">
+		INSERT
+			INTO
+				QLDV_PLACE ( PLACE_CODE,
+				PLACE_NAME,
+				AREA,
+				DESCRIPTION,
+				STATUS,
+				UPDATE_USER,
+				UPDATE_DATE )
+			VALUES( #{placeCode},
+			#{placeName},
+			NULL,
+			#{placeDescription},
+			#{status},
+			#{updateUser},
+			SYSDATE() )
+	</insert>
+
+	<!-- update place -->
+	<update id="updatePlace" parameterType="com.viettel.vtnet360.vt02.vt020001.entity.VT020001Place">
+		UPDATE
+			QLDV_PLACE SET
+				PLACE_NAME = #{placeName},
+				DESCRIPTION = #{placeDescription},
+				STATUS = #{status},
+				UPDATE_USER = #{updateUser},
+				UPDATE_DATE = SYSDATE()
+			WHERE
+				PLACE_CODE = #{placeCode}
+	</update>
+
+	<!-- delete place -->
+	<delete id="deletePlace" parameterType="com.viettel.vtnet360.vt02.vt020001.entity.VT020001Place">
+        DELETE
+		FROM
+			QLDV_PLACE
+		WHERE
+			PLACE_CODE = #{placeCode}
+	</delete>
+
+	<select id="checkConditionBeforeUpdate" parameterType="java.lang.String" resultType="java.lang.Integer">
+		SELECT
+			COUNT(*)
+		FROM
+			QLDV_PLACE
+		WHERE
+			PLACE_CODE = #{id}
+	</select>
+</mapper>

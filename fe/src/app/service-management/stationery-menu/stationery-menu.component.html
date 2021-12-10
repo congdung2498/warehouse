@@ -1,0 +1,190 @@
+<div class="container">
+  <div class="container-fluid text-center mt-3">
+    <h1>DANH MỤC VẬT TƯ THIẾT BỊ</h1>
+  </div>
+  <div class="row mb-3">
+    <div class="col-xl-12 mb-3">
+      <p-fieldset legend="Thông tin đăng ký">
+        <div class="row mb-3" style="margin-left: 20px;">
+          <!-- stationery field -->
+          <div class="col-sm-6">
+            <div class="row">
+              <div class="col-sm-3" style="text-align: left; padding-top: 5px; padding-right: 0px !important;">
+                Tên VTTB<span style="color: red;">*</span>:
+              </div>
+              <div class="col-sm-9 ui-fluid" style="margin-left: -34px;">
+                <p-autoComplete #inputStationeryName [(ngModel)]="stationeryInfo" [suggestions]="filterStationery"
+                  (completeMethod)="loadStationery($event)" dropdown="true" [pKeyFilter]="onlyChar" field="stationeryName"
+                  (ngModelChange)="changeStationery()" maxlength="50" (onFocus)="focusStationeryName()" [disabled]="!isAdd"
+                  placeholder="VD: Bàn phím"></p-autoComplete>
+                <span *ngIf="stationeryInfo && (stationeryInfo.length > 0 || stationeryInfo['stationeryName']) && loading2 && isAdd"
+                  class="customIcon2 pi pi-times" (click)="clearStationery($event)"></span>
+              </div>
+            </div>
+          </div>
+          <!-- stationery type field -->
+          <div class="col-sm-6">
+            <div class="row">
+              <div class="col-sm-3" style="text-align: left; padding-top: 5px;">
+                Chủng loại<span style="color: red;">*</span>:
+              </div>
+              <div class="col-sm-9 ui-fluid" style="margin-left: -34px;">
+                <p-dropdown #inputStationeryType [options]="stationeryTypes" [style]="{'width': '100%'}" [(ngModel)]="selectedType"
+                  placeholder="-- Chọn chủng loại --" filter="true" optionLabel="codeName" showClear="true"></p-dropdown>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row mb-3" style="margin-left: 20px;">
+          <!-- stationery unit calculation field -->
+          <div class="col-sm-6">
+            <div class="row">
+              <div class="col-sm-3" style="text-align: left; padding-top: 5px;">
+                Đơn vị tính<span style="color: red;">*</span>:
+              </div>
+              <div class="col-sm-9 ui-fluid" style="margin-left: -34px;">
+                <p-dropdown #inputUnitCalculation [options]="unitCalculation" [style]="{'width': '100%'}" [(ngModel)]="selectedUnitCal"
+                  placeholder="-- Chọn đơn vị tính --" filter="true" optionLabel="codeName" showClear="true"></p-dropdown>
+              </div>
+            </div>
+          </div>
+          <!-- stationery price field -->
+          <div class="col-sm-6">
+            <div class="row">
+              <div class="col-sm-3" style="text-align: left; padding-top: 5px;">
+                Đơn giá<span style="color: red;">*</span>:
+              </div>
+              <div class="col-sm-9 ui-fluid" style="margin-left: -34px;">
+                <div class="ui-inputgroup">
+                  <input #inputPrice pKeyFilter="pint" min="0" pInputText [(ngModel)]="stationeryPrice" (ngModelChange)="changePrice(null)"
+                    style="width: 100%; text-align: right !important;" />
+                  <span class="ui-inputgroup-addon">VND</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- stationery status field -->
+        <div class="row mb-3" style="margin-left: 20px;">
+          <div class="col-sm-6">
+            <div class="row">
+              <div class="col-sm-3" style="text-align: left;">Trạng thái:</div>
+              <div class="col-sm-9 ui-fluid" style="margin-left: -34px;">
+                <div class="row">
+                  <div class="col-sm-6">
+                    <p-radioButton value="1" label="Hoạt động" [(ngModel)]="statusStationery"></p-radioButton>
+                  </div>
+                  <div class="col-sm-6">
+                    <p-radioButton value="0" label="Không hoạt động" [(ngModel)]="statusStationery"></p-radioButton>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </p-fieldset>
+    </div>
+    <div class="col-xl-12">
+      <div class="text-center">
+        <!-- search button -->
+        <button type="button"  pButton icon="fa fa-search" iconPos="left" label="Tìm kiếm" (click)="searchData()" style="text-align: center;"></button>
+        <!-- refresh button -->
+        <button type="button" pButton icon="fa fa-refresh" iconPos="left" label="Làm mới" (click)="resetButton()" style="text-align: center;"></button>
+        <!-- add button -->
+        <button *ngIf="isAdd; else isUpdate" type="button" pButton icon="fa fa-plus" iconPos="left" label="Thêm"
+          (click)="addData()" style="text-align: center;"></button>
+        <button tabindex="0" type="button" pButton icon="fa fa-download" iconPos="left" label="Import file" (click)="openImportExcel()"></button>
+        <button type="button" pButton icon="fa fa-file-excel-o" iconPos="left" label="Xuất file" (click)="exportStatineryReportExcel()"
+                style="text-align: center;"></button>
+        <ng-template #isUpdate>
+          <!-- update button -->
+          <button type="button" pButton icon="fa fa-cog" iconPos="left" label="Lưu" (click)="updateData()" style="text-align: center;"></button>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+  <!-- create table -->
+  <div class="row">
+    <div class="col-xl-12">
+      <p-table #myTable [value]="listStationery" [lazy]="true" (onPage)="paginate($event)" [paginator]="true" [rows]="10"
+        [totalRecords]="totalRecord" [loading]="loading">
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 2rem; font-weight: bold;">STT</th>
+            <th style="width: 3rem; font-weight: bold;">Thao tác</th>
+            <th style="width: 9rem; font-weight: bold;">Tên VTTB</th>
+            <th style="width: 5rem; font-weight: bold;">Chủng loại</th>
+            <th style="width: 3rem; font-weight: bold;">Đơn vị tính</th>
+            <th style="width: 4rem; font-weight: bold;">Đơn giá</th>
+            <th style="width: 4rem; font-weight: bold;">Trạng thái</th>
+          </tr>
+        </ng-template>
+        <ng-template let-ri="rowIndex" pTemplate="body" let-item>
+          <tr>
+            <td style="width: 2rem; padding: 2px 1.5px !important;">{{ri+1}}</td>
+            <td style="width: 3rem; padding: 2px 1.5px !important;">
+              <div class="row">
+                <div class="col-sm-6" style="padding: 3px 5px 3px 0px !important; text-align: right !important;">
+                  <p-button title="Sửa" icon="pi pi-pencil" (onClick)="doEdit(item)"></p-button>
+                </div>
+                <div class="col-sm-6" style="padding: 3px 0px 3px 5px !important; text-align: left !important;">
+                  <p-button title="Xóa" icon="pi pi-trash" (onClick)="deleteData(item)"></p-button>
+                </div>
+              </div>
+            </td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="item.stationeryName" style="width: 9rem; text-align: left !important;">
+              {{item.stationeryName}}
+            </td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="item.stationeryType" style="width: 5rem; text-align: left !important;">
+              {{item.stationeryType}}
+            </td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="item.stationeryUnitCal" style="width: 3rem; text-align: left !important;">
+              {{item.stationeryUnitCal}}
+            </td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="item.stationeryPrice | number:0" style="width: 4rem; text-align: right !important;">
+              {{item.stationeryPrice | number:0}}
+            </td>
+            <td class="wrapText" pTextEllipsis [pTooltip]="item.status == '1' ? 'Hoạt động' : 'Không hoạt động'" style="width: 4rem; text-align: left !important;">
+              {{item.status == "1" ? "Hoạt động" : "Không hoạt động"}}
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="paginatorright">
+          <span style="position: absolute; right: 30px; bottom: 6px;">
+            {{startRow + 1}} - {{startRow + rowSize}} / {{totalRecord}}
+          </span>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td [attr.colspan]="7">
+              Không có dữ liệu
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+
+  <p-dialog  header="Import danh mục vật tư thiết bị" [(visible)]="showImportForm" [modal]="true" [style]="{width: '350px', minWidth: '200px'}"
+             [responsive]="true" [width]="1000" [dismissableMask]="true" [draggable]="false"  appendTo="body" (onHide)="clearImportExcel()">
+    <p-fileUpload  #fileUpload (uploadHandler)="uploadExcel($event)"(onClear)="clearExcel()" (onRemove)="clearExcel()" chooseLabel="Chọn file" uploadLabel="Đồng ý" cancelLabel="Hủy bỏ"  customUpload="true"
+                   accept=".xls,.xlsx,application/msexcel" maxFileSize="1000000" [files]="uploadedFiles">
+      <ng-template pTemplate="content"><ul *ngIf="uploadedFiles.length">
+          <li *ngFor="let file of uploadedFiles">{{file.name}} - {{file.size}} bytes</li>
+        </ul>
+      </ng-template>
+    </p-fileUpload>
+
+    <button tabindex="0" style="margin-top: 15px; margin-bottom: 15px;" type="button" pButton icon="fa fa-download" iconPos="left" label="Tải file mẫu"
+            (click)="exportTemplateExcel()"></button>
+
+    <div ui-fluid>
+      <span style="color: red;" class="ui-inputgroup-addon" *ngIf="notiImportFile !== null">{{notiImportFile}}</span>
+    </div>
+    <div ui-fluid >
+      <button *ngIf="notiImportFile !== null && notiImportFile !== 'Format file import không chính xác. Vui lòng kiểm tra lại.' " tabindex="0" style="margin-top: 15px; margin-bottom: 15px;" type="button" pButton icon="fa fa-download" iconPos="left" label="Tải file kết quả"
+              (click)="exportImportResult()"></button>
+    </div>
+  </p-dialog>
+</div>
+

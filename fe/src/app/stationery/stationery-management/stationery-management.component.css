@@ -1,0 +1,20 @@
+:host >>> .fix-drop-down > .ui-widget {
+    height: 35px !important;
+    top: -1px !important;
+}
+
+.select-image {
+    width: 150px;
+    height: 150px;
+    text-align: center;
+    cursor: pointer;
+    border: 1px solid silver;;
+    position: relative;
+}
+
+.select-image > span {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-left: -35px;
+}

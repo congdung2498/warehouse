@@ -1,0 +1,415 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.viettel.vtnet360.vt04.vt040010.dao.VT040010DAO">
+
+	<!-- get list registration service -->
+	<select id="findListReportService"
+		parameterType="com.viettel.vtnet360.vt04.vt040010.entity.VT040010Condition"
+		resultType="com.viettel.vtnet360.vt04.vt040010.entity.VT040010ReportService">
+		SELECT
+		iss.CREATE_DATE as createDate,
+		iss.ISSUES_SERVICE_ID AS issueServiceId,
+		s.SERVICE_NAME AS serviceName,
+		ROUND(( UNIX_TIMESTAMP(iss.TIME_FINISH_PLAN) -
+		UNIX_TIMESTAMP(iss.TIME_START_PLAN))/ 3600,
+		2 ) AS timePlan,
+		iss.TIME_START_PLAN AS startDatePlan,
+		iss.TIME_FINISH_PLAN AS endDatePlan,
+		ROUND(iss.REAL_TIME_TOTAL/ 3600, 2) AS timeReal,
+		iss.REAL_TIME_TOTAL as timeRealBysecond,
+		s.FULL_FILL_TIME as fullFillTime,
+		iss.TIME_START_ACTUAL AS startDateReal,
+		iss.TIME_FINISH_ACTUAL AS endDateReal,
+		u.UNIT_NAME AS unitName,
+		CASE 
+			WHEN u.UNIT_ID = 234841 THEN IFNULL(u.UNIT_NAME, '')
+			WHEN b.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''))
+			WHEN c.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''), IFNULL(CONCAT(' / ', c.UNIT_NAME), ''))
+			ELSE CONCAT(IFNULL(b.UNIT_NAME, ''), IFNULL(CONCAT(' / ', c.UNIT_NAME), ''), IFNULL(CONCAT(' / ', d.UNIT_NAME), ''))
+		END AS detailUnit,
+		eRequest.FULL_NAME AS empName,
+		eRequest.PHONE_NUMBER AS empPhone,
+		eReceive.FULL_NAME AS receiName,
+		iss.STATUS AS status,
+		iss.NOTE AS note,
+		iss.RATTING AS rating,
+		iss.FEEDBACK AS feedback
+		FROM
+		ISSUES_SERVICE iss
+		LEFT JOIN SERVICES s ON
+			iss.SERVICE_ID = s.SERVICE_ID
+		LEFT JOIN QLDV_PLACE p ON
+			iss.ISSUESE_LOCATION = p.PLACE_ID
+		LEFT JOIN QLDV_EMPLOYEE eRequest ON
+			iss.ISSUES_USERNAME = eRequest.USER_NAME
+		LEFT JOIN QLDV_EMPLOYEE eReceive ON
+			iss.ISSUESE_RECEIVEER = eReceive.USER_NAME
+		LEFT JOIN QLDV_UNIT u ON
+			eRequest.UNIT_ID = u.UNIT_ID
+		LEFT JOIN QLDV_UNIT b ON
+			u.PARENT_UNIT_ID = b.UNIT_ID
+		LEFT JOIN QLDV_UNIT c ON
+			b.PARENT_UNIT_ID = c.UNIT_ID
+		LEFT JOIN QLDV_UNIT d ON
+			c.PARENT_UNIT_ID = d.UNIT_ID
+		<where>
+			<if test="placeId != null and placeId.length &gt; 0">
+				AND iss.ISSUESE_LOCATION = #{placeId}
+			</if>
+			<if test="placeName != null and placeName.length &gt; 0">
+				<bind name="pattern" value="'%' + placeName + '%'" />
+				AND p.PLACE_NAME LIKE #{pattern}
+			</if>
+			<if test="listStatus != null">
+				<foreach item="item" collection="listStatus" open="AND ("
+					separator=" OR " close=")">
+					iss.STATUS = #{item}
+				</foreach>
+			</if>
+			<if test="serviceId != null and serviceId.length &gt; 0">
+				AND s.SERVICE_ID = #{serviceId}
+			</if>
+			<if test="serviceName != null and serviceName.length &gt; 0">
+				<bind name="pattern1" value="'%' + serviceName + '%'" />
+				AND s.SERVICE_NAME LIKE #{pattern1}
+			</if>
+			<if test="receiverUserName != null and receiverUserName.length &gt; 0">
+				AND iss.ISSUESE_RECEIVEER = #{receiverUserName}
+			</if>
+			<if test="receiverName != null and receiverName.length &gt; 0">
+				<bind name="pattern2" value="'%' + receiverName + '%'" />
+				AND ( eReceive.FULL_NAME LIKE #{pattern2}
+				AND eReceive.`ROLE` LIKE
+				'%PMQT_HCVP%'
+				AND eReceive.STATUS = 1 )
+			</if>
+			<if
+				test="manager == 1 and listUnitId != null and listUnitId.length &gt; 0">
+				AND eRequest.UNIT_ID IN
+				<foreach item="item1" collection="listUnitId" open="("
+					separator=" UNION " close=")">
+					SELECT
+					UNIT_ID
+					FROM
+					QLDV_UNIT
+					WHERE
+					QLDV_UNIT.`PATH` LIKE CONCAT('%', #{item1}, '%')
+				</foreach>
+				<!-- <foreach item="item1" collection="listUnitId" open="AND (" separator=" 
+					OR " close = ")"> u.`PATH` LIKE CONCAT('%', #{item1}, '%') </foreach> -->
+			</if>
+			<if
+				test="manager != 1 and listUnitId != null and listUnitId.length &gt; 0">
+				AND eRequest.UNIT_ID IN
+				<foreach item="item1" collection="listUnitId" open="("
+					separator=" UNION " close=")">
+					SELECT
+					UNIT_ID
+					FROM
+					QLDV_UNIT
+					WHERE
+					QLDV_UNIT.`PATH` LIKE CONCAT('%', #{item1}, '%')
+				</foreach>
+			</if>
+			<if test="startDate != null">
+				AND iss.TIME_START_PLAN &gt;= CAST(#{startDate} AS DATETIME)		<!-- >= -->
+			</if>
+			<if test="endDate != null">
+				AND iss.TIME_START_PLAN &lt;= CAST(#{endDate} AS DATETIME) 			<!-- <= -->
+			</if>
+			<if test="loginRole != null and loginRole == 'PMQT_NV'">
+				AND iss.ISSUES_USERNAME = #{loginUserName}
+			</if>
+		</where>
+		ORDER BY
+		iss.TIME_START_PLAN DESC,
+		detailUnit,
+		empName
+		<if test="startRow != -1 &amp;&amp; rowSize != -1">
+			LIMIT #{startRow}, #{rowSize}
+		</if>
+	</select>
+
+	<!-- count total record -->
+	<select id="countTotalRecord"
+		parameterType="com.viettel.vtnet360.vt04.vt040010.entity.VT040010Condition"
+		resultType="com.viettel.vtnet360.vt04.vt040010.entity.VT040010Condition">
+		SELECT
+		COUNT(*) AS startRow,
+		ROUND(AVG( NULLIF( iss.RATTING , 0 ) ), 2) AS placeId
+		FROM
+		ISSUES_SERVICE iss
+		LEFT JOIN SERVICES s ON
+		iss.SERVICE_ID = s.SERVICE_ID
+		LEFT JOIN QLDV_PLACE p ON
+		iss.ISSUESE_LOCATION = p.PLACE_ID
+		LEFT JOIN QLDV_EMPLOYEE eRequest ON
+		iss.ISSUES_USERNAME = eRequest.USER_NAME
+		LEFT JOIN QLDV_EMPLOYEE eReceive ON
+		iss.ISSUESE_RECEIVEER = eReceive.USER_NAME
+		<where>
+			<if test="placeId != null and placeId.length &gt; 0">
+				AND iss.ISSUESE_LOCATION = #{placeId}
+			</if>
+			<if test="placeName != null and placeName.length &gt; 0">
+				<bind name="pattern" value="'%' + placeName + '%'" />
+				AND p.PLACE_NAME LIKE #{pattern}
+			</if>
+			<if test="listStatus != null and listStatus.length &gt; 0">
+				<foreach item="item" collection="listStatus" open="AND ("
+					separator=" OR " close=")">
+					iss.STATUS = #{item}
+				</foreach>
+			</if>
+			<if test="serviceId != null and serviceId.length &gt; 0">
+				AND s.SERVICE_ID = #{serviceId}
+			</if>
+			<if test="serviceName != null and serviceName.length &gt; 0">
+				<bind name="pattern1" value="'%' + serviceName + '%'" />
+				AND s.SERVICE_NAME LIKE #{pattern1}
+			</if>
+			<if test="receiverUserName != null and receiverUserName.length &gt; 0">
+				AND iss.ISSUESE_RECEIVEER = #{receiverUserName}
+			</if>
+			<if test="receiverName != null and receiverName.length &gt; 0">
+				<bind name="pattern2" value="'%' + receiverName + '%'" />
+				AND ( eReceive.FULL_NAME LIKE #{pattern2}
+				AND eReceive.`ROLE` LIKE
+				'%PMQT_HCVP%'
+				AND eReceive.STATUS = 1 )
+			</if>
+			<if
+				test="manager == 1 and listUnitId != null and listUnitId.length &gt; 0">
+				AND eRequest.UNIT_ID IN
+				<foreach item="item1" collection="listUnitId" open="("
+					separator=" UNION " close=")">
+					SELECT
+					UNIT_ID
+					FROM
+					QLDV_UNIT
+					WHERE
+					QLDV_UNIT.`PATH` LIKE CONCAT('%', #{item1}, '%')
+				</foreach>
+				<!-- <foreach item="item1" collection="listUnitId" open="AND (" separator=" 
+					OR " close = ")"> u.`PATH` LIKE CONCAT('%', #{item1}, '%') </foreach> -->
+			</if>
+			<if
+				test="manager != 1 and listUnitId != null and listUnitId.length &gt; 0">
+				AND eRequest.UNIT_ID IN
+				<foreach item="item1" collection="listUnitId" open="("
+					separator=" UNION " close=")">
+					SELECT
+					UNIT_ID
+					FROM
+					QLDV_UNIT
+					WHERE
+					QLDV_UNIT.`PATH` LIKE CONCAT('%', #{item1}, '%')
+				</foreach>
+				<!-- <foreach item="item1" collection="listUnitId" open="AND (" separator=" 
+					OR " close = ")"> u.UNIT_ID = #{item1} </foreach> -->
+			</if>
+			<if test="startDate != null">
+				AND iss.TIME_START_PLAN &gt;= CAST(#{startDate} AS DATETIME)		<!-- >= -->
+			</if>
+			<if test="endDate != null">
+				AND iss.TIME_START_PLAN &lt;= CAST(#{endDate} AS DATETIME) 		<!-- <= -->
+			</if>
+			<if test="loginRole != null and loginRole == 'PMQT_NV'">
+				AND iss.ISSUES_USERNAME = #{loginUserName}
+			</if>
+		</where>
+	</select>
+
+	<!-- get list stationery -->
+	<select id="findListStationery"
+		parameterType="com.viettel.vtnet360.vt04.vt040010.entity.VT040010Condition"
+		resultType="com.viettel.vtnet360.vt04.vt040010.entity.VT040010Stationery">
+		SELECT
+		stat.STATIONERY_NAME AS stationeryName,
+		mscType.CODE_NAME AS stationeryType,
+		issp.QUANTITY AS stationeryQuan,
+		mscUnit.CODE_NAME AS stationeryUnitCal
+		FROM
+		ISSUES_SERVICE_SPENT issp
+		LEFT JOIN STATIONERY stat ON
+		issp.STATIONERY_ID = stat.STATIONERY_ID
+		LEFT JOIN M_SYSTEM_CODE mscType ON
+		stat.STATIONERY_TYPE = mscType.CODE_VALUE
+		LEFT JOIN M_SYSTEM_CODE
+		mscUnit ON
+		stat.CALCULATION_UNIT = mscUnit.CODE_VALUE
+		<where>
+			mscType.MASTER_CLASS = #{placeId}
+			AND mscUnit.MASTER_CLASS =
+			#{placeName}  AND mscUnit.STATUS =1
+			<if test="serviceId != null and serviceId.length &gt; 0">
+				AND issp.ISSUES_SERVICE_ID = #{serviceId}
+			</if>
+			
+			ORDER BY stat.STATIONERY_NAME
+		</where>
+		<if test="startRow != -1 &amp;&amp; rowSize != -1">
+			LIMIT #{startRow}, #{rowSize}
+		</if>
+	</select>
+
+	<!-- count total record stationery -->
+	<select id="countTotalRecordStationery"
+		parameterType="com.viettel.vtnet360.vt04.vt040010.entity.VT040010Condition"
+		resultType="java.lang.Integer">
+		SELECT
+		COUNT(*)
+		FROM
+		ISSUES_SERVICE_SPENT issp
+		LEFT JOIN STATIONERY stat ON
+		issp.STATIONERY_ID = stat.STATIONERY_ID
+		LEFT JOIN M_SYSTEM_CODE mscType ON
+		stat.STATIONERY_TYPE = mscType.CODE_VALUE
+		LEFT JOIN M_SYSTEM_CODE
+		mscUnit ON
+		stat.CALCULATION_UNIT = mscUnit.CODE_VALUE
+		<where>
+			mscType.MASTER_CLASS = #{placeId}
+			AND mscUnit.MASTER_CLASS =
+			#{placeName} AND mscUnit.STATUS =1
+			<if test="serviceId != null and serviceId.length &gt; 0">
+				AND issp.ISSUES_SERVICE_ID = #{serviceId}
+			</if>
+		</where>
+	</select>
+
+	<!-- get list export excel stationery -->
+	<select id="findListStationeryExcel"
+		parameterType="com.viettel.vtnet360.vt04.vt040010.entity.VT040010Condition"
+		resultType="com.viettel.vtnet360.vt04.vt040010.entity.VT040010StationeryExcel">
+		<if test="listUnitId != null">
+			<foreach item="item" collection="listUnitId" separator=" UNION ">
+				SELECT
+				#{item} AS unitId,
+
+				( SELECT
+				QLDV_UNIT.UNIT_NAME
+				FROM
+				QLDV_UNIT
+				WHERE
+				QLDV_UNIT.UNIT_ID = #{item}
+				) AS unitName,
+
+				( 
+					SELECT 
+						CASE 
+							WHEN u1.UNIT_ID = 234841 THEN IFNULL(u1.UNIT_NAME, '')
+							WHEN b.UNIT_ID = 234841 THEN CONCAT(IFNULL(u1.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''))
+							ELSE CONCAT(IFNULL(u1.UNIT_NAME, ''), IFNULL(CONCAT(' / ', b.UNIT_NAME), ''), IFNULL(CONCAT(' / ', c.UNIT_NAME), ''))
+						END
+					FROM
+					QLDV_UNIT u1
+					LEFT JOIN QLDV_UNIT b ON
+					u1.PARENT_UNIT_ID = b.UNIT_ID
+					LEFT JOIN QLDV_UNIT c ON
+					b.PARENT_UNIT_ID = c.UNIT_ID
+					WHERE
+					u1.UNIT_ID = #{item} 
+				) AS detailUnit,
+
+
+				iss.ISSUES_SERVICE_ID AS issueServiceId,
+
+				s.SERVICE_NAME AS serviceName,
+
+				sta.STATIONERY_ID AS stationeryId,
+
+				sta.STATIONERY_NAME AS stationeryName,
+
+				msc.CODE_NAME AS stationeryUnitCal,
+
+				issp.QUANTITY AS stationeryQuan,
+
+				iss.TIME_START_PLAN AS timeStartPlan,
+
+				reciver.FULL_NAME as reciverName,
+
+				eRequest.FULL_NAME AS empName,
+
+				iss.STATUS as status,
+
+				iss.NOTE AS note
+
+				FROM
+				ISSUES_SERVICE iss
+				LEFT JOIN SERVICES s ON
+				iss.SERVICE_ID = s.SERVICE_ID
+				LEFT JOIN ISSUES_SERVICE_SPENT issp ON
+				iss.ISSUES_SERVICE_ID = issp.ISSUES_SERVICE_ID
+				LEFT JOIN STATIONERY
+				sta ON
+				issp.STATIONERY_ID = sta.STATIONERY_ID
+				LEFT JOIN QLDV_EMPLOYEE eRequest ON
+				iss.ISSUES_USERNAME = eRequest.USER_NAME
+				<!-- kienfix -->
+				LEFT JOIN QLDV_EMPLOYEE reciver ON
+				iss.ISSUESE_RECEIVEER = reciver.USER_NAME
+				<!-- kienfix -->
+				LEFT JOIN QLDV_UNIT u ON
+				eRequest.UNIT_ID = u.UNIT_ID
+				LEFT JOIN M_SYSTEM_CODE msc ON
+				sta.CALCULATION_UNIT = msc.CODE_VALUE
+				WHERE 1
+
+				<if test="status != null">
+					AND
+					<foreach item="item" index="index" collection="status"
+						open="(" separator=" OR " close=")">
+
+						<choose>
+							<when test="item == 6 or item == 8 or item == 9">
+								iss.STATUS = #{item}
+							</when>
+							<otherwise>
+								FALSE
+							</otherwise>
+						</choose>
+
+					</foreach>
+
+				</if>
+
+				AND msc.MASTER_CLASS = #{placeName} AND msc.STATUS =1
+				AND u.`PATH` LIKE CONCAT('%', #{item}, '%')
+				<if test="startDate != null">
+					AND iss.TIME_START_PLAN &gt;= CAST(#{startDate} AS DATETIME)		<!-- >= -->
+				</if>
+				<if test="endDate != null">
+					AND iss.TIME_START_PLAN &lt;= CAST(#{endDate} AS DATETIME) 		<!-- <= -->
+				</if>
+				GROUP BY
+				u.UNIT_ID,
+				iss.ISSUES_SERVICE_ID,
+				s.SERVICE_ID,
+				sta.STATIONERY_ID
+			</foreach>
+		</if>
+	</select>
+
+	<select id="findListUnit" resultType="java.lang.String">
+		SELECT
+		u.UNIT_ID
+		FROM QLDV_UNIT u
+		WHERE
+		u.PARENT_UNIT_ID IS NULL
+		OR u.PARENT_UNIT_ID = 0
+	</select>
+
+	<select id="findUnitManager" resultType="java.lang.String"
+		parameterType="java.lang.String">
+		SELECT
+		u.UNIT_ID AS stationeryName
+		FROM QLDV_UNIT u
+		LEFT JOIN QLDV_EMPLOYEE e ON
+		u.UNIT_ID = e.UNIT_ID
+		WHERE
+		e.USER_NAME = #{stationeryName}
+	</select>
+
+</mapper>

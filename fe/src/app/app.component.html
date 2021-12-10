@@ -1,0 +1,13 @@
+<!--The content below is only a placeholder and can be replaced.-->
+<div>
+    <app-header></app-header>
+    <router-outlet></router-outlet>
+</div>
+<div [hidden]=!HTTPActivity class="loading">
+    <div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+</div>
+<p-toast position="bottom-right" key ="t2" [showTransitionOptions]="'0ms'" [hideTransitionOptions]="'100ms'" ></p-toast>
+<p-toast position="center">
+</p-toast>
+<p-toast position="center" key="tl"></p-toast>
+<p-confirmDialog></p-confirmDialog>

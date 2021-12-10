@@ -1,0 +1,515 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt07.vt070001.dao.VT070001DAO">
+
+	<!-- Tim kiem loai ma vach -->
+	<select id="findTypeBarcode"
+		resultType="com.viettel.vtnet360.vt07.vt070001.entity.VT070001EntityBarcodePrefix"
+		parameterType="com.viettel.vtnet360.vt07.vt070001.entity.VT070001EntityBarcodePrefix">
+		SELECT
+		a.bar_code_prefix_id as barCodePrefixId,
+		a.prefix as prefix,
+		a.name as name,
+		a.description as description,
+		a.status as status,
+		a.create_date as createDate,
+		a.update_date as updateDate
+		FROM BAR_CODE_PREFIX AS a
+		WHERE a.status = 1
+		
+			 <if test="name != null">
+				<bind name="name" value="'%' + name + '%'" />
+				AND a.name like #{name}
+			</if> 
+		
+ 
+		ORDER BY a.name ASC
+
+	</select>
+<!-- Tim kiem barcode detail -->
+		<select id="findBarcodeDetail"		
+		resultType="com.viettel.vtnet360.vt07.vt070001.entity.VT070001EntityBarcodeDetail">
+		SELECT
+		a.bar_code_detail_id as barCodeDetailId,
+		a.bar_code_range_id as barCodeRangeId,
+		a.code as code,
+		a.status as status,
+		a.create_date as createDate,
+		a.update_date as updateDate,
+		a.update_user as updateUser,
+		a.create_user as createUser
+		FROM BAR_CODE_DETAIL AS a
+		WHERE a.bar_code_range_id = #{barCodeRangeId}
+		ORDER BY a.bar_code_range_id DESC
+
+	</select>
+	
+	<select id="checkBarcodeIsAvail"
+		parameterType="com.viettel.vtnet360.vt07.vt070001.entity.VT070001EntityBarcodeDetail"
+		resultType="com.viettel.vtnet360.vt07.vt070001.entity.VT070001EntityBarcodeDetail">
+		SELECT
+		a.bar_code_detail_id as barCodeDetailId,
+		a.bar_code_range_id as barCodeRangeId,
+		a.code as code,
+		a.status as status,
+		a.create_date as createDate,
+		a.update_date as updateDate,
+		a.update_user as updateUser,
+		a.create_user as createUser
+		FROM BAR_CODE_DETAIL AS a
+		WHERE a.status = 0
+		<if test="barCodeRangeId != 0">
+			AND a.bar_code_range_id = #{barCodeRangeId}
+		</if>
+		<if test="barCodeDetailId != 0">
+			AND a.bar_code_detail_id = #{barCodeDetailId}
+		</if>
+		<if test="code != null">
+			AND a.code = #{code}
+		</if>
+		ORDER BY a.bar_code_range_id DESC
+
+	</select>
+
+	<insert id="insertBarcodeRange"
+		parameterType="com.viettel.vtnet360.vt07.vt070001.entity.VT070001EntityBarcodeRange"
+		keyProperty="barCodeRangeId" keyColumn="bar_code_range_id">
+		INSERT INTO
+		BAR_CODE_RANGE(
+		bar_code_prefix_id,
+		prefix,
+		status,
+		create_date,
+		printed,
+		quantity,
+		description,
+		create_user
+		)
+		VALUES(
+		#{barCodePrefixId},
+		#{prefix},
+		1,
+		NOW() + INTERVAL 7 HOUR,
+		#{printed},
+		#{quantity},
+		#{description},
+		#{createUser}
+		)
+		<selectKey keyProperty="barCodeRangeId" resultType="int"
+            order="AFTER">
+            SELECT LAST_INSERT_ID();
+        </selectKey>
+		
+	</insert>
+	<insert id="insertBarcodeDetail"
+		parameterType="com.viettel.vtnet360.vt07.vt070001.entity.VT070001EntityBarcodeDetail">
+		INSERT INTO
+		BAR_CODE_DETAIL(
+		bar_code_range_id,
+		code,
+		status,
+		create_date,
+		create_user
+		)
+		VALUES(
+		#{barCodeRangeId},
+		#{code},
+		#{status},
+		now(),
+		#{createUser}
+		)
+		
+	</insert>
+	
+	<select id="getBarcodeDetailSequence" resultType="int" >
+		select NEXTVAL(qr_code_sequence)
+	</select>
+	<select id="getTotalRecord" resultType="int" 
+	parameterType="com.viettel.vtnet360.vt07.vt070001.entity.VT070001EntityBarcodeRange">
+		SELECT COUNT(*)
+		FROM BAR_CODE_RANGE as a 
+		 
+		<where>
+		<if test="quantity != 0">
+				AND a.quantity = #{quantity}
+		</if> 
+		 <if test="description != null">
+			<bind name="description" value="'%' + description + '%'" />
+			AND a.description like #{description}
+		</if> 
+		 <if test="prefix != null">
+			<bind name="prefix" value="'%' + prefix + '%'" />
+			AND a.prefix like #{prefix}
+		</if> 
+		
+		<choose>
+			<when test="printed != null">
+				AND a.printed = #{printed}
+			</when>
+			<otherwise>
+				AND a.printed = true or a.printed = false
+			</otherwise>
+		</choose> 
+		</where>
+
+		
+
+	</select>
+	
+	<select id="getBarcodeRangeLastItem" resultType="com.viettel.vtnet360.vt07.vt070001.entity.VT070001EntityBarcodeRange" >
+	SELECT
+			a.bar_code_range_id as barCodeRangeId,
+			a.bar_code_prefix_id as barCodePrefixId,
+			a.prefix as prefix,
+			a.status as status,
+			a.create_date as createDate,
+			a.update_date as updateDate,
+			a.printed as printed,
+			a.update_user as updateUser,
+			a.create_user as createUser,
+			a.quantity as quantity,
+			a.description as description
+		FROM
+			BAR_CODE_RANGE as a 
+		WHERE
+		a.bar_code_range_id  =#{barCodeRangeId};
+		
+
+	</select>
+	<select id="checkChangeBarcodeRange" resultType="com.viettel.vtnet360.vt07.vt070001.entity.VT070001EntityBarcodeRange" >
+		SELECT
+			a.printed as printed
+		FROM
+			BAR_CODE_RANGE as a 
+		WHERE
+		a.bar_code_range_id  =#{barCodeRangeId};
+		
+
+	</select>
+	
+	
+	<!-- search with conditions -->
+	<select id="findBarcodeRange"
+		resultType="com.viettel.vtnet360.vt07.vt070001.entity.VT070001EntityBarcodeRange"
+		parameterType="com.viettel.vtnet360.vt07.vt070001.entity.VT070001EntityBarcodeRange">
+		SELECT
+			a.bar_code_range_id as barCodeRangeId,
+			a.bar_code_prefix_id as barCodePrefixId,
+			a.prefix as prefix,
+			a.status as status,
+			a.create_date as createDate,
+			a.update_date as updateDate,
+			a.printed as printed,
+			a.update_user as updateUser,
+			a.create_user as createUser,
+			a.quantity as quantity,
+			a.description as description
+		FROM
+			BAR_CODE_RANGE as a 
+		
+		<where>
+		<if test="quantity != 0">
+				AND a.quantity = #{quantity}
+		</if> 
+		 <if test="description != null">
+			<bind name="description" value="'%' + description + '%'" />
+			AND a.description like #{description}
+		</if> 
+		 <if test="prefix != null">
+			<bind name="prefix" value="'%' + prefix + '%'" />
+			AND a.prefix like #{prefix}
+		</if> 
+		
+		<choose>
+			<when test="printed != null">
+				AND a.printed = #{printed}
+			</when>
+			<otherwise>
+				AND a.printed = true or a.printed = false
+			</otherwise>
+		</choose> 
+		</where>
+		ORDER BY a.update_date DESC,a.create_date DESC
+	<!-- 	LIMIT #{pageNumber}, #{pageSize} -->
+	</select>
+	
+	<!-- thay doi barcode detail -->
+	<update id="updateBarcodeDetail" >
+		UPDATE BAR_CODE_DETAIL AS a
+		SET 	a.status =1 
+		WHERE a.bar_code_range_id = #{barCodeRangeId}
+	</update>
+	
+	<!-- thay doi barcode detail -->
+	<update id="updateStatusBarcodeDetail" 
+		parameterType="com.viettel.vtnet360.vt07.vt070001.entity.VT070001EntityBarcodeDetail">
+		UPDATE BAR_CODE_DETAIL AS a
+		SET 	a.status = #{status}
+		WHERE a.bar_code_detail_id = #{barCodeDetailId}
+	</update>
+	
+	<!-- thay doi barcoderange printed -->
+	<update id="updateBarcodeRange" >
+		UPDATE BAR_CODE_RANGE AS a
+		SET 	a.printed =1,
+		a.update_date = now() 
+		WHERE a.bar_code_range_id = #{barCodeRangeId}
+
+	</update>
+	
+	<!-- GROUP REGION -->
+	
+	<!-- Tim kiem loai ma vach -->
+	<select id="findTypeBarcodeGroup"
+		resultType="com.viettel.vtnet360.vt07.vt070001.entity.VT070001EntityBarcodePrefix"
+		parameterType="com.viettel.vtnet360.vt07.vt070001.entity.VT070001EntityBarcodePrefix">
+		SELECT
+		a.bar_code_prefix_id as barCodePrefixId,
+		a.prefix as prefix,
+		a.name as name,
+		a.description as description,
+		a.status as status,
+		a.create_date as createDate,
+		a.update_date as updateDate
+		FROM BAR_CODE_PREFIX_GROUP AS a
+		WHERE a.status = 1
+		
+			 <if test="name != null">
+				<bind name="name" value="'%' + name + '%'" />
+				AND a.name like #{name}
+			</if> 
+		
+ 
+		ORDER BY a.name ASC
+
+	</select>
+<!-- Tim kiem barcode detail -->
+		<select id="findBarcodeDetailGroup"		
+		resultType="com.viettel.vtnet360.vt07.vt070001.entity.VT070001EntityBarcodeDetail">
+		SELECT
+		a.bar_code_detail_id as barCodeDetailId,
+		a.bar_code_range_id as barCodeRangeId,
+		a.code as code,
+		a.status as status,
+		a.create_date as createDate,
+		a.update_date as updateDate,
+		a.update_user as updateUser,
+		a.create_user as createUser
+		FROM BAR_CODE_DETAIL_GROUP AS a
+		WHERE a.bar_code_range_id = #{barCodeRangeId}
+		ORDER BY a.bar_code_range_id DESC
+
+	</select>
+	
+	<select id="checkBarcodeIsAvailGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070001.entity.VT070001EntityBarcodeDetail"
+		resultType="com.viettel.vtnet360.vt07.vt070001.entity.VT070001EntityBarcodeDetail">
+		SELECT
+		a.bar_code_detail_id as barCodeDetailId,
+		a.bar_code_range_id as barCodeRangeId,
+		a.code as code,
+		a.status as status,
+		a.create_date as createDate,
+		a.update_date as updateDate,
+		a.update_user as updateUser,
+		a.create_user as createUser
+		FROM BAR_CODE_DETAIL_GROUP AS a
+		WHERE a.status = 0
+		<if test="barCodeRangeId != 0">
+			AND a.bar_code_range_id = #{barCodeRangeId}
+		</if>
+		<if test="barCodeDetailId != 0">
+			AND a.bar_code_detail_id = #{barCodeDetailId}
+		</if>
+		<if test="code != null">
+			AND a.code = #{code}
+		</if>
+		ORDER BY a.bar_code_range_id DESC
+
+	</select>
+
+	<insert id="insertBarcodeRangeGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070001.entity.VT070001EntityBarcodeRange"
+		keyProperty="barCodeRangeId" keyColumn="bar_code_range_id">
+		INSERT INTO
+		BAR_CODE_RANGE_GROUP(
+		bar_code_prefix_id,
+		prefix,
+		status,
+		create_date,
+		printed,
+		quantity,
+		description,
+		create_user
+		)
+		VALUES(
+		#{barCodePrefixId},
+		#{prefix},
+		1,
+		NOW() + INTERVAL 7 HOUR,
+		#{printed},
+		#{quantity},
+		#{description},
+		#{createUser}
+		)
+		<selectKey keyProperty="barCodeRangeId" resultType="int"
+            order="AFTER">
+            SELECT LAST_INSERT_ID();
+        </selectKey>
+		
+	</insert>
+	<insert id="insertBarcodeDetailGroup"
+		parameterType="com.viettel.vtnet360.vt07.vt070001.entity.VT070001EntityBarcodeDetail">
+		INSERT INTO
+		BAR_CODE_DETAIL_GROUP(
+		bar_code_range_id,
+		code,
+		status,
+		create_date,
+		create_user
+		)
+		VALUES(
+		#{barCodeRangeId},
+		#{code},
+		#{status},
+		now(),
+		#{createUser}
+		)
+		
+	</insert>
+	
+	<select id="getBarcodeDetailSequenceGroup" resultType="int" >
+		select NEXTVAL(qr_code_sequence_group)
+	</select>
+	<select id="getTotalRecordGroup" resultType="int" 
+	parameterType="com.viettel.vtnet360.vt07.vt070001.entity.VT070001EntityBarcodeRange">
+		SELECT COUNT(*)
+		FROM BAR_CODE_RANGE_GROUP as a 
+		 
+		<where>
+		<if test="quantity != 0">
+				AND a.quantity = #{quantity}
+		</if> 
+		 <if test="description != null">
+			<bind name="description" value="'%' + description + '%'" />
+			AND a.description like #{description}
+		</if> 
+		 <if test="prefix != null">
+			<bind name="prefix" value="'%' + prefix + '%'" />
+			AND a.prefix like #{prefix}
+		</if> 
+		
+		<choose>
+			<when test="printed != null">
+				AND a.printed = #{printed}
+			</when>
+			<otherwise>
+				AND a.printed = true or a.printed = false
+			</otherwise>
+		</choose> 
+		</where>
+
+		
+
+	</select>
+	
+	<select id="getBarcodeRangeLastItemGroup" resultType="com.viettel.vtnet360.vt07.vt070001.entity.VT070001EntityBarcodeRange" >
+	SELECT
+			a.bar_code_range_id as barCodeRangeId,
+			a.bar_code_prefix_id as barCodePrefixId,
+			a.prefix as prefix,
+			a.status as status,
+			a.create_date as createDate,
+			a.update_date as updateDate,
+			a.printed as printed,
+			a.update_user as updateUser,
+			a.create_user as createUser,
+			a.quantity as quantity,
+			a.description as description
+		FROM
+			BAR_CODE_RANGE_GROUP as a 
+		WHERE
+		a.bar_code_range_id  =#{barCodeRangeId};
+		
+
+	</select>
+	<select id="checkChangeBarcodeRangeGroup" resultType="com.viettel.vtnet360.vt07.vt070001.entity.VT070001EntityBarcodeRange" >
+		SELECT
+			a.printed as printed
+		FROM
+			BAR_CODE_RANGE_GROUP as a 
+		WHERE
+		a.bar_code_range_id  =#{barCodeRangeId};
+		
+
+	</select>
+	
+	
+	<!-- search with conditions -->
+	<select id="findBarcodeRangeGroup"
+		resultType="com.viettel.vtnet360.vt07.vt070001.entity.VT070001EntityBarcodeRange"
+		parameterType="com.viettel.vtnet360.vt07.vt070001.entity.VT070001EntityBarcodeRange">
+		SELECT
+			a.bar_code_range_id as barCodeRangeId,
+			a.bar_code_prefix_id as barCodePrefixId,
+			a.prefix as prefix,
+			a.status as status,
+			a.create_date as createDate,
+			a.update_date as updateDate,
+			a.printed as printed,
+			a.update_user as updateUser,
+			a.create_user as createUser,
+			a.quantity as quantity,
+			a.description as description
+		FROM
+			BAR_CODE_RANGE_GROUP as a 
+		
+		<where>
+		<if test="quantity != 0">
+				AND a.quantity = #{quantity}
+		</if> 
+		 <if test="description != null">
+			<bind name="description" value="'%' + description + '%'" />
+			AND a.description like #{description}
+		</if> 
+		 <if test="prefix != null">
+			<bind name="prefix" value="'%' + prefix + '%'" />
+			AND a.prefix like #{prefix}
+		</if> 
+		
+		<choose>
+			<when test="printed != null">
+				AND a.printed = #{printed}
+			</when>
+			<otherwise>
+				AND a.printed = true or a.printed = false
+			</otherwise>
+		</choose> 
+		</where>
+		ORDER BY a.update_date DESC,a.create_date DESC
+	<!-- 	LIMIT #{pageNumber}, #{pageSize} -->
+	</select>
+	
+	<!-- thay doi barcode detail -->
+	<update id="updateBarcodeDetailGroup" >
+		UPDATE BAR_CODE_DETAIL_GROUP AS a
+		SET 	a.status =1 
+		WHERE a.bar_code_range_id = #{barCodeRangeId}
+	</update>
+	
+	<!-- thay doi barcode detail -->
+	<update id="updateStatusBarcodeDetailGroup" 
+		parameterType="com.viettel.vtnet360.vt07.vt070001.entity.VT070001EntityBarcodeDetail">
+		UPDATE BAR_CODE_DETAIL_GROUP AS a
+		SET 	a.status = #{status}
+		WHERE a.bar_code_detail_id = #{barCodeDetailId}
+	</update>
+	
+	<!-- thay doi barcoderange printed -->
+	<update id="updateBarcodeRangeGroup" >
+		UPDATE BAR_CODE_RANGE_GROUP AS a
+		SET 	a.printed =1,
+		a.update_date = now() 
+		WHERE a.bar_code_range_id = #{barCodeRangeId}
+	</update>
+</mapper>

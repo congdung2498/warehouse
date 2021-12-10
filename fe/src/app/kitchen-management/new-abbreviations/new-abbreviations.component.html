@@ -1,0 +1,99 @@
+<div class="container">
+  <div class="row mb-3">
+  <form id="formSearch" [formGroup]="formSearch">
+    <div class="col-xl-12 mb-3">
+    <p-fieldset legend="Thêm cấu hình tên viết tắt" >
+      <div class="row">
+        <div class="col-sm-6"style="">
+          <div class="row ">
+            <div class="col-sm-3" style="text-align: left; padding-top: 16px;">Tên đơn vị:
+              <span style="color: red;">*</span>:
+            </div>
+            <div class="col-sm-9 ui-fluid"  >
+                <p-scrollPanel [style]="{width: '100%', height: '150px'}">
+                  <p-tree #inputTree
+                          id="shortTreeAdd" [value]="sectors"
+                          selectionMode="checkbox"
+                          [propagateSelectionUp]="false"
+                          [propagateSelectionDown]="false"
+                          [(selection)]="selectedSector"
+                          (onNodeExpand)="nodeExpand($event)"
+                          (onNodeSelect)="nodeSelect($event)"
+                          [loading]="loadingTree" class="no-border"></p-tree>
+                </p-scrollPanel>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6">
+          <div class="row" style="margin-left: 5px; margin-right:10px;">
+            <!-- status field -->
+            <div class="col-sm-12">
+              <div class="row mb-4">
+                <div class="col-sm-4" style="text-align: left; padding-top: 5px;">Bếp:
+                  <span style="color: red;">*</span>:
+                </div>
+                <div class="col-sm-8 ui-fluid" style="position: relative;">
+                  <p-dropdown  #kitchenFld [style]="{'width':'100%'}" [options]="kitchenNameList" optionLabel="kitchenName"
+                               formControlName ="kitchenId" filter="true"  placeholder="--Lựa chọn bếp--" emptyFilterMessage="Không có dữ liệu" >
+                  </p-dropdown>
+
+                </div>
+              </div>
+            </div>
+
+            <!-- employee field -->
+            <div class="col-sm-12">
+              <div class="row mb-4">
+                <div class="col-sm-4" style="text-align: left; padding-top: 5px; padding-right: 0px;">Tên viết tắt:
+                  <span style="color: red;">*</span>:
+                </div>
+                <div class="col-sm-8 ui-fluid" style="position: relative;">
+                  <p-dropdown #inputAbbreviations [style]="{'width':'100%'}" *ngIf="isShowDropdown"  [options]="unitShorteningList" optionLabel="shortName"
+                              formControlName ="shortName" filter="true"  [disabled]="false"  placeholder="--Chọn tên viết tắt--" emptyFilterMessage="Không có dữ liệu"  >
+                  </p-dropdown>
+                  <input #inputAbbreviationsText pInputText style="width: 100%;" *ngIf="isShowTextBox" type="text" class="form-control" maxlength="200" formControlName="shortNameText"/>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-sm-12">
+              <div class="row mb-4">
+                <div class="col-sm-4" style="text-align: left; padding-right: 0px">Thêm tên viết
+                  tắt:
+                </div>
+                <div class="col-sm-8 ui-fluid" style="position: relative;">
+                  <p-checkbox  binary="true" (onChange)="changeType($event)" [(ngModel)]="isCheck" [ngModelOptions]="{standalone: true}" ></p-checkbox>
+                </div>
+              </div>
+            </div>
+
+            <!-- date field -->
+            <div class="col-sm-12">
+              <div class="row mb-4">
+                <div class="col-sm-4" style="text-align: left; padding-top: 5px; padding-left: 16px;">Ghi chú:</div>
+                <div class="col-sm-8 ui-fluid" style="position: relative;">
+
+                  <textarea style="width: 100%;" formControlName="note"></textarea>
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+    </div>
+    </p-fieldset>
+    </div>
+    <!-- create table -->
+    <div class="col-xl-12">
+      <div class="text-center">
+
+        <button type="button" pButton icon="fa fa-plus" iconPos="left" label="Lưu" (click)="addNew()"
+                style="text-align: center;"></button>
+        <button type="button" pButton icon="fa fa-arrow-left" iconPos="left" label="Đóng" (click)="return()"
+                style="text-align: center;"></button>
+      </div>
+    </div>
+  </form>
+  </div>
+</div>

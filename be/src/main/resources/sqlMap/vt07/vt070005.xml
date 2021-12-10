@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper
+	namespace="com.viettel.vtnet360.vt07.vt070005.dao.VT070005DAO">
+	
+	 <resultMap id="FolderOfficialResultMap" type="com.viettel.vtnet360.vt07.vt070002.entity.FolderDetail">
+        <id column="folderId" jdbcType="BIGINT" property="folderId"/>
+        <result column="folderName" jdbcType="VARCHAR" property="name"/>
+        <result column="folderQRCode" jdbcType="VARCHAR" property="qrCode"/>
+        <result column="folderTinBoxId" jdbcType="BIGINT" property="tinBoxId"/>
+        <result column="folderStatus" jdbcType="BIGINT" property="status"/>
+        <result column="folderBorrowId" jdbcType="BIGINT" property="borrowId"/>
+        <result column="folderType" jdbcType="BIGINT" property="type"/>
+        <result column="folderUnit" jdbcType="BIGINT" property="unit"/>
+        <collection property="officialDispatchs" javaType="List" ofType="com.viettel.vtnet360.vt07.vt070003.entity.OfficialDispatch">
+            <id column="odOfficialDispatchId" jdbcType="BIGINT" property="officialDispatchId"/>
+            <result column="odName" jdbcType="VARCHAR" property="name"/>
+            <result column="odType" jdbcType="BIGINT" property="type"/>
+            <result column="odOfficialDispatchId" jdbcType="BIGINT" property="officialDispatchId"/>
+            <result column="odFolderId" jdbcType="BIGINT" property="folderId"/>
+        </collection>
+    </resultMap>
+    
+     <resultMap id="FolderVoucherResultMap" type="com.viettel.vtnet360.vt07.vt070002.entity.FolderDetail">
+        <id column="folderId" jdbcType="BIGINT" property="folderId"/>
+        <result column="folderName" jdbcType="VARCHAR" property="name"/>
+        <result column="folderQRCode" jdbcType="VARCHAR" property="qrCode"/>
+        <result column="folderTinBoxId" jdbcType="BIGINT" property="tinBoxId"/>
+        <result column="folderStatus" jdbcType="BIGINT" property="status"/>
+        <result column="folderBorrowId" jdbcType="BIGINT" property="borrowId"/>
+        <result column="folderType" jdbcType="BIGINT" property="type"/>
+        <result column="folderUnit" jdbcType="BIGINT" property="unit"/>
+        <collection property="vouchers" javaType="List" ofType="com.viettel.vtnet360.vt07.vt070005.entity.VoucherVO">
+            <id column="voucherId" jdbcType="BIGINT" property="voucherId"/>
+            <result column="voucherFolderId" jdbcType="BIGINT" property="folderId"/>
+            <result column="voucherType" jdbcType="BIGINT" property="type"/>
+            <result column="voucherStatus" jdbcType="BIGINT" property="status"/>
+            <result column="voucherName" jdbcType="VARCHAR" property="name"/>
+        </collection>
+        <collection property="paymmentSummarys" javaType="List" ofType="com.viettel.vtnet360.vt07.vt070005.entity.PaymentSummaryVO">
+            <id column="paymmentId" jdbcType="BIGINT" property="paymentSummaryId"/>
+            <result column="paymmentFolderId" jdbcType="BIGINT" property="folderId"/>
+            <result column="paymmentName" jdbcType="VARCHAR" property="name"/>
+        </collection>
+    </resultMap>
+	
+	<select id="getOfficialDispatchInFolderById" resultMap="FolderOfficialResultMap">
+       SELECT fd.FOLDER_ID           as folderId,
+       fd.NAME                as folderName,
+       fd.QR_CODE             as folderQRCode,
+       fd.TIN_BOX_ID          as folderTinBoxId,
+       fd.STATUS              as folderStatus,
+       fd.BORROW_ID           as folderBorrowId,
+       fd.TYPE                as folderType,
+       fd.UNIT                as folderUnit,
+
+       od.NAME as odName,
+       od.TYPE as odType,
+       od.OFFICIAL_DISPATCH_ID as odOfficialDispatchId,
+       od.FOLDER_ID as odFolderId
+       FROM FOLDER fd
+         LEFT JOIN OFFICIAL_DISPATCH od ON fd.FOLDER_ID = od.FOLDER_ID
+         WHERE fd.FOLDER_ID = #{folderId}
+	</select>
+	
+	<select id="getVoucherInFolderById" resultMap="FolderVoucherResultMap">
+       SELECT fd.FOLDER_ID           as folderId,
+       fd.NAME                as folderName,
+       fd.QR_CODE             as folderQRCode,
+       fd.TIN_BOX_ID          as folderTinBoxId,
+       fd.STATUS              as folderStatus,
+       fd.BORROW_ID           as folderBorrowId,
+       fd.TYPE                as folderType,
+       fd.UNIT                as folderUnit,
+
+       v.VOUCHER_ID                 as voucherId,
+       v.NAME                 as voucherName,
+       v.TYPE                 as voucherType,
+       v.STATUS               as voucherStatus,
+       v.FOLDER_ID            as voucherFolderId,
+
+       ps.PAYMENT_SUMMARY_ID  as paymmentId,
+       ps.FOLDER_ID           as paymmentFolderId,
+       ps.NAME                as paymmentName
+       
+       FROM FOLDER fd
+         LEFT JOIN VOUCHER v ON fd.folder_id = v.folder_id
+         LEFT JOIN PAYMENT_SUMMARY ps ON fd.folder_id = ps.folder_id
+         WHERE fd.FOLDER_ID = #{folderId}
+	</select>
+	
+	<select id="getVoucherById" resultType="com.viettel.vtnet360.vt07.vt070005.entity.VoucherVO">
+	  SELECT  
+	   v.VOUCHER_ID           as voucherId,
+       v.NAME                 as name,
+       v.TYPE                 as type,
+       v.STATUS               as status,
+       v.FOLDER_ID            as folderId
+        FROM VOUCHER v WHERE VOUCHER_ID = #{voucherId}
+	</select>
+	
+	<select id="getPaymentSummaryById" resultType="com.viettel.vtnet360.vt07.vt070005.entity.PaymentSummaryVO">
+		SELECT       
+		 ps.PAYMENT_SUMMARY_ID  as paymentSummaryId,
+         ps.FOLDER_ID           as folderId,
+         ps.NAME                as name
+        FROM PAYMENT_SUMMARY ps WHERE PAYMENT_SUMMARY_ID = #{paymentSummaryId}
+	</select>
+	<select id="getVoucherDocByVoucherId" resultType="com.viettel.vtnet360.vt07.vt070005.entity.VoucherDocVO">
+		SELECT * FROM VOUCHER_DOC WHERE VOUCHER_ID = #{voucherId}
+	</select>
+	
+	<select id="getPaymentSummaryDocBySummaryId" resultType="com.viettel.vtnet360.vt07.vt070005.entity.PaymentSummaryDocVO">
+		SELECT * FROM PAYMENT_SUMMARY_DOC WHERE PAYMENT_SUMMARY_ID = #{paymentSummaryId}
+	</select>
+
+	<select id="getVoucherIdByName" resultType="java.lang.Long">
+		SELECT IFNULL((SELECT
+		VOUCHER_ID FROM VOUCHER WHERE NAME = #{name} LIMIT 1 ), -1)
+	</select>
+     <insert id="bindVoucherToFolder">
+		INSERT INTO VOUCHER_IN_FOLDER (FOLDER_ID, VOUCHER_ID, DEL_FLAG, CREATE_USER, CREATE_DATE, UPDATE_DATE)
+		SELECT * FROM ( SELECT #{folderId} as FOLDER_ID, #{voucherId} as VOUCHER_ID, 0 as DEL_FLAG, #{createUser} as CREATE_USER, now() as CREATE_DATE, now() as UPDATE_DATE) AS tmp
+			WHERE NOT EXISTS 
+			(SELECT * FROM VOUCHER_IN_FOLDER WHERE FOLDER_ID = #{folderId} AND VOUCHER_ID = #{voucherId} AND DEL_FLAG = 0)
+	</insert>
+	    <insert id="bindPaymentSummaryToFolder">
+		INSERT INTO PAYMENT_SUMMARY_IN_FOLDER (FOLDER_ID, PAYMENT_SUMMARY_ID, DEL_FLAG, CREATE_USER, CREATE_DATE, UPDATE_DATE)
+		SELECT * FROM ( SELECT #{folderId} as FOLDER_ID, #{paymentSummaryId} as PAYMENT_SUMMARY_ID, 0 as DEL_FLAG, #{createUser} as CREATE_USER, now() as CREATE_DATE, now() as UPDATE_DATE) AS tmp
+			WHERE NOT EXISTS 
+			(SELECT * FROM PAYMENT_SUMMARY_IN_FOLDER WHERE FOLDER_ID = #{folderId} AND PAYMENT_SUMMARY_ID = #{paymentSummaryId} AND DEL_FLAG = 0)
+	</insert>
+	<insert id="createVoucher" keyProperty="voucherId"
+		keyColumn="voucher_id" useGeneratedKeys="true">
+		INSERT INTO VOUCHER (NAME, TYPE, STATUS
+		<if test="folderId > 0">
+			,FOLDER_ID
+		</if>
+		)
+		VALUES (#{name}, #{type}, 1
+		<if test="folderId > 0">
+			,#{folderId}
+		</if>
+		);
+	</insert>
+	<select id="getVoucherDocIdByVoucherIdAndName" resultType="java.lang.Long">
+		SELECT IFNULL((SELECT ID FROM VOUCHER_DOC WHERE VOUCHER_ID=#{voucherId} AND NAME =#{name} LIMIT 1 ), -1)
+	</select>
+	
+	<insert id="creatVoucherDoc" >
+		INSERT INTO VOUCHER_DOC (VOUCHER_ID, NAME, TYPE, LEVEL_BAOMAT
+		<if test="folderId > 0">
+			,FOLDER_ID
+		</if>
+		)
+		VALUES (#{voucherId}, #{name}, #{type}, #{levelBaomat}
+		<if test="folderId > 0">
+			,#{folderId}
+		</if>
+		);
+	</insert>
+	
+	<select id="getPaymentSummaryIdByName" resultType="java.lang.Long">
+		SELECT IFNULL((SELECT
+		PAYMENT_SUMMARY_ID FROM PAYMENT_SUMMARY WHERE NAME = #{name} LIMIT 1 ), -1)
+	</select>
+
+	<insert id="createPaymentSummary" keyProperty="paymentSummaryId"
+		keyColumn="payment_summary_id" useGeneratedKeys="true">
+		INSERT INTO PAYMENT_SUMMARY (NAME, STATUS
+		<if test="folderId > 0">
+			,FOLDER_ID
+		</if>
+		)
+		VALUES (#{name}, 1
+		<if test="folderId > 0">
+			,#{folderId}
+		</if>
+		);
+	</insert>
+	<select id="getPaymentSummaryDocIdByPaymentSummaryIdAndName" resultType="java.lang.Long">
+		SELECT IFNULL((SELECT ID FROM PAYMENT_SUMMARY_DOC WHERE PAYMENT_SUMMARY_ID=#{paymentSummaryId} AND NAME =#{name} LIMIT 1 ), -1)
+	</select>
+	
+	<insert id="createPaymentSummaryDoc" >
+		INSERT INTO PAYMENT_SUMMARY_DOC (PAYMENT_SUMMARY_ID, NAME, TYPE, LEVEL_BAOMAT
+		<if test="folderId > 0">
+			,FOLDER_ID
+		</if>
+		)
+		VALUES (#{paymentSummaryId}, #{name}, #{type}, #{levelBaomat}
+		<if test="folderId > 0">
+			,#{folderId}
+		</if>
+		);
+	</insert>
+	
+    <select id="getVoucherIdByNameGroup" resultType="java.lang.Long">
+		SELECT IFNULL((SELECT
+		VOUCHER_ID FROM VOUCHER_GROUP WHERE NAME = #{name} LIMIT 1 ), -1)
+	</select>
+     <insert id="bindVoucherToFolderGroup">
+		INSERT INTO VOUCHER_IN_FOLDER_GROUP (FOLDER_ID, VOUCHER_ID, DEL_FLAG, CREATE_USER, CREATE_DATE, UPDATE_DATE)
+		SELECT * FROM ( SELECT #{folderId} as FOLDER_ID, #{voucherId} as VOUCHER_ID, 0 as DEL_FLAG, #{createUser} as CREATE_USER, now() as CREATE_DATE, now() as UPDATE_DATE) AS tmp
+			WHERE NOT EXISTS 
+			(SELECT * FROM VOUCHER_IN_FOLDER_GROUP WHERE FOLDER_ID = #{folderId} AND VOUCHER_ID = #{voucherId} AND DEL_FLAG = 0)
+	</insert>
+	    <insert id="bindPaymentSummaryToFolderGroup">
+		INSERT INTO PAYMENT_SUMMARY_IN_FOLDER_GROUP (FOLDER_ID, PAYMENT_SUMMARY_ID, DEL_FLAG, CREATE_USER, CREATE_DATE, UPDATE_DATE)
+		SELECT * FROM ( SELECT #{folderId} as FOLDER_ID, #{paymentSummaryId} as PAYMENT_SUMMARY_ID, 0 as DEL_FLAG, #{createUser} as CREATE_USER, now() as CREATE_DATE, now() as UPDATE_DATE) AS tmp
+			WHERE NOT EXISTS 
+			(SELECT * FROM PAYMENT_SUMMARY_IN_FOLDER_GROUP WHERE FOLDER_ID = #{folderId} AND PAYMENT_SUMMARY_ID = #{paymentSummaryId} AND DEL_FLAG = 0)
+	</insert>
+	<insert id="createVoucherGroup" keyProperty="voucherId"
+		keyColumn="voucher_id" useGeneratedKeys="true">
+		INSERT INTO VOUCHER_GROUP (NAME, TYPE, STATUS
+		<if test="folderId > 0">
+			,FOLDER_ID
+		</if>
+		)
+		VALUES (#{name}, #{type}, 1
+		<if test="folderId > 0">
+			,#{folderId}
+		</if>
+		);
+	</insert>
+	<select id="getVoucherDocIdByVoucherIdAndNameGroup" resultType="java.lang.Long">
+		SELECT IFNULL((SELECT ID FROM VOUCHER_DOC_GROUP WHERE VOUCHER_ID=#{voucherId} AND NAME =#{name} LIMIT 1 ), -1)
+	</select>
+	
+	<insert id="creatVoucherDocGroup" >
+		INSERT INTO VOUCHER_DOC_GROUP (VOUCHER_ID, NAME, TYPE, LEVEL_BAOMAT
+		<if test="folderId > 0">
+			,FOLDER_ID
+		</if>
+		)
+		VALUES (#{voucherId}, #{name}, #{type}, #{levelBaomat}
+		<if test="folderId > 0">
+			,#{folderId}
+		</if>
+		);
+	</insert>
+	
+	<select id="getPaymentSummaryIdByNameGroup" resultType="java.lang.Long">
+		SELECT IFNULL((SELECT
+		PAYMENT_SUMMARY_ID FROM PAYMENT_SUMMARY_GROUP WHERE NAME = #{name} LIMIT 1 ), -1)
+	</select>
+
+	<insert id="createPaymentSummaryGroup" keyProperty="paymentSummaryId"
+		keyColumn="payment_summary_id" useGeneratedKeys="true">
+		INSERT INTO PAYMENT_SUMMARY_GROUP (NAME, STATUS
+		<if test="folderId > 0">
+			,FOLDER_ID
+		</if>
+		)
+		VALUES (#{name}, 1
+		<if test="folderId > 0">
+			,#{folderId}
+		</if>
+		);
+	</insert>
+	<select id="getPaymentSummaryDocIdByPaymentSummaryIdAndNameGroup" resultType="java.lang.Long">
+		SELECT IFNULL((SELECT ID FROM PAYMENT_SUMMARY_DOC_GROUP WHERE PAYMENT_SUMMARY_ID=#{paymentSummaryId} AND NAME =#{name} LIMIT 1 ), -1)
+	</select>
+	
+	<insert id="createPaymentSummaryDocGroup" >
+		INSERT INTO PAYMENT_SUMMARY_DOC_GROUP (PAYMENT_SUMMARY_ID, NAME, TYPE, LEVEL_BAOMAT
+		<if test="folderId > 0">
+			,FOLDER_ID
+		</if>
+		)
+		VALUES (#{paymentSummaryId}, #{name}, #{type}, #{levelBaomat}
+		<if test="folderId > 0">
+			,#{folderId}
+		</if>
+		);
+	</insert>
+</mapper>

@@ -1,0 +1,651 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.kitchen.menu.dao.KitchenDAO">
+    
+    <select id="getNotiByLunch" resultType="com.viettel.vtnet360.kitchen.dto.LunchVoteMessage" >
+        SELECT 
+		    qe.PHONE_NUMBER as phone, 
+		    qe.EMPLOYEE_ID as employeeId, 
+		    nl.DEVICE_ID as deviceId, 
+		    qe.USER_NAME as userName,
+		    lc.LUNCH_CALENDAR_ID as lunchId
+		FROM 
+		    LUNCH_CALENDAR lc 
+		    LEFT JOIN  (QLDV_EMPLOYEE qe LEFT JOIN NOTI_REG nl ON qe.USER_NAME = nl.USERNAME)  ON lc.EMPLOYEE_USER_NAME = qe.USER_NAME  
+		WHERE lc.COMMENT IS NULL AND lc.RATTING IS NULL
+		LIMIT 1, 1;
+    </select>
+    
+    <select id="findListKitchen" resultType="com.viettel.vtnet360.kitchen.dto.KitchenDTO" >
+        SELECT 
+            ks.KITCHEN_ID as kitchenID, 
+            ks.STATUS as status,
+            GROUP_CONCAT(kc.CHEF_NAME separator ',') as chefName,
+            CASE 
+                WHEN ks.STATUS = 0 THEN CONCAT(ks.KITCHEN_NAME, IF(qp.PLACE_NAME IS NULL,'',CONCAT(' - ',qp.PLACE_NAME)), '(Bếp không hoạt động)') 
+                else CONCAT(ks.KITCHEN_NAME, IF(qp.PLACE_NAME IS NULL,'',CONCAT(' - ',qp.PLACE_NAME))) 
+            END as kitchenName
+        FROM 
+            KITCHEN_SETTING ks 
+            LEFT JOIN QLDV_PLACE qp ON ks.PLACE_ID = qp.PLACE_ID 
+            LEFT JOIN KITCHEN_SETTING_CHEF kc on ks.KITCHEN_ID = kc.KITCHEN_SETTING_ID
+        WHERE ks.DELETE_FLAG = 0
+        GROUP BY ks.KITCHEN_ID
+        ORDER BY kitchenName ASC;
+    </select>
+    
+    <select id="findListKitchenFull" resultType="com.viettel.vtnet360.kitchen.dto.KitchenDTO" >
+        SELECT 
+            ks.KITCHEN_ID as kitchenID, 
+            ks.STATUS as status,
+            GROUP_CONCAT(kc.CHEF_NAME separator ',') as chefName,
+            CASE 
+                WHEN (ks.STATUS = 0 OR ks.DELETE_FLAG = 1) THEN CONCAT(ks.KITCHEN_NAME, IF(qp.PLACE_NAME IS NULL,'',CONCAT(' - ',qp.PLACE_NAME)), '(Bếp không hoạt động)') 
+                else CONCAT(ks.KITCHEN_NAME, IF(qp.PLACE_NAME IS NULL,'',CONCAT(' - ',qp.PLACE_NAME))) 
+            END as kitchenName
+        FROM 
+            KITCHEN_SETTING ks 
+            LEFT JOIN QLDV_PLACE qp ON ks.PLACE_ID = qp.PLACE_ID
+            LEFT JOIN KITCHEN_SETTING_CHEF kc on ks.KITCHEN_ID = kc.KITCHEN_SETTING_ID
+        GROUP BY ks.KITCHEN_ID
+        ORDER BY kitchenName ASC;
+    </select>
+    
+    <select id="findListDishByMenu" resultType="com.viettel.vtnet360.vt02.vt020004.entity.VT020004Dish"
+                            parameterType="com.viettel.vtnet360.kitchen.dto.SearchingDishByMenu">
+        SELECT
+            ds.DISH_ID as dishID,
+            ds.DISH_NAME as dishName,
+            ds.IMAGE as image
+        FROM
+            MENU_SETTING ms
+            JOIN DISH_SETTING ds ON ms.DISH_ID = ds.DISH_ID
+        WHERE
+            ms.KITCHEN_ID = #{kitchenId} AND 
+            DATE(ms.DATE_OF_MENU) = DATE(#{dateOfMenu})
+    </select>
+    
+    <select id="findListMenu" resultType="com.viettel.vtnet360.vt02.vt020004.entity.VT020004MenuItem"
+                            parameterType="com.viettel.vtnet360.vt02.vt020004.entity.VT020004InfoToFindMenu">
+		SELECT
+			ms.MENU_ID AS menuId ,
+			ms.KITCHEN_ID AS kitchenID,
+			ms.DATE_OF_MENU AS dateOfMenu,
+			ds.IMAGE as image
+		FROM
+			MENU_SETTING ms
+			JOIN DISH_SETTING ds ON ms.DISH_ID = ds.DISH_ID
+		WHERE
+			ms.KITCHEN_ID = #{kitchenID}
+			<if test="dateFrom != null and dateTo != null">
+				AND DATE_OF_MENU BETWEEN #{dateFrom} AND #{dateTo}
+			</if>
+			<if test="dateFrom == null and dateTo != null">
+				AND DATE_OF_MENU &lt;= #{dateTo}
+			</if>
+			<if test="dateFrom != null and dateTo == null">
+					AND DATE_OF_MENU >= #{dateFrom}
+			</if>
+		GROUP BY
+			DATE_OF_MENU
+		ORDER BY dateOfMenu DESC
+		<if test="pageNumber != -1 and pageSize != -1">
+			LIMIT #{pageNumber}, #{pageSize}
+		</if>
+    </select>
+    
+    <select id="countTotalMenu"
+			resultType="java.lang.Integer"
+			parameterType="com.viettel.vtnet360.vt02.vt020004.entity.VT020004InfoToFindMenu">
+		SELECT count(*) 
+		FROM 
+			(
+				SELECT
+					ms.DATE_OF_MENU AS dateOfMenu,
+					GROUP_CONCAT(ds.DISH_ID) dishID,
+					GROUP_CONCAT(ds.DISH_NAME) AS dishName
+				FROM
+					MENU_SETTING ms
+					JOIN DISH_SETTING ds ON ms.DISH_ID = ds.DISH_ID
+				WHERE
+					ms.KITCHEN_ID = #{kitchenID}
+					<if test="dateFrom != null and dateTo != null">
+						AND DATE_OF_MENU BETWEEN #{dateFrom} AND #{dateTo}
+					</if>
+					<if test="dateFrom == null and dateTo != null">
+						AND DATE_OF_MENU &lt;= #{dateTo}
+					</if>
+					<if test="dateFrom != null and dateTo == null">
+							AND DATE_OF_MENU >= #{dateFrom}
+					</if>
+				GROUP BY
+					DATE_OF_MENU) t
+			 
+	</select>
+    
+    <select id="findListDish" resultType="com.viettel.vtnet360.vt02.vt020002.entity.VT020002Dish"
+                        parameterType="com.viettel.vtnet360.vt02.vt020002.entity.VT020002DishOffset">
+        SELECT ds.DISH_ID as dishID, 
+               ds.DISH_NAME as dishName, 
+               ds.IMAGE as image,
+               ds.KITCHEN_ID as kitchenID, 
+               ks.KITCHEN_NAME as kitchenName, 
+               ds.STATUS as status
+        FROM DISH_SETTING ds JOIN KITCHEN_SETTING ks ON ds.KITCHEN_ID = ks.KITCHEN_ID
+        WHERE   ks.DELETE_FLAG = 0
+                AND ds.DELETE_FLAG = #{deleteFG}
+            <if test="kitchenID != null">
+                 AND ds.KITCHEN_ID = #{kitchenID}
+             </if>
+             <if test="dishName != null">
+                 <bind name="pattern2" value="'%' + dishName + '%'" />
+                 AND ds.DISH_NAME LIKE #{pattern2}
+             </if>
+             <if test="status == 0 or status == 1">
+                 AND ds.STATUS = #{status}
+             </if>
+        ORDER BY ks.KITCHEN_NAME ASC, ds.DISH_NAME ASC
+        <if test="pageNumber != null">
+        LIMIT #{pageNumber}, #{pageSize}
+        </if>
+    </select>
+    
+    <select id="totalDish" resultType="int"
+                        parameterType="com.viettel.vtnet360.vt02.vt020002.entity.VT020002DishOffset">
+        SELECT COUNT(*)
+        FROM DISH_SETTING ds JOIN KITCHEN_SETTING ks ON ds.KITCHEN_ID = ks.KITCHEN_ID
+        WHERE   ks.DELETE_FLAG = 0
+                AND ds.DELETE_FLAG = #{deleteFG}
+            <if test="kitchenID != null">
+                 AND ds.KITCHEN_ID = #{kitchenID}
+             </if>
+             <if test="dishName != null">
+                 <bind name="pattern2" value="'%' + dishName + '%'" />
+                 AND ds.DISH_NAME LIKE #{pattern2}
+             </if>
+             <if test="status == 0 or status == 1">
+                 AND ds.STATUS = #{status}
+             </if>
+    </select>
+    
+    <select id="findKitchenName" resultType="com.viettel.vtnet360.kitchen.dto.KitchenDTO">
+        SELECT  
+            ks.KITCHEN_ID as kitchenID, 
+                        CONCAT(ks.KITCHEN_NAME, IF(qp.PLACE_NAME IS NULL,'',CONCAT(' - ',qp.PLACE_NAME))) as kitchenName
+        FROM 
+            KITCHEN_SETTING ks 
+            LEFT JOIN QLDV_PLACE qp ON ks.PLACE_ID = qp.PLACE_ID
+        WHERE ks.STATUS = 1 AND ks.DELETE_FLAG = 0
+        ORDER BY kitchenName
+    </select>
+    
+    <select id="findKitchenNameAll" resultType="com.viettel.vtnet360.kitchen.dto.KitchenDTO">
+        SELECT  
+            ks.KITCHEN_ID as kitchenID, 
+                        CONCAT(ks.KITCHEN_NAME, IF(qp.PLACE_NAME IS NULL,'',CONCAT(' - ',qp.PLACE_NAME))) as kitchenName
+        FROM 
+            KITCHEN_SETTING ks 
+            LEFT JOIN QLDV_PLACE qp ON ks.PLACE_ID = qp.PLACE_ID
+        WHERE ks.STATUS = 1 AND ks.DELETE_FLAG = 0
+        ORDER BY kitchenName
+    </select>
+    
+    <select id="findKitchenNameByUser" resultType="com.viettel.vtnet360.kitchen.dto.KitchenDTO" parameterType="String" >
+       SELECT
+			ks.KITCHEN_ID as kitchenID,
+			ks.KITCHEN_NAME as kitchenName,
+			ks.PLACE_ID as placeID,
+			p.PLACE_NAME as placeName,
+			ksc.CHEF_NAME as chefName,
+			ksc.CHEF_ACCOUNT as chefUserName,
+			ksc.CHEF_PHONE as chefPhone,
+			ksc.IS_EMPLOYEE as isEmployee,
+			ks.NOTE as note,
+			ks.PRICE as price,
+			ks.STATUS as status
+		FROM
+			KITCHEN_SETTING ks
+		LEFT JOIN (
+			SELECT
+				KITCHEN_SETTING_ID KITCHEN_SETTING_ID,
+				GROUP_CONCAT(CHEF_NAME) CHEF_NAME,
+				GROUP_CONCAT(CHEF_ACCOUNT) CHEF_ACCOUNT,
+				GROUP_CONCAT(CHEF_PHONE) CHEF_PHONE,
+				GROUP_CONCAT(IS_EMPLOYEE) IS_EMPLOYEE
+			FROM
+				KITCHEN_SETTING_CHEF
+			GROUP BY
+				KITCHEN_SETTING_ID
+		) ksc ON ks.KITCHEN_ID = ksc.KITCHEN_SETTING_ID	
+		LEFT JOIN QLDV_PLACE p ON
+			ks.PLACE_ID = p.PLACE_ID
+		WHERE
+			ks.DELETE_FLAG = 0 AND ks.STATUS = 1
+			AND ksc.CHEF_ACCOUNT LIKE CONCAT ('%', #{searchDTO}, '%')
+		ORDER BY
+			LENGTH(ks.KITCHEN_NAME),
+			ks.KITCHEN_NAME
+       
+    </select>
+    
+    <select id="findUnitShortName" resultType="com.viettel.vtnet360.kitchen.dto.UnitShortNameDTO"
+		parameterType="String">
+		SELECT DISTINCT
+		us.SHORT_NAME as shortName
+		FROM UNIT_SHORTENING us JOIN KITCHEN_SETTING ks ON us.KITCHEN_ID = ks.KITCHEN_ID
+		WHERE ks.STATUS =1 AND ks.DELETE_FLAG =0 AND
+		us.SHORT_NAME LIKE
+		'%' #{searchDTO} '%'
+		
+	</select>
+	
+	 <select id="findUnitShortNameDropdown" resultType="com.viettel.vtnet360.kitchen.dto.UnitShortNameDTO" parameterType = "Integer">
+		SELECT
+		UNIT_ID as unitId , KITCHEN_ID as kitchenID ,SHORT_NAME as shortName
+		FROM UNIT_SHORTENING
+		WHERE 	UNIT_ID = #{searchDTO}
+		ORDER BY shortName
+	</select>
+
+ <select id="findUnitShortNameDropdownAll" resultType="com.viettel.vtnet360.kitchen.dto.UnitShortNameDTO" >
+		SELECT
+		  us.UNIT_ID as unitId, us.KITCHEN_ID as kitchenID, us.SHORT_NAME as shortName
+		FROM UNIT_SHORTENING us LEFT JOIN KITCHEN_SETTING ks ON us.KITCHEN_ID = ks.KITCHEN_ID 
+		WHERE ks.STATUS = 1 AND ks.DELETE_FLAG = 0 
+		ORDER BY shortName
+	</select>
+
+
+	<select id="findAbbreviations" resultType="com.viettel.vtnet360.kitchen.dto.AbbreviationsDTO"
+		parameterType="com.viettel.vtnet360.kitchen.dto.AbbreviationsPOJO">
+		SELECT
+		ks.KITCHEN_ID as kitchenId ,
+		ks.KITCHEN_NAME as kitchenName ,
+		us.SHORT_NAME as shortName,
+		us.CREATE_USER as createUser,
+		u.UNIT_ID as unitId ,
+		us.NOTE as note,
+		u.UNIT_NAME AS unitName,
+		u.PATH AS path,
+			
+		CASE
+		WHEN u.UNIT_ID = 234841 THEN IFNULL(u.UNIT_NAME, '')
+		WHEN b.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''),
+		IFNULL(CONCAT(' / ', b.UNIT_NAME), ''))
+		WHEN c.UNIT_ID = 234841 THEN CONCAT(IFNULL(u.UNIT_NAME, ''),
+		IFNULL(CONCAT(' / ', b.UNIT_NAME), ''), IFNULL(CONCAT(' / ',
+		c.UNIT_NAME), ''))
+		ELSE CONCAT(IFNULL(b.UNIT_NAME, ''), IFNULL(CONCAT(' / ', c.UNIT_NAME),
+		''), IFNULL(CONCAT(' / ', d.UNIT_NAME), ''))
+		END AS detailUnit
+
+		FROM
+		    KITCHEN_SETTING ks
+			LEFT JOIN UNIT_SHORTENING us ON ks.KITCHEN_ID = us.KITCHEN_ID
+			LEFT JOIN QLDV_UNIT u ON us.UNIT_ID = u.UNIT_ID
+			LEFT JOIN QLDV_UNIT b ON u.PARENT_UNIT_ID = b.UNIT_ID
+			LEFT JOIN QLDV_UNIT c ON b.PARENT_UNIT_ID = c.UNIT_ID
+			LEFT JOIN QLDV_UNIT d ON c.PARENT_UNIT_ID = d.UNIT_ID
+		WHERE ks.STATUS = 1 AND ks.DELETE_FLAG =0
+		<if test="kitchenId != null and kitchenId.length > 0">
+			AND ks.KITCHEN_ID = #{kitchenId}
+		</if>
+		<if test=" shortName != null and shortName.length > 0">
+			AND us.SHORT_NAME LIKE CONCAT('%', #{shortName}, '%')
+		</if>
+		<if test="listUnit != null and listUnit.length > 0">
+			AND u.UNIT_ID IN
+			<foreach item="item1" collection="listUnit" open="("
+				separator=" UNION " close=")">
+				SELECT UNIT_ID
+				FROM QLDV_UNIT
+				WHERE QLDV_UNIT.`PATH` LIKE CONCAT('%', #{item1}, '%')
+			</foreach>
+		</if>
+		<if test=" note != null and note.length > 0">
+			AND us.NOTE LIKE '%' #{note} '%'
+		</if>
+
+
+		ORDER BY shortName
+
+		<if test="startRow != -1 and rowSize != -1">
+			LIMIT #{startRow}, #{rowSize}
+		</if>
+	</select>
+	
+     <select id="countTotalMenuService" resultType="Integer"
+		parameterType="com.viettel.vtnet360.kitchen.dto.AbbreviationsPOJO">
+	SELECT 
+        IFNULL (
+            (SELECT
+	COUNT(*)
+		FROM
+			KITCHEN_SETTING ks
+		LEFT JOIN UNIT_SHORTENING us ON
+			ks.KITCHEN_ID = us.KITCHEN_ID
+		LEFT JOIN QLDV_UNIT u ON
+			us.UNIT_ID = u.UNIT_ID
+		LEFT JOIN QLDV_UNIT b ON
+			u.PARENT_UNIT_ID = b.UNIT_ID
+		LEFT JOIN QLDV_UNIT c ON
+			b.PARENT_UNIT_ID = c.UNIT_ID
+		LEFT JOIN QLDV_UNIT d ON
+			c.PARENT_UNIT_ID = d.UNIT_ID
+	WHERE ks.STATUS = 1  AND ks.DELETE_FLAG =0
+	<if test="kitchenId != null and kitchenId.length > 0">
+	   AND ks.KITCHEN_ID = #{kitchenId}
+	</if>
+	<if test=" shortName != null and shortName.length > 0">
+	   AND us.SHORT_NAME LIKE CONCAT('%', #{shortName}, '%')
+	 </if>
+	<if test="listUnit != null and listUnit.length > 0">
+		AND u.UNIT_ID IN
+		<foreach item="item1" collection="listUnit" open="(" separator=" UNION "
+			close=")">
+			SELECT
+			UNIT_ID
+			FROM
+			QLDV_UNIT
+			WHERE
+			QLDV_UNIT.`PATH` LIKE CONCAT('%', #{item1}, '%')
+		</foreach>
+    </if>
+	<if test=" note != null and note.length > 0">
+		AND us.NOTE LIKE '%' #{note} '%'
+	</if>
+	), 0
+    )
+	</select>
+	
+	<select id="checkShortUnitName"  resultType="java.lang.Integer" 
+	                                               parameterType="com.viettel.vtnet360.kitchen.dto.AbbreviationsInsert">
+        SELECT
+            IFNULL ((
+                SELECT COUNT(*)
+                FROM UNIT_SHORTENING
+                WHERE SHORT_NAME = #{shortName} AND KITCHEN_ID = #{kitchenId}
+            ), 0)
+    </select>
+    
+    <select id="checkShortUnitNameUpdate"  resultType="java.lang.Integer" 
+                                                   parameterType="com.viettel.vtnet360.kitchen.dto.AbbreviationsInsert">
+        SELECT
+            IFNULL ((
+                SELECT COUNT(*)
+                FROM UNIT_SHORTENING
+                WHERE 
+                    SHORT_NAME = #{shortName} AND 
+                    UNIT_ID != #{unitId} AND 
+                    KITCHEN_ID = #{kitchenId}
+            ), 0)
+    </select>
+	
+    <insert id="insertAbbreviations"
+		parameterType="com.viettel.vtnet360.kitchen.dto.AbbreviationsInsert">
+		INSERT
+		INTO
+		UNIT_SHORTENING ( UNIT_ID
+		,KITCHEN_ID
+		,SHORT_NAME	
+		,NOTE
+	
+		,CREATE_USER
+		,CREATE_DATE
+		,UPDATE_USER
+		,UPDATE_DATE
+		 )
+
+		VALUES(
+		
+		#{unitId}
+		
+		,#{kitchenId}
+		
+			,#{shortName}
+		
+			,#{note}
+		
+		,#{createUser}
+		,NOW()
+		,#{updateUser}
+		,#{updateDate}
+		)
+	</insert>
+    
+    <update id="updateAbbreviations" parameterType="com.viettel.vtnet360.kitchen.dto.AbbreviationsInsert">
+		UPDATE UNIT_SHORTENING
+		SET 
+			<if test=" kitchenIdChange != null and kitchenIdChange.length &gt; 0">
+			KITCHEN_ID = #{kitchenIdChange} ,
+			</if> 
+			SHORT_NAME = #{shortName},
+			NOTE = #{note},
+			UPDATE_USER = #{updateUser},
+			UPDATE_DATE = SYSDATE()
+		
+		WHERE  
+		UNIT_ID = #{unitId} AND
+		KITCHEN_ID = #{kitchenId}
+		
+	</update>
+	
+	<select id="getAllUnit"  resultType="com.viettel.vtnet360.vt02.vt020000.entity.VT020000Unit">
+		SELECT
+			UNIT_ID as unitId,
+			UNIT_NAME as unitName,
+			PARENT_UNIT_ID  as parentId,
+			PATH as path,
+			ORDER_NUMBER  as orderNumber
+		FROM
+			QLDV_UNIT
+		WHERE
+			STATUS = 1 and 
+			SUBSTRING_INDEX(path, '/', 6) = (
+				SELECT
+					SUBSTRING_INDEX(path, '/', 6)
+				FROM
+					QLDV_UNIT
+				WHERE
+					STATUS = 1
+					AND UNIT_ID = 234841
+				)
+		ORDER BY orderNumber		
+	</select>
+	
+	<select id="getShortNameByUnitAndKitchen" parameterType="com.viettel.vtnet360.kitchen.dto.AbbreviationsInsert" 
+			resultType="com.viettel.vtnet360.kitchen.dto.UnitShortNameDTO">
+		SELECT
+			UNIT_ID unitId,
+			KITCHEN_ID as kitchenId,
+			SHORT_NAME  as shortName
+		FROM
+			UNIT_SHORTENING
+		WHERE
+			UNIT_ID = #{unitId} AND KITCHEN_ID = #{kitchenId}
+	</select>
+	
+	 <select id="findKitchenNameUpdate" resultType="com.viettel.vtnet360.kitchen.dto.UnitShortNameDTO" parameterType="Int"
+		>
+		SELECT DISTINCT
+		SHORT_NAME as shortName
+		FROM UNIT_SHORTENING
+		WHERE UNIT_ID = #{searchDTO}
+	</select>
+     <select id="findKitchenNameUpdateCheck" resultType="com.viettel.vtnet360.kitchen.dto.UnitShortNameDTO" parameterType="Int">
+		SELECT 
+		KITCHEN_ID as kitchenID,
+		SHORT_NAME as shortName
+		FROM UNIT_SHORTENING
+		WHERE UNIT_ID = #{searchDTO}
+	</select>
+    
+    <select id="checkChefExist" resultType="Int" parameterType="com.viettel.vtnet360.kitchen.dto.ChefConfig">
+        SELECT COUNT(*)
+        FROM KITCHEN_SETTING_CHEF
+        WHERE CHEF_ACCOUNT = #{username}
+    </select>
+    
+    <select id="checkChefKitchenExist" resultType="Int" parameterType="com.viettel.vtnet360.kitchen.dto.ChefConfig">
+        SELECT COUNT(*)
+        FROM KITCHEN_SETTING_CHEF
+        WHERE CHEF_ACCOUNT = #{username} AND KITCHEN_SETTING_ID = #{kitchenId}
+    </select>
+    
+    <select id="getKitchenByChef" resultType="com.viettel.vtnet360.kitchen.dto.KitchenDTO" 
+                                                            parameterType="com.viettel.vtnet360.kitchen.dto.ChefConfig">
+		SELECT 
+            ks.KITCHEN_ID as kitchenID, 
+            ks.STATUS as status,
+            (SELECT GROUP_CONCAT(CHEF_NAME separator ',')
+				FROM KITCHEN_SETTING_CHEF 
+				WHERE KITCHEN_SETTING_ID = ks.KITCHEN_ID
+				GROUP BY ks.KITCHEN_ID) as chefName,
+            CASE 
+                WHEN ks.STATUS = 0 THEN CONCAT(ks.KITCHEN_NAME, IF(qp.PLACE_NAME IS NULL,'',CONCAT(' - ',qp.PLACE_NAME)), '(Bếp không hoạt động)') 
+                else CONCAT(ks.KITCHEN_NAME, IF(qp.PLACE_NAME IS NULL,'',CONCAT(' - ',qp.PLACE_NAME))) 
+            END as kitchenName
+        FROM KITCHEN_SETTING_CHEF kc 
+             LEFT JOIN KITCHEN_SETTING ks ON kc.KITCHEN_SETTING_ID = ks.KITCHEN_ID 
+             LEFT JOIN QLDV_PLACE qp ON ks.PLACE_ID = qp.PLACE_ID
+        WHERE kc.CHEF_ACCOUNT = #{username} AND ks.DELETE_FLAG = 0
+        ORDER BY kitchenName ASC;
+    </select>
+    
+    <select id="getKitchenByChefFull" resultType="com.viettel.vtnet360.kitchen.dto.KitchenDTO" 
+                                                            parameterType="com.viettel.vtnet360.kitchen.dto.ChefConfig">
+        SELECT 
+            ks.KITCHEN_ID as kitchenID,
+            ks.STATUS as status,
+            (SELECT GROUP_CONCAT(CHEF_NAME separator ',')
+                FROM KITCHEN_SETTING_CHEF 
+                WHERE KITCHEN_SETTING_ID = ks.KITCHEN_ID
+                GROUP BY ks.KITCHEN_ID) as chefName, 
+            CASE 
+                WHEN (ks.STATUS = 0 OR ks.DELETE_FLAG = 1) THEN CONCAT(ks.KITCHEN_NAME, IF(qp.PLACE_NAME IS NULL,'',CONCAT(' - ',qp.PLACE_NAME)), '(Bếp không hoạt động)') 
+                else CONCAT(ks.KITCHEN_NAME, IF(qp.PLACE_NAME IS NULL,'',CONCAT(' - ',qp.PLACE_NAME))) 
+            END as kitchenName
+        FROM KITCHEN_SETTING_CHEF kc 
+             LEFT JOIN KITCHEN_SETTING ks ON kc.KITCHEN_SETTING_ID = ks.KITCHEN_ID 
+             LEFT JOIN QLDV_PLACE qp ON ks.PLACE_ID = qp.PLACE_ID
+        WHERE kc.CHEF_ACCOUNT = #{username}
+        ORDER BY kitchenName ASC;
+    </select>
+    
+    
+   <select id="checkIsExist" resultType="com.viettel.vtnet360.kitchen.dto.UnitShortNameDTO" 
+                                                    parameterType="com.viettel.vtnet360.kitchen.dto.AbbreviationsInsert">
+		SELECT KITCHEN_ID as kitchenId ,SHORT_NAME as shortName
+		FROM UNIT_SHORTENING
+		WHERE UNIT_ID = #{unitId} AND
+		KITCHEN_ID = #{kitchenId}
+	</select>
+	
+	<update id="updateMenu" parameterType="com.viettel.vtnet360.kitchen.dto.UpdateMenu">
+				UPDATE MENU_SETTING
+									SET	
+									DATE_OF_MENU = #{dateOfMenu},
+									<foreach collection="listDish" item="item" index="index" separator=",">
+									DISH_ID = #{item.dishID}
+													
+									</foreach>
+									, UPDATE_USER = #{updateUser},
+									UPDATE_DATE = NOW()
+									WHERE 
+									MENU_ID = #{menuId}
+									
+	</update>
+	<select id="checkMenuIsExist" resultType="com.viettel.vtnet360.vt02.vt020004.entity.VT020004MenuItem" parameterType="String"
+		>
+		SELECT 
+		ms.MENU_ID AS menuId ,
+			ms.DATE_OF_MENU AS dateOfMenu,
+			GROUP_CONCAT(ds.DISH_ID) dishID,
+			GROUP_CONCAT(ds.DISH_NAME) AS dishName
+		FROM 
+		MENU_SETTING ms
+		JOIN DISH_SETTING ds ON ms.DISH_ID = ds.DISH_ID
+		WHERE 
+		MENU_ID = #{menuId} 
+	</select>
+	
+	<select id="checkIsDuplicate" resultType="com.viettel.vtnet360.kitchen.dto.UnitShortNameDTO" 
+	                                               parameterType="com.viettel.vtnet360.kitchen.dto.AbbreviationsInsert">
+		SELECT KITCHEN_ID as kitchenId ,SHORT_NAME as shortName
+		FROM UNIT_SHORTENING
+		WHERE UNIT_ID = #{unitId} AND
+		KITCHEN_ID = #{kitchenIdChange}
+	</select>
+	
+    <select id="checkMenuExistResult" resultType="com.viettel.vtnet360.vt02.vt020004.entity.VT020004MenuItem" 
+					parameterType="com.viettel.vtnet360.vt02.vt020004.entity.VT020004InfoToFindDishInMenu">
+		SELECT
+			ms.MENU_ID AS menuId ,
+			ms.KITCHEN_ID AS kitchenID
+		FROM MENU_SETTING ms
+		WHERE DATE_OF_MENU = #{dateOfMenu} 
+				AND KITCHEN_ID = #{kitchenID}
+		
+	</select>
+    
+    
+    <delete id="deleteAbbreviations" 
+					parameterType="com.viettel.vtnet360.kitchen.dto.AbbreviationsInsert">
+    		DELETE  
+    			 FROM  UNIT_SHORTENING 
+    			 WHERE 	KITCHEN_ID = #{kitchenId} 
+				AND UNIT_ID = #{unitId}
+    </delete>
+    
+     <select id="checkKitchenNotAllow" resultType="com.viettel.vtnet360.kitchen.dto.KitchenDTO" parameterType="com.viettel.vtnet360.kitchen.dto.AbbreviationsInsert"
+		>
+		SELECT KITCHEN_ID as kitchenID ,KITCHEN_NAME as kitchenName
+		FROM KITCHEN_SETTING
+		WHERE STATUS = 0 AND
+		KITCHEN_ID = #{kitchenId}
+	</select>
+
+     <select id="detailDishSetting" resultType="com.viettel.vtnet360.vt02.vt020004.entity.VT020004Dish" 
+     parameterType="com.viettel.vtnet360.vt02.vt020004.entity.VT020004Dish"
+		>
+		SELECT DISH_ID as dishID ,DISH_NAME as dishName, IMAGE as image
+		FROM DISH_SETTING
+		WHERE DISH_ID = #{dishID}
+	</select>
+    
+    <select id="countTotalMenuKichen"
+			resultType="java.lang.Integer"
+			parameterType="com.viettel.vtnet360.vt02.vt020004.entity.VT020004InfoToFindMenu">
+		SELECT COUNT(*) 
+		FROM 
+			(
+				SELECT
+			ms.MENU_ID AS menuId ,
+			ms.KITCHEN_ID AS kitchenID,
+			ms.DATE_OF_MENU AS dateOfMenu,
+			GROUP_CONCAT(ds.DISH_ID) dishID,
+			GROUP_CONCAT(ds.DISH_NAME) AS dishName,
+			ds.IMAGE as image
+		FROM
+			MENU_SETTING ms
+			JOIN DISH_SETTING ds ON ms.DISH_ID = ds.DISH_ID
+		WHERE
+			ms.KITCHEN_ID = #{kitchenID}
+			<if test="dateFrom != null and dateTo != null">
+				AND DATE_OF_MENU BETWEEN #{dateFrom} AND #{dateTo}
+			</if>
+			<if test="dateFrom == null and dateTo != null">
+				AND DATE_OF_MENU &lt;= #{dateTo}
+			</if>
+			<if test="dateFrom != null and dateTo == null">
+					AND DATE_OF_MENU >= #{dateFrom}
+			</if>
+			 ) a
+	</select>
+    
+    <select id="findDishByName" parameterType="String" resultType="String">
+        SELECT DISTINCT(DISH_NAME)
+        FROM DISH_SETTING
+        WHERE DISH_NAME LIKE CONCAT('%', #{search}, '%')
+    </select>
+</mapper>

@@ -1,0 +1,97 @@
+<div id="custom-container"  class="container">
+  <div class="container-fluid text-center mt-5">
+    <h1 class="text-center">BÁO CÁO HIỆN TRẠNG KHO</h1>
+  </div>
+  <div class="row ">
+    <div class="col-sm-12 " style="margin: auto;">
+      <form ngNoForm onsubmit="return false;">
+        <p-fieldset legend="Báo Cáo">
+          <div class="row">
+            <div class="col-sm-12">
+              <div class="form-group row">
+                <div class="col-md-2"></div>
+                <label class="col-md-1 col-3" style="text-align: right; height: 100%; margin: auto;">
+                  Kho
+                  <span style="color: red;">*</span>:
+                </label>
+                <div class="col-md-7 col-9 ui-fluid">
+                  <p-autoComplete #inputWarehouse [(ngModel)]="warehouseNameChoose" [suggestions]="filterWarehouse"
+                    (completeMethod)="filterWarehouseName($event)" [size]="200" [minLength]="1"
+                    placeholder="--Chọn Kho--" [dropdown]="true" field="name"
+                    [dropdown]="true" class="fix-drop-down" (onSelect)="setWarehouse($event)"
+                    (onBlur)="isSelected()" 
+                    emptyMessage="Không tồn tại kho nào cả" >
+                  </p-autoComplete>
+                </div>
+                <div class="col-md-2"></div>
+              </div>
+            </div>
+          </div>
+        </p-fieldset>
+        <div class="row row-button">
+          <div class="col-sm-3"></div>
+          <div class="col-sm-6">
+            <p-button label="Báo cáo" icon="fa fa-file-o" (click)="handleSearch()"></p-button>
+            <p-button class="ui-button-danger" icon="fa fa-download" label="Xuất File" (click)="export()">
+            </p-button>
+          </div>
+          <div class="col-sm-3"></div>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="table-container">
+    <p-table [columns]="cols" [lazy]="true" [loading]="loading" [value]="listWarehouseSlot" [totalRecords]="totalRecords"
+      [style]="{'margin':'2px'}"  
+      [paginator]="true" [rows]="10" [resizableColumns]="false" (onPage)="paginate($event)" #myTable>
+        <ng-template pTemplate="colgroup" let-columns>
+          <colgroup>
+            <col *ngFor="let col of columns" [style.width]="col.width">
+          </colgroup>
+        </ng-template>
+        <ng-template pTemplate="header" let-columns>
+            <tr>
+                <td></td>
+                <td></td>
+                <td>Tổng vị trí: {{totalRecords}}</td>
+                <td></td>
+                <td>Đã sử dụng: {{countActive}}</td>
+                <td></td>
+                <td>Chưa sử dụng: {{totalRemain}}</td>
+              </tr>
+          <tr>
+            <th *ngFor="let col of columns" pResizableColumn style="text-align: center; font-weight: bold;">
+              {{col.header}}
+            </th>
+          </tr>
+        </ng-template>
+        <ng-template let-ri="rowIndex" pTemplate="body" let-rowData let-columns="columns">
+          <tr>
+            <td>{{ri+1}}</td>
+            <td style="text-align: left !important;">{{rowData["warehouseName"]}}</td>
+            <td style="text-align: left !important;">{{rowData["row"]}}</td>
+            <td style="text-align: left !important;">{{rowData["column"]}}</td>
+            <td style="text-align: left !important;">{{rowData["position"]}}</td>
+            <td style="text-align: left !important;">{{rowData["qrCode"]}}</td>
+            <td style="text-align: left !important;" *ngIf="rowData['status']==1; else Flag">Đã sử dụng</td>
+            <ng-template #Flag>
+              <td style="text-align: left !important;">Chưa sử dụng</td>
+            </ng-template>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage" let-columns>
+          <tr>
+            <td [attr.colspan]="columns.length" style="text-align: center;">
+              Không có dữ liệu
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="paginatorright">
+          <span
+            style="position: absolute; right: 30px; bottom: 6px;">{{totalRecords == 0 ? pageNumber : pageNumber + 1}} -
+            {{pageNumber + pageSize > totalRecords ? totalRecords : pageNumber + pageSize}}
+            / {{totalRecords}}</span>
+        </ng-template>
+      </p-table>
+  </div>
+</div>

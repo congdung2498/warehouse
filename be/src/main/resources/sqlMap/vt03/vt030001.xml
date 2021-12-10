@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt03.vt030001.dao.VT030001DAO">
+
+	<!-- search with conditions -->
+	<select id="findSquad"
+		resultType="com.viettel.vtnet360.vt03.vt030000.entity.VT030000EntityDriveSquad"
+		parameterType="com.viettel.vtnet360.vt03.vt030000.entity.VT030000EntityDriveSquad">
+		SELECT
+			a.DRIVE_SQUAD_ID as squadId,
+			a.SQUAD_NAME as squadName,
+			a.PLACE_ID as placeId,
+			c.PLACE_NAME as placeName,
+			a.EMPLOYEE_USER_NAME
+			as userName,
+			b.FULL_NAME as fullName,
+			b.UNIT_ID,
+			b.PHONE_NUMBER as emplPhone,
+			d.UNIT_NAME as unitName,
+			a.STATUS as status
+		FROM
+			DRIVES_SQUAD as a 
+			LEFT JOIN QLDV_EMPLOYEE as b ON a.EMPLOYEE_USER_NAME = b.USER_NAME 
+			LEFT JOIN QLDV_PLACE as c ON a.PLACE_ID = c.PLACE_ID 
+			LEFT JOIN QLDV_UNIT as d ON b.UNIT_ID = d.UNIT_ID
+		WHERE
+		a.DELETE_FLAG=0
+		<choose>
+			<when test="status != null">
+				AND a.STATUS = #{status}
+			</when>
+			<otherwise>
+				AND (a.STATUS = 1 OR a.STATUS = 0)
+			</otherwise>
+		</choose>
+
+		<if test="squadName != null">
+			<bind name="pattern" value="'%' + squadName + '%'" />
+			AND a.SQUAD_NAME like #{pattern}
+		</if>
+		<if test="placeId != null">
+			AND a.PLACE_ID = CAST(#{placeId} as unsigned)
+		</if>
+		<if test="userName != null">
+			AND a.EMPLOYEE_USER_NAME = #{userName}
+		</if>
+		ORDER BY a.SQUAD_NAME ASC
+		LIMIT #{pageNumber}, #{pageSize}
+	</select>
+
+	<select id="getTotalRecord" resultType="int" >
+		SELECT COUNT(*)
+		FROM DRIVES_SQUAD as a 
+		WHERE STATUS = 1 AND DELETE_FLAG = 0 
+
+	</select>
+
+	<!-- Tim tat ca truong ban xe theo vi tri -->
+	<select id="findDriver"
+		resultType="com.viettel.vtnet360.vt03.vt030000.entity.VT030000EntityEmployee"
+		parameterType="com.viettel.vtnet360.vt03.vt030000.entity.VT030000EntityEmployee">
+		SELECT
+		a.FULL_NAME as fullName,
+		a.PHONE_NUMBER as emplPhone,
+		a.UNIT_ID as
+		unitId,
+		b.UNIT_NAME as unitName,
+		a.USER_NAME as userName
+		FROM
+		QLDV_EMPLOYEE as a LEFT JOIN QLDV_UNIT as b ON a.UNIT_ID
+		= b.UNIT_ID
+		LEFT JOIN QLDV_PLACE as c ON a.PLACE_ID = c.PLACE_ID
+		WHERE a.`ROLE` 
+		LIKE '%PMQT_QL_Doi_xe%' AND a.STATUS = 1
+		<if test="fullName != null">
+			<bind name="value" value="'%' + fullName + '%'" />
+			AND a.FULL_NAME LIKE #{value}
+		</if>
+		AND b.PATH LIKE CONCAT('%','234841','%')
+		ORDER BY a.FULL_NAME ASC
+		LIMIT #{pageNumber}, #{pageSize}
+	</select>
+
+	<!-- check duplicate when insert -->
+	<select id="checkDuplicate" resultType="int"
+		parameterType="com.viettel.vtnet360.vt03.vt030000.entity.VT030000EntityDriveSquad">
+		SELECT COUNT(*)
+		FROM DRIVES_SQUAD as a
+		WHERE PLACE_ID =
+		#{placeId} and DELETE_FLAG=0
+	</select>
+
+	<!-- check duplicate when insert -->
+	<select id="checkDuplicate1" resultType="int"
+		parameterType="com.viettel.vtnet360.vt03.vt030000.entity.VT030000EntityDriveSquad">
+		SELECT COUNT(*)
+		FROM (SELECT * FROM DRIVES_SQUAD as a
+		WHERE a.DRIVE_SQUAD_ID != #{squadId} AND DELETE_FLAG = 0) as b
+		WHERE PLACE_ID = #{placeId} AND DELETE_FLAG = 0
+	</select>
+	
+	<select id="checkExistedManagerSquad" resultType="int" parameterType="java.lang.String">
+		SELECT COUNT(*) 
+		FROM DRIVES_SQUAD
+		WHERE EMPLOYEE_USER_NAME = #{userName} AND DELETE_FLAG = 0
+	</select>
+	
+	<select id="selectUserManagerCarSquad" resultType="java.lang.String" parameterType="java.lang.String">
+		SELECT EMPLOYEE_USER_NAME
+		FROM DRIVES_SQUAD
+		WHERE DRIVE_SQUAD_ID = #{id} AND DELETE_FLAG = 0
+	</select>
+
+	<!-- If existed then update -->
+	<update id="update"
+		parameterType="com.viettel.vtnet360.vt03.vt030000.entity.VT030000EntityDriveSquad">
+		UPDATE DRIVES_SQUAD
+		SET
+		SQUAD_NAME=#{squadName},
+		PLACE_ID=#{placeId},
+		EMPLOYEE_USER_NAME=#{userName},
+		STATUS=#{status},
+		UPDATE_USER=#{userCreate},
+		UPDATE_DATE= now()
+		WHERE
+		DRIVE_SQUAD_ID=
+		#{squadId}
+	</update>
+
+	<update id="updatePhone"
+		parameterType="com.viettel.vtnet360.vt03.vt030000.entity.VT030000EntityDriveSquad">
+		UPDATE QLDV_EMPLOYEE
+		SET
+		PHONE_NUMBER = #{emplPhone},
+		UPDATE_USER=#{userCreate},
+		UPDATE_DATE= now()
+		WHERE USER_NAME =
+		#{userName}
+	</update>
+
+	<insert id="insertDriveSquad"
+		parameterType="com.viettel.vtnet360.vt03.vt030000.entity.VT030000EntityDriveSquad">
+		INSERT INTO
+		DRIVES_SQUAD(
+		DRIVE_SQUAD_ID,
+		SQUAD_NAME,
+		PLACE_ID,
+		EMPLOYEE_USER_NAME,
+		STATUS,
+		CREATE_USER,
+		CREATE_DATE
+		)
+		VALUES(
+		CONCAT('VTN_SR_', NEXT VALUE FOR VTN_S),
+		#{squadName},
+		#{placeId},
+		#{userName},
+		#{status},
+		#{userCreate},
+		now()
+		)
+	</insert>
+
+	<select id="isExistActiveCar" parameterType="java.lang.String"
+		resultType="int">
+		SELECT COUNT(*)
+		FROM CARS
+		WHERE DRIVE_SQUAD_ID = #{id}
+		AND
+		STATUS = 1 AND PROCESS_STATUS !=7
+	</select>
+
+	<!-- Delete al car in car squad -->
+	<delete id="deleteCars" parameterType="java.lang.String">
+		DELETE FROM CARS
+		WHERE
+		DRIVE_SQUAD_ID = #{squadId}
+	</delete>
+
+	<!-- delete all driver in Car Squad -->
+	<delete id="deleteDriver" parameterType="java.lang.String">
+		DELETE FROM DRIVER
+		WHERE
+		DRIVE_SQUAD_ID = #{squadId}
+	</delete>
+
+	<!-- Delete all cars has matched with driver -->
+	<delete id="deleteCarDriver" parameterType="java.lang.String">
+		DELETE FROM DRIVE_CAR
+		WHERE
+		DRIVE_SQUAD_ID = #{squadId}
+	</delete>
+
+	<delete id="deleteSquad"
+		parameterType="com.viettel.vtnet360.vt03.vt030000.entity.VT030000EntityDriveSquad">
+		UPDATE DRIVES_SQUAD
+		SET DELETE_FLAG=1
+		WHERE
+		DRIVE_SQUAD_ID= #{squadId}
+	</delete>
+
+	<select id="selectPlaceId" parameterType="java.lang.String"
+		resultType="int">
+		SELECT PLACE_ID
+		FROM QLDV_EMPLOYEE
+		WHERE USER_NAME =
+		#{username}
+	</select>
+
+	<select id="getStatus" parameterType="java.lang.String"
+		resultType="int">
+		SELECT STATUS
+		FROM DRIVES_SQUAD
+		WHERE DRIVE_SQUAD_ID=
+		#{squadId}
+	</select>
+
+	<select id="isDelete" parameterType="java.lang.String" resultType="int">
+		SELECT DELETE_FLAG 
+		FROM DRIVES_SQUAD
+		WHERE DRIVE_SQUAD_ID =
+		#{squadId}
+	</select>
+
+</mapper>

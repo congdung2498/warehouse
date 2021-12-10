@@ -1,0 +1,110 @@
+<div class="container">
+
+    <div class="col-sm-12" style="margin-top: 20px;">
+        <p-fieldset legend="Thông tin tìm kiếm">
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="form-group row">
+                        <div class="col-sm-2"></div>
+                        <label class="col-sm-3 ">Loại tham số <span style="color: red;">*</span>: </label>
+                        <div class="col-sm-7">
+                            <p-dropdown #msClassFld [options]="msClassConfigList" [style]="{'width': '65%'}" [(ngModel)]="msClassConfig"
+                                        placeholder="-- Chọn loại tham số --" emptyFilterMessage="Không có dữ liệu" [disabled] = "isShow"
+                                        filter="true" optionLabel="masterClass" [showClear]="true"></p-dropdown>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-2"></div>
+                        <label class="col-sm-3 ">Tên tham số <span style="color: red;">*</span>: </label>
+                        <div class="col-sm-7">
+                            <input #msClassText type="text" [style]="{'width': '100%'}" [disabled] = "isShow"
+                                   value="Đăng ký mới" style="font-weight: bold;" [(ngModel)]="paramName"
+                                   pInputText/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group row">
+                        <div class="col-sm-1"></div>
+                        <label class="col-sm-4 ">Ghi chú : </label>
+                        <div class="col-sm-7">
+                            <input #msClassNoteEle type="text" [style]="{'width': '100%'}"
+                            value="Đăng ký mới" style="font-weight: bold;" [(ngModel)]="paramNote"
+                            pInputText/>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-1"></div>
+                        <label class="col-sm-4 ">Giá trị tham số <span style="color: red;">*</span>: </label>
+                        <div class="col-sm-7">
+                            <input #msClassConfigEle type="text" [style]="{'width': '100%'}"
+                            value="Đăng ký mới" style="font-weight: bold;" [(ngModel)]="paramConfig"
+                            pInputText/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </p-fieldset>
+    </div>
+    <div class="mb-3 mt-3" style="text-align: center">
+            <button pButton class="ui-button-info" icon="pi pi-search" label="Tìm kiếm" *ngIf="isSearch;"
+                    (click)="handleSearch()"></button>
+            <button pButton class="ui-button-info" icon="fa fa-refresh" label="Làm mới"
+                    (click)="handleReset()"></button>
+            <button *ngIf="isEdit;" pButton class="ui-button-info" icon="fa fa-save" label="Lưu"
+                    (click)="handleEdit()"></button>
+    </div>
+    <div class="col-sm-12">
+        <p-table #myTable [value]="searchClassConfigList" [totalRecords]="totalRecords" [paginator]="true" (onLazyLoad)="onLazyLoad($event)" [lazy]="true"
+                 [rows]="15" >
+            <ng-template pTemplate="header">
+                <tr style="font-weight: bold;">
+                    <th rowspan="1" style="width: 10%; font-weight: bold;text-align: center">STT</th>
+                    <th rowspan="5" style="width: 10%; font-weight: bold;text-align: center">Thao tác</th>
+                    <th rowspan="5" style="width: 25%; font-weight: bold;text-align: center">Loại tham số</th>
+                    <th rowspan="5" style="width: 25%; font-weight: bold;text-align: center">Tên tham số</th>
+                    <th rowspan="5" style="width: 15%; font-weight: bold;text-align: center">Giá trị tham số</th>
+                    <th rowspan="5" style="width: 35%; font-weight: bold;text-align: center">Ghi chú</th>
+                </tr>
+
+            </ng-template>
+            <ng-template let-ri="rowIndex" pTemplate="body" let-item>
+                <tr>
+                    <td >{{ri+1}}</td>
+                    <td class="wrapText"
+                    >
+                        <p-button  icon="pi pi-pencil" [disabled] ="isDisabled" (onClick)="doEdit(item)"></p-button>
+                    </td>
+                    <td class="wrapText"  style="width: 5rem; text-align: left !important;"  [pTooltip]="item.masterClass"
+                    >
+                        {{item.masterClass}}
+                    </td>
+                    <td class="wrapText"  style="width: 5rem; text-align: left !important;" [pTooltip]="item.nameConfig"
+                    >
+                        {{item.nameConfig}}
+                    </td>
+                    <td class="wrapText"  style="width: 5rem; text-align: left !important;" [pTooltip]="item.valueConfig"
+                    >
+                        {{item.valueConfig}}
+                    </td>
+                    <td class="wrapText"  style="width: 5rem; text-align: left !important;" [pTooltip]="item.noteConfig"
+                    >
+                        {{item.noteConfig}}
+                    </td>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td [attr.colspan]="6">
+                        Không có dữ liệu
+                    </td>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="paginatorright">
+          <span style="position: absolute; right: 30px; bottom: 6px;">{{totalRecords == 0 ? pageNumber : pageNumber + 1}} - {{pageNumber+pageSize>totalRecords ? totalRecords : pageNumber+pageSize}}
+            / {{totalRecords}}</span>
+            </ng-template>
+        </p-table>
+    </div>
+
+</div>

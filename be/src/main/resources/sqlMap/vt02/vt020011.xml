@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt02.vt020011.dao.VT020011DAO">
+
+	<!-- get list of day off now -->
+	<select id="findDayOff" resultType="com.viettel.vtnet360.vt02.vt020011.entity.VT020011DayOffSettingEntity">
+		SELECT
+			dos.DAY_OFF_ID AS dayOffId,
+			dos.DAY_OFF AS dayOff,
+			dos.DESCRIPTION AS description,
+			dos.STATUS AS status
+		FROM
+			DAY_OFF_SETTING dos
+		<where>
+			<if test="listYears == null or listYears.length == 0">
+				YEAR( dos.DAY_OFF ) = YEAR( NOW())
+			</if>
+			<if test="listYears != null and listYears.length &gt; 0">
+				YEAR( dos.DAY_OFF ) IN
+				<foreach item="item" collection="listYears" open = "(" separator="," close = ")">
+					#{item}
+				</foreach>
+			</if>
+		</where>
+		ORDER BY
+			dos.DAY_OFF ASC
+		<if test="startRow != -1 &amp;&amp; rowSize != -1">
+			LIMIT #{startRow}, #{rowSize}
+		</if>
+	</select>
+
+	<!-- get total day off -->
+	<select id="countTotalDayOff" parameterType="com.viettel.vtnet360.vt02.vt020011.entity.VT020011DayOffSettingEntity"
+		resultType="java.lang.Integer">
+		SELECT
+			COUNT(*)
+		FROM
+			DAY_OFF_SETTING dos
+		<where>
+			<if test="listYears == null or listYears.length == 0">
+				YEAR( dos.DAY_OFF ) = YEAR( NOW())
+			</if>
+			<if test="listYears != null and listYears.length &gt; 0">
+				YEAR( dos.DAY_OFF ) IN
+				<foreach item="item" collection="listYears" open = "(" separator="," close = ")">
+					#{item}
+				</foreach>
+			</if>
+		</where>
+	</select>
+
+	<!-- check day off is existed or not -->
+	<select id="checkDayOffExist" resultType="java.lang.Integer" parameterType="com.viettel.vtnet360.vt02.vt020011.entity.VT020011DayOffSettingEntity">
+		SELECT COUNT(*)
+		FROM DAY_OFF_SETTING dos
+		WHERE dos.DAY_OFF = #{dayOff}
+		<if test="dayOffId != null &amp;&amp; dayOffId.length &gt; 0">
+		 	AND dos.DAY_OFF_ID != #{dayOffId}
+	 	</if>
+	</select>
+
+	<!-- insert day off -->
+	<insert id="insertDayOff" parameterType="com.viettel.vtnet360.vt02.vt020011.entity.VT020011DayOffSettingEntity">
+		INSERT
+		INTO
+			DAY_OFF_SETTING ( DAY_OFF_ID,
+			DAY_OFF,
+			DESCRIPTION,
+			STATUS,
+			CREATE_USER,
+			CREATE_DATE,
+			UPDATE_USER,
+			UPDATE_DATE )
+		VALUES( CONCAT( 'VTN_SR_', NEXT VALUE FOR VTN_S ),
+		#{dayOff},
+		#{description},
+		#{status},
+		#{createUser},
+		NOW(),
+		#{createUser},
+		NOW())
+	</insert>
+
+	<!-- update day off -->
+	<update id="updateDayOff" parameterType="com.viettel.vtnet360.vt02.vt020011.entity.VT020011DayOffSettingEntity">
+		UPDATE
+			DAY_OFF_SETTING SET
+				DAY_OFF = #{dayOff},
+				DESCRIPTION = #{description},
+				STATUS = #{status},
+				UPDATE_USER = #{updateUser},
+				UPDATE_DATE = SYSDATE()
+			WHERE
+				DAY_OFF_ID = #{dayOffId}
+	</update>
+
+	<!-- delete day off -->
+	<delete id="deleteDayOff" parameterType="com.viettel.vtnet360.vt02.vt020011.entity.VT020011DayOffSettingEntity">
+		DELETE
+		FROM
+			DAY_OFF_SETTING
+		WHERE
+			YEAR( DAY_OFF ) = YEAR( #{dayOff} )
+	</delete>
+
+	<!-- insert copy day off -->
+	<insert id="insertCopyDayOff" parameterType="java.util.List">
+		INSERT
+		INTO
+			DAY_OFF_SETTING ( DAY_OFF_ID,
+			DAY_OFF,
+			DESCRIPTION,
+			STATUS,
+			CREATE_USER,
+			CREATE_DATE )
+		VALUES
+		<if test="list != null &amp;&amp; list.size() &gt; 0">
+			<foreach item="item" collection="list" separator=",">
+				( CONCAT( 'VTN_SR_', NEXT VALUE FOR VTN_S ),
+				#{item.dayOff},
+				#{item.description},
+				#{item.status},
+				#{item.createUser},
+				SYSDATE())
+			</foreach>
+		</if>
+	</insert>
+
+	<!-- select all years day off -->
+	<select id="findAllYears" resultType="java.lang.String">
+		SELECT
+			DISTINCT( YEAR( DAY_OFF ))
+		FROM
+			DAY_OFF_SETTING
+		GROUP BY
+			DAY_OFF
+	</select>
+
+	<delete id="deleteLunchDateInDayOff" parameterType="java.util.Date">
+		DELETE FROM LUNCH_CALENDAR
+		WHERE DATE(LUNCH_DATE) = DATE(#{dayOff})
+	</delete>
+
+</mapper>

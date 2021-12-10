@@ -1,0 +1,484 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.viettel.vtnet360.vt03.vt030007.dao.VT030007DAO">
+    <!-- lay ve 1 danh sach yeu cau dat xe dua theo:
+        - Neu user co role la QL thi lay ban ghi co status = 0 tuong ung voi cap do phe duyet cua user
+        - Neu user co role la truong ban xe thi lay ban ghi co status = 1 tuong ung voi ma vi tri cua user
+        - Neu user co role la Nhan vien thi lay ban ghi co userName tuong ung
+        - Dua theo dieu kien tim kiem (su dung cho cac man VT030007, VT030010, VT030015)
+     -->
+     
+     
+      <select id="findBookCarListApprove"
+        parameterType="com.viettel.vtnet360.vt03.vt030007.entity.VT030007ResquestFindBookCar"
+        resultType="com.viettel.vtnet360.vt03.vt030007.entity.VT030007EntityBookCarInfo">
+         SELECT
+                a.CAR_BOOKING_ID AS bookCarId,
+                a.EMPLOYEE_USER_NAME AS userName,
+                b.FULL_NAME AS fullName ,
+                b.PLACE_ID,
+                b.PHONE_NUMBER AS emplPhone,
+                b.UNIT_ID AS unitId,
+                c.UNIT_NAME as unitName,
+                a.`TYPE` AS TYPE_CAR,
+                (SELECT kq.CODE_NAME FROM M_SYSTEM_CODE AS kq WHERE kq.MASTER_CLASS = 'S001' AND STATUS =1
+                AND kq.CODE_VALUE = a.`TYPE`) AS type,
+                a.`SEAT` AS SEAT_CAR,
+                (SELECT kq.CODE_NAME FROM M_SYSTEM_CODE AS kq WHERE kq.MASTER_CLASS = 'S002' AND STATUS =1
+                AND kq.CODE_VALUE = a.`SEAT`) AS seat,
+                a.`ROUTE_TYPE` AS ROUTE_CAR,
+                (SELECT kq.CODE_NAME FROM M_SYSTEM_CODE AS kq WHERE kq.MASTER_CLASS = 'S003' AND STATUS =1
+                AND kq.CODE_VALUE = a.`ROUTE_TYPE`) AS route,
+                a.TOTAL_PASSAGE AS totalPartner,    
+                a.RATTING as ratting,
+                a.START AS dateStart,
+                a.END AS dateEnd,
+                a.STATUS AS status,
+                a.FLAG_QLTT as statusDir,
+                a.FLAG_LDDV as statusLead,
+                a.FLAG_CVP as statusPre,
+                a.APPOVER_QLTT as approverDir,
+                a.APPOVER_LDDV as approverLead,
+                a.APPOVER_CVP as approverPre
+            FROM
+                CAR_BOOKING AS a 
+                LEFT JOIN QLDV_EMPLOYEE AS b ON a.EMPLOYEE_USER_NAME = b.USER_NAME 
+                LEFT JOIN QLDV_UNIT AS c ON b.UNIT_ID = c.UNIT_ID 
+            WHERE  a.STATUS != 8
+            
+            <if test="userName != null">
+                AND a.EMPLOYEE_USER_NAME = #{userName}
+            </if> 
+            
+            <if test="role == 'PMQT_QL' or role == 'PMQT_CVP' ">
+                <if test="unitId != null">
+                    <bind name="unitParent" value="'%' + unitId + '%'"/>
+                    AND  b.UNIT_ID IN (SELECT UNIT_ID FROM QLDV_UNIT WHERE PATH LIKE  #{unitParent})
+                </if>
+                AND 
+                ( APPOVER_QLTT = #{userManager} OR
+                  CASE WHEN APPOVER_QLTT IS NULL THEN APPOVER_LDDV = #{userManager} END OR
+                 CASE WHEN APPOVER_LDDV = #{userManager} THEN FLAG_QLTT = 1 END OR 
+                 CASE WHEN APPOVER_CVP = #{userManager} THEN FLAG_LDDV = 1  END )
+            </if>
+    
+            <if test="listStatus != null and listStatus.size() > 0">
+                AND a.STATUS IN
+                <foreach item="status" index="index" collection="listStatus" open="(" separator="," close=")">
+                    #{status}
+                </foreach>
+            </if> 
+        <if test="timeStart == null">
+            <choose>
+                <when test="timeEnd != null">
+                     AND a.START &lt;= #{timeEnd}
+                     AND a.END &lt;= #{timeEnd}
+                </when>
+            </choose>
+        </if>
+        <if test="timeStart != null">
+            <choose>
+                <when test="timeEnd !=null">
+                    AND a.START BETWEEN #{timeStart} AND #{timeEnd}     
+                    AND a.END BETWEEN #{timeStart} AND #{timeEnd}
+                </when>
+                <otherwise>
+                    AND a.START &gt;= #{timeStart}  
+                </otherwise>
+            </choose>
+        </if>
+        ORDER BY dateStart DESC
+        LIMIT #{pageNumber}, #{pageSize}    
+    </select>
+     
+     <select id="findBookCarList"
+        parameterType="com.viettel.vtnet360.vt03.vt030007.entity.VT030007ResquestFindBookCar"
+        resultType="com.viettel.vtnet360.vt03.vt030007.entity.VT030007EntityBookCarInfo">
+         SELECT
+                a.CAR_BOOKING_ID AS bookCarId,
+                a.EMPLOYEE_USER_NAME AS userName,
+                b.FULL_NAME AS fullName ,
+                b.PLACE_ID,
+                b.PHONE_NUMBER AS emplPhone,
+                b.UNIT_ID AS unitId,
+                c.UNIT_NAME as unitName,
+                a.`TYPE` AS TYPE_CAR,
+                (SELECT kq.CODE_NAME FROM M_SYSTEM_CODE AS kq WHERE kq.MASTER_CLASS = 'S001' AND STATUS =1
+                AND kq.CODE_VALUE = a.`TYPE`) AS type,
+                a.`SEAT` AS SEAT_CAR,
+                (SELECT kq.CODE_NAME FROM M_SYSTEM_CODE AS kq WHERE kq.MASTER_CLASS = 'S002' AND STATUS =1
+                AND kq.CODE_VALUE = a.`SEAT`) AS seat,
+                a.`ROUTE_TYPE` AS ROUTE_CAR,
+                (SELECT kq.CODE_NAME FROM M_SYSTEM_CODE AS kq WHERE kq.MASTER_CLASS = 'S003' AND STATUS =1
+                AND kq.CODE_VALUE = a.`ROUTE_TYPE`) AS route,
+                a.TOTAL_PASSAGE AS totalPartner,    
+                a.RATTING as ratting,
+                a.START AS dateStart,
+                a.END AS dateEnd,
+                a.STATUS AS status,
+                a.FLAG_QLTT,
+                a.FLAG_LDDV,
+                a.FLAG_CVP,
+                a.APPOVER_QLTT,
+                a.APPOVER_LDDV,
+                a.APPOVER_CVP
+            FROM
+                CAR_BOOKING AS a 
+                LEFT JOIN QLDV_EMPLOYEE AS b ON a.EMPLOYEE_USER_NAME = b.USER_NAME 
+                LEFT JOIN QLDV_UNIT AS c ON b.UNIT_ID = c.UNIT_ID 
+            WHERE  a.STATUS != 8
+                AND a.EMPLOYEE_USER_NAME = #{userManager}  
+            <if test="listStatus != null and listStatus.size() > 0">
+                AND a.STATUS IN
+                <foreach item="status" index="index" collection="listStatus" open="(" separator="," close=")">
+                    #{status}
+                </foreach>
+            </if> 
+        <if test="timeStart == null">
+            <choose>
+                <when test="timeEnd != null">
+                     AND a.START &lt;= #{timeEnd}
+                     AND a.END &lt;= #{timeEnd}
+                </when>
+            </choose>
+        </if>
+        <if test="timeStart != null">
+            <choose>
+                <when test="timeEnd !=null">
+                    AND a.START BETWEEN #{timeStart} AND #{timeEnd}     
+                    AND a.END BETWEEN #{timeStart} AND #{timeEnd}
+                </when>
+                <otherwise>
+                    AND a.START &gt;= #{timeStart}  
+                </otherwise>
+            </choose>
+        </if>
+        
+        <!-- Tim kiem theo loai xe -->
+        <if test="typeCar != null">
+            AND a.`TYPE` = #{typeCar}
+        </if>
+        <!-- Tim kiem theo so cho -->
+        <if test="seat != null">
+            AND a.`SEAT` = #{seat}
+        </if>
+        <!-- Tim kiem theo loai hanh trinh -->
+        <if test="route !=null">
+            AND a.`ROUTE_TYPE` = #{route}
+        </if>
+        ORDER BY dateStart DESC
+        LIMIT #{pageNumber}, #{pageSize}    
+    </select>
+     
+    <select id="findBookCarRequest"
+        parameterType="com.viettel.vtnet360.vt03.vt030007.entity.VT030007ResquestFindBookCar"
+        resultType="com.viettel.vtnet360.vt03.vt030007.entity.VT030007EntityBookCarInfo">
+         SELECT
+                a.CAR_BOOKING_ID AS bookCarId,
+                a.EMPLOYEE_USER_NAME AS userName,
+                b.FULL_NAME AS fullName ,
+                b.PLACE_ID,
+            
+                    b.PHONE_NUMBER AS emplPhone,
+                b.UNIT_ID AS unitId,
+                c.UNIT_NAME as unitName,
+                a.`TYPE` AS TYPE_CAR,
+                (SELECT kq.CODE_NAME FROM M_SYSTEM_CODE AS kq WHERE kq.MASTER_CLASS = #{masterClassType} AND STATUS =1
+                AND kq.CODE_VALUE = a.`TYPE`) AS type,
+                a.`SEAT` AS SEAT_CAR,
+                (SELECT kq.CODE_NAME FROM M_SYSTEM_CODE AS kq WHERE kq.MASTER_CLASS = #{masterClassSeat} AND STATUS =1
+                AND kq.CODE_VALUE = a.`SEAT`) AS seat,
+                a.`ROUTE_TYPE` AS ROUTE_CAR,
+                (SELECT kq.CODE_NAME FROM M_SYSTEM_CODE AS kq WHERE kq.MASTER_CLASS = #{masterClassRoute} AND STATUS =1
+                AND kq.CODE_VALUE = a.`ROUTE_TYPE`) AS route,
+                <if test="processByRole == 'PMQT_QL_Doi_xe' or processByRole == 'PMQT_NV' or processByRole == 'PMQT_ADMIN'">
+                    a.TOTAL_PASSAGE AS totalPartner,    
+                </if>
+                <if test="processByRole == 'PMQT_NV' or processByRole == 'PMQT_ADMIN'">
+                    a.RATTING as ratting,
+                </if>
+                a.START AS dateStart,
+                a.END AS dateEnd,
+                a.STATUS AS status,
+                a.FLAG_QLTT,
+                a.FLAG_LDDV,
+                a.FLAG_CVP,
+                a.APPOVER_QLTT,
+                a.APPOVER_LDDV,
+                a.APPOVER_CVP
+            FROM
+                CAR_BOOKING AS a 
+                LEFT JOIN QLDV_EMPLOYEE AS b ON a.EMPLOYEE_USER_NAME = b.USER_NAME 
+                LEFT JOIN QLDV_UNIT AS c ON b.UNIT_ID = c.UNIT_ID 
+            WHERE  a.STATUS != 8
+                
+                <!-- - neu la admin -->
+                <if test=" role == 'PMQT_ADMIN'">
+            <if test="listStatus.size() != 0">
+                AND a.STATUS IN
+                <foreach item="status" index="index" collection="listStatus" open="(" separator="," close=")">
+                    #{status}
+                </foreach>
+            </if> 
+        
+        </if>
+        <!-- Neu user co role la QL thi se lay ban ghi dang pendding tuong ung voi cap duyet tuong ung-->    
+        <if test="processByRole == 'PMQT_QL' and role != 'PMQT_ADMIN'">  
+        AND a.EMPLOYEE_USER_NAME = #{userManager}  
+            <if test="listStatus.size() != 0">
+            AND a.STATUS IN
+                <foreach item="status" index="index" collection="listStatus" open="(" separator="," close=")">
+                    #{status}
+                </foreach>
+            </if> 
+             AND ((a.APPOVER_QLTT = #{userManager}) OR (a.APPOVER_LDDV= #{userManager}) OR (a.APPOVER_CVP = #{userManager})) AND b.STATUS = 1   
+        </if>
+        <!-- <if test="processByRole == 'PMQT_QL' and role == 'PMQT_ADMIN'">     
+            <if test="listStatus.size() != 0">
+                AND a.STATUS IN
+                <foreach item="status" index="index" collection="listStatus" open="(" separator="," close=")">
+                    #{status}
+                </foreach>
+            </if> tif
+             AND b.STATUS = 1
+        </if> -->
+        <!-- neu user dang nhap voi role la QL doi xe thi lay ban ghi da duoc phe duyet va co placeId trung voi user do -->
+        <!-- <if test="processByRole == 'PMQT_QL_Doi_xe' and role != 'PMQT_ADMIN'">
+            AND (a.STATUS = 1 OR a.STATUS = 4)  AND a.DRIVER_SQUAD_ID = (SELECT DRIVE_SQUAD_ID FROM DRIVES_SQUAD WHERE EMPLOYEE_USER_NAME = #{userManager} AND DELETE_FLAG = 0) AND b.STATUS = 1
+        </if>
+        <if test="processByRole == 'PMQT_QL_Doi_xe' and role == 'PMQT_ADMIN'">
+            AND (a.STATUS = 1 OR a.STATUS = 4) AND b.STATUS = 1
+        </if> -->
+        <if test="processByRole == 'PMQT_QL_Doi_xe' and role != 'PMQT_ADMIN'">
+        AND a.DRIVER_SQUAD_ID = ((SELECT DRIVE_SQUAD_ID FROM DRIVES_SQUAD WHERE EMPLOYEE_USER_NAME = #{userManager} AND DELETE_FLAG = 0) AND b.STATUS = 1)
+        <if test="listStatus.size() != 0">
+                AND a.STATUS IN
+                <foreach item="status" index="index" collection="listStatus" open="(" separator="," close=")">
+                    #{status}
+                </foreach>
+            </if> 
+        </if>
+        <!-- neu user dang nhap voi role la nhan vien thi lay ban ghi voi username trung voi username cua user -->
+        <if test="processByRole == 'PMQT_NV' and role != 'PMQT_ADMIN' ">
+            AND a.EMPLOYEE_USER_NAME = #{userManager} AND b.STATUS = 1
+            <if test="listStatus.size() != 0">
+                AND a.STATUS IN
+                <foreach item="status" index="index" collection="listStatus" open="(" separator="," close=")">
+                    #{status}
+                </foreach>
+            </if>
+            
+        </if>
+        <!-- Tim kiem theo don vi -->
+        <if test="unitId != null">
+            <bind name="unitParent" value="'%' + unitId + '%'"/>
+            AND  b.UNIT_ID IN (SELECT UNIT_ID FROM QLDV_UNIT WHERE PATH LIKE  #{unitParent})
+        </if>
+        <!-- Tim kiem theo ten duoc chon -->
+        <if test="userName != null">
+            AND a.EMPLOYEE_USER_NAME = #{userName}
+        </if>
+        <!-- Tim kiem theo so dien thoai -->
+        <if test="emplPhone !=null and emplPhone.length > 0">
+            <bind name="pattern" value="'%' + emplPhone + '%'" />
+            AND b.PHONE_NUMBER LIKE #{pattern}
+        </if>
+        <!-- Tim kiem theo tong so nguoi tham gia -->
+        <if test="totalPartner != null">
+            AND a.TOTAL_PASSAGE = #{totalPartner}
+        </if>
+        <!-- Tim kiem theo thoi gian bat dau, ket thuc cua yeu cau dat xe 
+            - Neu thoi gian bat dau la null va thoi gian ket thuc khac null thi lay het ban ghi voi thoi gian <= thoi gian ket thuc 
+            - Neu thoi gian ket thuc la null va thoi gian bat dau khac null thi lay het ban ghi voi thoi gian >= thoi gian bat dau va <= thoi gian hien tai
+        -->
+        <if test="timeStart == null">
+            <choose>
+                <when test="timeEnd != null">
+                     AND a.START &lt;= #{timeEnd}
+                     AND a.END &lt;= #{timeEnd}
+                </when>
+            </choose>
+        </if>
+        <if test="timeStart != null">
+            <choose>
+                <when test="timeEnd !=null">
+                    AND a.START BETWEEN #{timeStart} AND #{timeEnd}     
+                    AND a.END BETWEEN #{timeStart} AND #{timeEnd}
+                </when>
+                <otherwise>
+                    AND a.START &gt;= #{timeStart}  
+                </otherwise>
+            </choose>
+        </if>
+        
+        <!-- Tim kiem theo loai xe -->
+        <if test="typeCar != null">
+            AND a.`TYPE` = #{typeCar}
+        </if>
+        <!-- Tim kiem theo so cho -->
+        <if test="seat != null">
+            AND a.`SEAT` = #{seat}
+        </if>
+        <!-- Tim kiem theo loai hanh trinh -->
+        <if test="route !=null">
+            AND a.`ROUTE_TYPE` = #{route}
+        </if>
+        ORDER BY dateStart DESC
+        LIMIT #{pageNumber}, #{pageSize}    
+    </select>
+
+    <select id="findBookCarRequestOrder"
+        parameterType="com.viettel.vtnet360.vt03.vt030007.entity.VT030007ResquestFindBookCar"
+        resultType="com.viettel.vtnet360.vt03.vt030007.entity.VT030007EntityBookCarInfo">
+         SELECT
+        a.CAR_BOOKING_ID AS bookCarId,
+        a.EMPLOYEE_USER_NAME AS userName,
+        b.FULL_NAME AS fullName ,
+        b.PLACE_ID,
+        <if test="processByRole == 'PMQT_QL_Doi_xe' or processByRole == 'PMQT_ADMIN'">
+            b.PHONE_NUMBER AS emplPhone,
+        </if>
+        b.UNIT_ID AS unitId,
+        c.UNIT_NAME as unitName,
+        a.`TYPE` AS TYPE_CAR,
+        (SELECT kq.CODE_NAME FROM M_SYSTEM_CODE AS kq WHERE kq.MASTER_CLASS = #{masterClassType} AND STATUS =1
+        AND kq.CODE_VALUE = a.`TYPE`) AS type,
+        a.`SEAT` AS SEAT_CAR,
+        (SELECT kq.CODE_NAME FROM M_SYSTEM_CODE AS kq WHERE kq.MASTER_CLASS = #{masterClassSeat} AND STATUS =1
+        AND kq.CODE_VALUE = a.`SEAT`) AS seat,
+        a.`ROUTE_TYPE` AS ROUTE_CAR,
+        (SELECT kq.CODE_NAME FROM M_SYSTEM_CODE AS kq WHERE kq.MASTER_CLASS = #{masterClassRoute} AND STATUS =1
+        AND kq.CODE_VALUE = a.`ROUTE_TYPE`) AS route,
+        <if test="processByRole == 'PMQT_QL_Doi_xe' or processByRole == 'PMQT_NV' or processByRole == 'PMQT_ADMIN'">
+            a.TOTAL_PASSAGE AS totalPartner,
+        </if>
+        <if test="processByRole == 'PMQT_NV' or processByRole == 'PMQT_ADMIN'">
+            a.RATTING as ratting,
+        </if>
+        a.START AS dateStart,
+        a.END AS dateEnd,
+        a.STATUS AS status,
+        a.FLAG_QLTT,
+        a.FLAG_LDDV,
+        a.FLAG_CVP,
+        a.APPOVER_QLTT,
+        a.APPOVER_LDDV,
+        a.APPOVER_CVP,
+        (SELECT place.PLACE_NAME FROM qldv_place as place WHERE place.PLACE_ID = a.START_PLACE) as startPlace,
+        a.TAGET_PLACE as targetPlace,
+        (SELECT ca.LICENSE_PLATE FROM CARS AS ca WHERE ca.CAR_ID = a.CAR_ID) AS licensePlate
+        FROM
+        CAR_BOOKING AS a
+        LEFT JOIN QLDV_EMPLOYEE AS b ON a.EMPLOYEE_USER_NAME = b.USER_NAME
+        LEFT JOIN QLDV_UNIT AS c ON b.UNIT_ID = c.UNIT_ID
+        WHERE  a.STATUS NOT IN (0,2,3,5,6,7,8,10)
+
+        <!-- - neu la admin -->
+        <if test=" role == 'PMQT_ADMIN'">
+            <if test="listStatus.size() != 0">
+                AND a.STATUS IN
+                <foreach item="status" index="index" collection="listStatus" open="(" separator="," close=")">
+                    #{status}
+                </foreach>
+            </if> 
+        
+        </if>
+        <!-- Neu user co role la QL thi se lay ban ghi dang pendding tuong ung voi cap duyet tuong ung-->    
+        <if test="processByRole == 'PMQT_QL' and role != 'PMQT_ADMIN'">  
+            <if test="listStatus.size() != 0">
+                AND a.EMPLOYEE_USER_NAME = #{userManager}  AND b.STATUS = 1   AND a.STATUS IN
+                <foreach item="status" index="index" collection="listStatus" open="(" separator="," close=")">
+                    #{status}
+                </foreach>
+            </if> 
+            <!--  AND ((a.APPOVER_QLTT = #{userManager}) OR (a.APPOVER_LDDV= #{userManager}) OR (a.APPOVER_CVP = #{userManager})) AND b.STATUS = 1  --> 
+        </if>
+        
+        <if test="processByRole == 'PMQT_QL_Doi_xe' and role != 'PMQT_ADMIN'">
+        AND a.DRIVER_SQUAD_ID = ((SELECT DRIVE_SQUAD_ID FROM DRIVES_SQUAD WHERE EMPLOYEE_USER_NAME = #{userManager} AND DELETE_FLAG = 0) AND b.STATUS = 1)
+        <if test="listStatus.size() != 0">
+                AND a.STATUS IN
+                <foreach item="status" index="index" collection="listStatus" open="(" separator="," close=")">
+                    #{status}
+                </foreach>
+            </if> 
+        </if>
+        <!-- neu user dang nhap voi role la nhan vien thi lay ban ghi voi username trung voi username cua user -->
+        <if test="processByRole == 'PMQT_NV' and role != 'PMQT_ADMIN' ">
+            <if test="listStatus.size() != 0">
+                AND a.STATUS IN
+                <foreach item="status" index="index" collection="listStatus" open="(" separator="," close=")">
+                    #{status}
+                </foreach>
+            </if>
+            
+        </if>
+        <!-- Tim kiem theo don vi -->
+        <if test="unitId != null">
+            <bind name="unitParent" value="'%' + unitId + '%'"/>
+            AND  b.UNIT_ID IN (SELECT UNIT_ID FROM QLDV_UNIT WHERE PATH LIKE  #{unitParent})
+        </if>
+        <!-- Tim kiem theo ten duoc chon -->
+        <if test="userName != null">
+            AND a.EMPLOYEE_USER_NAME = #{userName}
+        </if>
+        <!-- Tim kiem theo so dien thoai -->
+        <if test="emplPhone !=null and emplPhone.length > 0">
+            <bind name="pattern" value="'%' + emplPhone + '%'" />
+            AND b.PHONE_NUMBER LIKE #{pattern}
+        </if>
+        <!-- Tim kiem theo tong so nguoi tham gia -->
+        <if test="totalPartner != null">
+            AND a.TOTAL_PASSAGE = #{totalPartner}
+        </if>
+        <!-- Tim kiem theo thoi gian bat dau, ket thuc cua yeu cau dat xe 
+            - Neu thoi gian bat dau la null va thoi gian ket thuc khac null thi lay het ban ghi voi thoi gian <= thoi gian ket thuc 
+            - Neu thoi gian ket thuc la null va thoi gian bat dau khac null thi lay het ban ghi voi thoi gian >= thoi gian bat dau va <= thoi gian hien tai
+        -->
+        <if test="timeStart == null">
+            <choose>
+                <when test="timeEnd != null">
+                     AND a.START &lt;= #{timeEnd}
+                     AND a.END &lt;= #{timeEnd}
+                </when>
+            </choose>
+        </if>
+        <if test="timeStart != null">
+            <choose>
+                <when test="timeEnd !=null">
+                    AND a.START BETWEEN #{timeStart} AND #{timeEnd}     
+                    AND a.END BETWEEN #{timeStart} AND #{timeEnd}
+                </when>
+                <otherwise>
+                    AND a.START &gt;= #{timeStart}  
+                </otherwise>
+            </choose>
+        </if>
+        
+        <!-- Tim kiem theo loai xe -->
+        <if test="typeCar != null">
+            AND a.`TYPE` = #{typeCar}
+        </if>
+        <!-- Tim kiem theo so cho -->
+        <if test="seat != null">
+            AND a.`SEAT` = #{seat}
+        </if>
+        <!-- Tim kiem theo loai hanh trinh -->
+        <if test="route !=null">
+            AND a.`ROUTE_TYPE` = #{route}
+        </if>
+        <!-- Tim kiem theo dia diem khoi hanh -->
+        <if test="startPlace != 0">
+            AND a.`START_PLACE` = #{startPlace}
+        </if>
+        <!-- Tim kiem theo dia diem den -->
+        <if test="tagetPlace !=null and tagetPlace.length > 0">
+            <bind name="pattern" value="'%' + tagetPlace + '%'" />
+            AND a.TAGET_PLACE LIKE #{tagetPlace}
+        </if>
+        ORDER BY dateStart ASC
+        LIMIT #{pageNumber}, #{pageSize}    
+    </select>
+
+
+</mapper>

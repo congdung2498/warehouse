@@ -1,0 +1,137 @@
+<div class="container">
+  <div class="container-fluid text-center mt-5">
+    <h1>BÁO CÁO TỔNG HỢP SUẤT ĂN THEO ĐƠN VỊ</h1>
+  </div>
+  <p-fieldset legend="Thông tin tìm kiếm">
+    <div class="row">
+      <div class="col-6">
+        <div class="row form-group">
+          <div class="col-3 col-form-label">
+            <label>Bếp:</label>
+          </div>
+          <div class="col-9 ui-fluid">
+            <p-dropdown #inputSelectedKitchen [options]="results" optionLabel="kitchenName" [filter]="true"
+                        [style]="{'width': '100%'}" [(ngModel)]="selectedKitchen"
+                        emptyFilterMessage="Không có dữ liệu" placeholder="-Lựa chọn bếp-">
+            </p-dropdown>
+          </div>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="row form-group">
+          <div class="col-3 col-form-label">
+            <label>Tháng:</label>
+          </div>
+          <div class="col-9 ui-fluid">
+            <p-calendar maxlength="10" [locale]="vn" tabindex="0" [(ngModel)]="dateValue" view="month" dateFormat="mm/yy"
+              [yearNavigator]="true" yearRange="2000:2030" [maxDate]="maxDateValue" placeholder="{{blankDateValue}}"
+              showButtonBar="false"></p-calendar>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-6">
+        <div class="row form-group">
+          <div class="col-3 col-form-label">
+            <label>Đơn vị:</label>
+          </div>
+          <div class="col-9 ui-fluid">
+            <p-scrollPanel [style]="{'margin-left': '-25px', 'height': '200px'}">
+              <p-tree [value]="sectors" [loading]="loadingTree" (onNodeExpand)="nodeExpand($event)"
+                      [propagateSelectionUp]="false" [propagateSelectionDown]="false"  selectionMode="checkbox"
+                      [(selection)]="selectedSector" class="no-border"></p-tree>
+            </p-scrollPanel>
+          </div>
+        </div>
+      </div>
+      <div class="col-1"></div>
+    </div>
+  </p-fieldset>
+  <br>
+  <div class="text-center mb-4">
+    <button tabindex="0" type="button" pButton icon="fa fa-search" iconPos="left" label="Xem" (click)="searchData()"></button>
+    <button tabindex="0" type="button" pButton icon="fa fa-download" iconPos="left" label="Xuất file" (click)="exportExcel()"></button>
+  </div>
+  <div class="row mb-5">
+    <div class="col-12" *ngIf="report !== undefined">
+      <p-table #dt [paginator]="true" (onPage)="paginate($event)" [rows]="10" [value]="report" [scrollable]="true"
+        [style]="{width:'1110px'}" frozenWidth="calc(28rem + 1px)" class="full-width" [rows]="20" scrollHeight="450px"
+        [loading]="loading">
+        <ng-template pTemplate="frozenheader">
+          <tr>
+            <th rowspan="2" class="text-center font-weight-bold" style="width:16rem">Đơn vị</th>
+            <th rowspan="2" class="text-center font-weight-bold" style="width:12rem">Bếp</th>
+            <th colspan="31" class="text-center font-weight-bold" style="width: calc(100% - 29rem);">Tháng
+              {{searchDateValue.getMonth()
+              +1 + "/" + searchDateValue.getFullYear()}}</th>
+            <th rowspan="2" class="text-center font-weight-bold" style="width:6rem">Tổng suất</th>
+            <th rowspan="2" class="text-center font-weight-bold" style="width:6rem">Đơn giá</th>
+            <th rowspan="2" class="text-center font-weight-bold" style="width:10rem; border-right-color: rgb(200, 200, 200); border-right-style: solid; border-right-width: 1px;">Thành
+              tiền</th>
+          </tr>
+          <tr>
+            <th class="text-center" style="width:4rem">124</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="frozenbody" let-sale>
+          <tr>
+            <td class="text-left wrapText" pTextEllipsis [pTooltip]="sale.detailUnit" style="width:16rem">{{sale.unitName}}</td>
+            <td class="text-left wrapText" pTextEllipsis [pTooltip]="sale.kitchenName" style="width:12rem">{{sale.kitchenName}}</td>
+            <th style="width:1010px - 22rem">Space </th>
+            <td class="text-right wrapText" pTextEllipsis [pTooltip]="sale.total.toLocaleString('us-US', { minimumFractionDigits: 0
+              })"  style="width:6rem">{{sale.total.toLocaleString('us-US', { minimumFractionDigits: 0
+              })}}</td>
+            <td class="text-right wrapText" pTextEllipsis [pTooltip]="sale.priceEach.toLocaleString('us-US', { minimumFractionDigits: 0
+              })" style="width:6rem">{{sale.priceEach.toLocaleString('us-US', { minimumFractionDigits: 0
+              })}}</td>
+            <td class="text-right wrapText" pTextEllipsis [pTooltip]="(sale.priceEach*sale.total).toLocaleString('us-US', { minimumFractionDigits: 0
+              })" style="width:10rem; border-right-color: rgb(200, 200, 200); border-right-style: solid; border-right-width: 1px;">{{(sale.priceEach*sale.total).toLocaleString('us-US', { minimumFractionDigits: 0
+              })}}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="header">
+          <tr>
+            <th colspan="31" class="text-center font-weight-bold" style="width:93rem; opacity: 0.0;">Tháng
+              {{searchDateValue.getMonth()+1
+              + "/" + searchDateValue.getFullYear()}}</th>
+          </tr>
+          <tr>
+            <th *ngFor="let month of months" class="text-center font-weight-bold" style="width:3rem">{{month}}</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-sale>
+          <tr>
+            <td class="text-right" style="width:3rem" *ngFor="let month of sale.months">{{month || '-'}}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="footer">
+          <tr>
+            <td colspan="32" class="text-right">Tổng</td>
+            <td class="text-right wrapText" pTextEllipsis [pTooltip]="report.total.toLocaleString('us-US', { minimumFractionDigits: 0
+              })" style="width:6rem">{{report.total.toLocaleString('us-US', { minimumFractionDigits: 0
+              })}}</td>
+            <td class="text-right wrapText" style="width:6rem"></td>
+            <td class="text-right wrapText" pTextEllipsis [pTooltip]="report.money.toLocaleString('us-US', { minimumFractionDigits: 0
+              })" style="width:10rem">{{report.money.toLocaleString('us-US', { minimumFractionDigits: 0
+              })}}</td>
+          </tr>
+        </ng-template>
+        <ng-template *ngIf="totalRecords != -1" pTemplate="paginatorright">
+          <span style="position: absolute; right: 30px; bottom: 6px;">{{totalRecords == 0 ? startRow : startRow + 1}} -
+            {{startRow + rowSize > totalRecords ? totalRecords : startRow + rowSize}} / {{totalRecords}}</span>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr style="border-right-color: rgb(200, 200, 200);
+          border-right-style: solid;
+          border-right-width: 1px;"
+            class="delete">
+            <td [attr.colspan]="31">
+              Không có dữ liệu
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</div>

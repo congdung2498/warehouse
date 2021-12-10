@@ -1,0 +1,56 @@
+p-autoComplete {
+    width: 100% !important;
+}
+
+p-table {
+    text-align: center;
+}
+
+:host>>>.ui-table>.ui-table-thead>tr>th {
+    padding: 2px 3px !important;
+}
+
+:host>>>table>.ui-table-tbody>tr>td.wrapText {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+:host>>>p-paginator>.ui-paginator-bottom>.ui-paginator-pages>a {
+    margin-left: 3px !important;
+    margin-right: 3px !important;
+}
+
+:host>>>div.errorMsg>p-table>.ui-table table {
+    width: unset;
+}
+
+.customIcon {
+    position: absolute;
+    top: 9px;
+    right: 46px;
+    cursor: pointer;
+    color: #848484;
+}
+
+.customIcon2 {
+    position: absolute;
+    top: 9px;
+    right: 52px;
+    cursor: pointer;
+    color: #848484;
+}
+
+:host>>>p-autocomplete>.ui-autocomplete>.ui-autocomplete-panel {
+    max-width: inherit !important;
+    width: inherit !important;
+}
+
+.date-link {
+    color: dodgerblue;
+    cursor: pointer;
+}
+
+.ui-rating a .ui-rating-icon {
+    font-size: 40px;
+}
